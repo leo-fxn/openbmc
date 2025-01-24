@@ -91,9 +91,9 @@ static auto set_recovery_mode(bool state)
     // 0x40 -> RSVD_GPIO_1 pull high
     auto cmd = std::string("i2cset -y 11 0x21 0x32 ") + (state ? "0x00" : "0x40");
     cmd += " && sleep 1s ";
-    cmd += " && i2cset -y 11 0x21 0x00 0xF6";
+    cmd += " && i2cset -y 11 0x21 0x00 0xF7";
     cmd += " && sleep 5s";
-    cmd += " && i2cset -y 11 0x21 0x00 0xFE";
+    cmd += " && i2cset -y 11 0x21 0x00 0xFF";
     cmd += " && sleep 3s"; // mmc at least need 2s to power up
 
     std::cout << "Attempting to " << (state ? "enable" : "disable") 
@@ -609,13 +609,16 @@ void recover_mmc(const std::string& tarFile)
                   << tmpDir << std::endl;
         return;
     }
-
-    NpcmDevice npcmDevice(DEFAULT_SERIAL_PORT);
-    if (!npcmDevice.run_recovery(loaderFile.string(), updateFile.string()))
+    else
     {
-        std::cerr << "Failed to run recovery." << std::endl;
+        NpcmDevice npcmDevice(DEFAULT_SERIAL_PORT);
+        if (!npcmDevice.run_recovery(loaderFile.string(), updateFile.string()))
+        {
+            std::cerr << "Failed to run recovery." << std::endl;
+        }
     }
-
+    
+    std::cout << "Restarting pldmd.service..." << std::endl;
     rc = std::system("systemctl restart pldmd.service");
     if (rc)
     {
