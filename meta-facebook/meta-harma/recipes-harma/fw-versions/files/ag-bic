@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e
+
+eid=10
+max_retry_count=10
+retry_delay_sec=3
+
+version=""
+for ((i=1; i<=max_retry_count; i++)); do
+    version=$(
+        pldmtool fw_update GetFwParams -m $eid |
+            jq --raw-output \
+                '.ActiveComponentImageSetVersionString'
+    )
+    if [ -z "$version" ]; then
+        echo "failed to get version, retry after ${retry_delay_sec} seconds (count: ${i})"
+        sleep "$retry_delay_sec"
+    else
+        break
+    fi
+done
+
+echo "AG BIC version: $version"
+
+busctl set-property \
+    xyz.openbmc_project.Settings \
+    /xyz/openbmc_project/software/chassis/Minerva_Aegis_bic \
+    xyz.openbmc_project.Software.Version \
+    Version "s" "$version"

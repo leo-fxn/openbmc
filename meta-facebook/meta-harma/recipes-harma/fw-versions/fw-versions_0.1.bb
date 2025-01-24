@@ -17,7 +17,9 @@ FW_TOOLS = "\
     cb-cpld,system-state-init@.service,multi-user.target,multi-user.target,0 \
     mb-cpld,system-state-init@.service,multi-user.target,multi-user.target,0 \
     mb-retimer,deassert-power-good.service_host-poweron@%i.service_host-powercycle@%i.service,obmc-host-start@%i.target_obmc-host-reboot@%i.target,obmc-host-start@%i.target_obmc-host-reboot@%i.target,0 \
-    mb-vr,system-state-init@.service,multi-user.target,multi-user.target,0 \
+    mb-vr,system-state-init@.service,xyz.openbmc_project.psusensor.service,multi-user.target,0 \
+    ag-bic,system-state-init@.service,multi-user.target,multi-user.target,0 \
+    ag-vr,system-state-init@.service,multi-user.target,multi-user.target,0 \
 "
 
 LOCAL_URI = " \

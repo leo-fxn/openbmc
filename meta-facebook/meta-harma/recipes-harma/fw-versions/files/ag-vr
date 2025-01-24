@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+eid=10
+max_retry_count=10
+retry_delay_sec=3
+
+component_names=(
+    ["1"]="Minerva_Aegis_vr_osfp_p3v3"
+    ["2"]="Minerva_Aegis_vr_cpu_p0v85_pvdd"
+    ["3"]="Minerva_Aegis_vr_cpu_p0v75_pvdd_ch_n"
+    ["4"]="Minerva_Aegis_vr_cpu_p0v75_pvdd_ch_s"
+    ["5"]="Minerva_Aegis_vr_cpu_p0v75_trvdd_zonea"
+    ["6"]="Minerva_Aegis_vr_cpu_p0v75_trvdd_zoneb"
+    ["7"]="Minerva_Aegis_vr_cpu_p1v1_vddc_hbm0_2_4"
+    ["8"]="Minerva_Aegis_vr_cpu_p0v9_trvdd_zonea"
+    ["9"]="Minerva_Aegis_vr_cpu_p0v9_trvdd_zoneb"
+    ["10"]="Minerva_Aegis_vr_cpu_p1v1_vddc_hbm1_3_5"
+    ["11"]="Minerva_Aegis_vr_cpu_p0v8_vdda_pcie"
+)
+
+version=""
+for ((i=1; i<=max_retry_count; i++)); do
+    output=$(pldmtool fw_update GetFwParams -m "$eid" | 
+                jq --raw-output '.ComponentParameterEntries[] | 
+                (.ComponentIdentifier | tostring) + "#" + 
+                .ActiveComponentVersionString')
+
+    if [ -z "$output" ]; then
+        echo "pldmtool returned empty output, retry after ${retry_delay_sec} seconds (count: ${i})"
+        sleep "$retry_delay_sec"
+    else
+        while IFS="#" read -r compId version; do
+            component_name=${component_names[$compId]:-"Unknown"}
+            if [ "$component_name" == "Unknown" ]; then
+                continue
+            fi
+
+            echo "$component_name version: $version"
+
+            busctl set-property \
+                xyz.openbmc_project.Settings \
+                "/xyz/openbmc_project/software/chassis/$component_name" \
+                xyz.openbmc_project.Software.Version \
+                Version "s" "$version"
+        done <<< "$output"
+        
+        break
+    fi
+done
