@@ -57,27 +57,25 @@ struct command
                                      .service(log_entry::service)
                                      .path(path.str);
 
-                    auto resolved = co_await entry.resolved();
-                    if (resolved && arg_unresolved_only)
+                    auto properties = co_await entry.properties();
+
+                    if (properties.resolved && arg_unresolved_only)
                     {
                         info("Resolved and filtered out.");
                         co_return;
                     }
 
-                    auto& entry_json =
-                        result[std::to_string(co_await entry.id())];
+                    auto& entry_json = result[std::to_string(properties.id)];
 
-                    auto message = co_await entry.message();
-                    entry_json["message"] = message;
+                    entry_json["message"] = properties.message;
                     entry_json["severity"] =
                         sdbusplus::message::convert_to_string(
-                            co_await entry.severity());
-                    entry_json["event_id"] = co_await entry.event_id();
+                            properties.severity);
+                    entry_json["event_id"] = properties.event_id;
 
-                    auto additional_data = co_await entry.additional_data();
-                    entry_json["additional_data"] = additional_data;
-                    entry_json["resolution"] = co_await entry.resolution();
-                    entry_json["resolved"] = resolved;
+                    entry_json["additional_data"] = properties.additional_data;
+                    entry_json["resolution"] = properties.resolution;
+                    entry_json["resolved"] = properties.resolved;
 
                     auto epoch_to_iso8601 = [](auto ts) {
                         using namespace std::chrono;
@@ -87,13 +85,13 @@ struct command
                     };
 
                     entry_json["timestamp"] =
-                        epoch_to_iso8601(co_await entry.timestamp());
+                        epoch_to_iso8601(properties.timestamp);
                     entry_json["updated_timestamp"] =
-                        epoch_to_iso8601(co_await entry.update_timestamp());
+                        epoch_to_iso8601(properties.update_timestamp);
 
                     // If the event is defined in the redfish registry, map
                     // it appropriately.
-                    if (auto def = event_defs.find(message);
+                    if (auto def = event_defs.find(properties.message);
                         def != std::end(event_defs))
                     {
                         using event_t = utils::redfish_registry::event_t;
@@ -104,9 +102,10 @@ struct command
                         std::vector<std::string> args = {};
                         for (const auto& arg : std::get<event_t>(*def).args)
                         {
-                            if (additional_data.contains(arg))
+                            if (properties.additional_data.contains(arg))
                             {
-                                args.emplace_back(additional_data[arg]);
+                                args.emplace_back(
+                                    properties.additional_data[arg]);
                             }
                             else
                             {
