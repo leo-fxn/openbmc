@@ -17,13 +17,15 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 #
-from unittest import TestCase
+import unittest
 
 from utils.cit_logger import Logger
 from utils.shell_util import run_cmd
+from utils.test_utils import qemu_check
 
 
-class BaseEnclosureUtilTest(TestCase):
+@unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
+class BaseEnclosureUtilTest(unittest.TestCase):
     def setUp(self):
         Logger.start(name=self._testMethodName)
 
