@@ -7,6 +7,7 @@ FAIL_TO_UPDATE_WF_CXL_EID_DOES_NOT_EXIST=17
 FAIL_TO_UPDATE_WF_CXL_CAN_ONLY_UPDATE_ONE_BIC_AT_A_TIME=18
 FAIL_TO_UPDATE_WF_CXL_TIME_OUT_ERROR=19
 FAIL_TO_UPDATE_WF_CXL_FAIL_TO_DELETE_SOFTWARE_ID=20
+FAIL_TO_UPDATE_WF_CXL_FAIL_TO_SET_REQUESTED_ACTIVATION=21
 INVALID_INPUT=255
 
 exec 200>"$lockfile"
@@ -61,7 +62,10 @@ update_cxl() {
     sleep 1
 
     if [ "$software_id" != "" ]; then
-        busctl set-property xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$software_id" xyz.openbmc_project.Software.Activation RequestedActivation s "xyz.openbmc_project.Software.Activation.RequestedActivations.Active"
+        if ! busctl set-property xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$software_id" xyz.openbmc_project.Software.Activation RequestedActivation s "xyz.openbmc_project.Software.Activation.RequestedActivations.Active" --timeout=120 2>&1; then
+            echo "Failed to set RequestedActivation. Exit with error code: $FAIL_TO_UPDATE_PLDM_FAIL_TO_SET_REQUESTED_ACTIVATION"
+            exit "$FAIL_TO_UPDATE_PLDM_FAIL_TO_SET_REQUESTED_ACTIVATION"
+        fi
         wait_for_update_complete
         ret=$?
         if [ "$ret" -ne 0 ]; then
@@ -116,20 +120,20 @@ fi
 
 #Show all mctp eids, and check cxl eid should exist
 #The cxl eid would end with 4 or 5.
-mctp_output=$(busctl tree xyz.openbmc_project.MCTP)
+mctp_output=$(busctl tree au.com.codeconstruct.MCTP1 --timeout=120 2>&1 | grep "/au/com/codeconstruct/mctp1/networks/1/endpoints")
 echo "Check MCTP EID"
 echo "$mctp_output"
-if ! echo "$mctp_output" | grep -qE "/xyz/openbmc_project/mctp/1/$((slot_id * 10 + (instance_num == 1 ? CXL1_EID_suffix : CXL2_EID_suffix)))"; then
+if ! echo "$mctp_output" | grep -qE "/au/com/codeconstruct/mctp1/networks/1/endpoints/$((slot_id * 10 + (instance_num == 1 ? CXL1_EID_suffix : CXL2_EID_suffix)))"; then
   echo "Not allowed. The CXL EID $((slot_id * 10 + (instance_num == 1 ? CXL1_EID_suffix : CXL2_EID_suffix))) does not exist."
   exit "$FAIL_TO_UPDATE_WF_CXL_EID_DOES_NOT_EXIST"
 fi
 
 
 echo "Check if other BICs are updating"
-pldm_output=$(busctl tree xyz.openbmc_project.PLDM)
+pldm_output=$(busctl tree xyz.openbmc_project.PLDM --timeout=120)
 if echo "$pldm_output" | grep -qE "/xyz/openbmc_project/software/[0-9]+"; then
 echo "$pldm_output" | grep -E "/xyz/openbmc_project/software/[0-9]+"
-previous_software_id=$(busctl tree xyz.openbmc_project.PLDM |grep /xyz/openbmc_project/software/ | cut -d "/" -f 5)
+previous_software_id=$(echo "$pldm_output" | grep /xyz/openbmc_project/software/ | cut -d "/" -f 5)
 busctl get-property xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$previous_software_id" xyz.openbmc_project.Software.ActivationProgress Progress --timeout=120 > /dev/null
 ret=$?
     if [ "$ret" -eq 0 ]; then
@@ -141,7 +145,7 @@ fi
 
 update_cxl "$pldm_image"
 
-busctl call xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$software_id" xyz.openbmc_project.Object.Delete Delete
+busctl call xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$software_id" xyz.openbmc_project.Object.Delete Delete --timeout=120 2>&1
 ret=$?
 if [ "$ret" -ne 0 ]; then
 echo "Failed to delete software id: Exit code $ret"

@@ -10,8 +10,8 @@ for pos in 1 2; do
     eid=$((10 * slot + pos + 3))
 
     if ! busctl get-property \
-            xyz.openbmc_project.MCTP "/xyz/openbmc_project/mctp/1/$eid" \
-            xyz.openbmc_project.MCTP.Endpoint EID ; then
+            au.com.codeconstruct.MCTP1 "/au/com/codeconstruct/mctp1/networks/1/endpoints/$eid" \
+            xyz.openbmc_project.MCTP.Endpoint EID --timeout=120 2>&1; then
         echo "CXL $pos not active"
         continue
     fi
@@ -49,7 +49,7 @@ for pos in 1 2; do
                 xyz.openbmc_project.Settings \
                 "/xyz/openbmc_project/software/host$slot/Wailua_Falls_cxl_$pos" \
                 xyz.openbmc_project.Software.Version \
-                Version "s" "$version"
+                Version "s" "$version" --timeout=120 2>&1
 
             break
         fi
