@@ -18,6 +18,11 @@ auto load() -> std::unordered_map<message_id_t, event_t>
 
     std::unordered_map<message_id_t, event_t> result;
 
+    if (!std::filesystem::exists(registry_directory))
+    {
+        return result;
+    }
+
     for (auto& file : std::filesystem::recursive_directory_iterator(
              std::filesystem::path(registry_directory)))
     {
