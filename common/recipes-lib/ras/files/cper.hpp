@@ -35,7 +35,56 @@ constexpr auto INVALID_ID = 0xFF;
 constexpr auto INVALID_ERROR_DESC = "None";
 
 using SectionHandler = int(*)(const nlohmann::ordered_json&, const nlohmann::ordered_json&, std::string&);
-using SectionHandlerMap = std::unordered_map<std::string, SectionHandler>;
+
+struct SectionHandlerEntry
+{
+    std::string type;
+    std::string typeShortName;
+    SectionHandler handler;
+};
+
+class SectionHandlerRegistry {
+  public:
+    explicit SectionHandlerRegistry(
+        std::initializer_list<SectionHandlerEntry> initList)
+    {
+        handlers.insert(handlers.end(), initList.begin(), initList.end());
+    }
+
+    void addHandlerEntry(const std::string& type,
+                         const std::string& typeShortName,
+                         SectionHandler handler)
+    {
+        auto it = std::find_if(handlers.begin(), handlers.end(),
+                               [&type](const SectionHandlerEntry& entry) {
+                                   return entry.type == type;
+                               });
+
+        if (it != handlers.end())
+        {
+            // replace a handler if the type already exists
+            it->typeShortName = typeShortName;
+            it->handler = handler;
+        }
+        else
+        {
+            handlers.push_back({type, typeShortName, handler});
+        }
+    }
+
+    SectionHandlerEntry* findHandlerEntry(const std::string& type)
+    {
+        auto it = std::find_if(handlers.begin(), handlers.end(),
+                               [&type](const SectionHandlerEntry& entry) {
+                                   return entry.type == type;
+                               });
+
+        return (it != handlers.end()) ? &(*it) : nullptr;
+    }
+
+  private:
+    std::vector<SectionHandlerEntry> handlers;
+};
 
 enum CperHandleCodes
 {
@@ -51,7 +100,7 @@ enum UnifiedErrorType
 };
 
 std::string formatHex(uint32_t value, int width = 2);
-int addOemSectionHandlerMap(SectionHandlerMap& sectionHandlerMap);
+int registerOemSectionHandlers(SectionHandlerRegistry& registry);
 int parseCperFile(const std::string& file, std::vector<std::string>& entries);
 int createCperDumpEntry(const uint8_t& payloadId, 
                         const uint8_t* data, const size_t& dataSize);

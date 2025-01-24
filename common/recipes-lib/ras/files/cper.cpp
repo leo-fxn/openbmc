@@ -215,7 +215,7 @@ static std::string formatNvidiaSEL(const std::string& sectionType,
 {
   int errorType = sectionData["errorType"];
   int instanceBase = sectionData["errorInstance"];
-  int numberRegs = sectionData["numberRegs"];
+  int registerCount = sectionData["registerCount"];
   std::string signature = sectionData["signature"];
   uint32_t regValue = 0;
 
@@ -226,7 +226,7 @@ static std::string formatNvidiaSEL(const std::string& sectionType,
       << "Error Type: 0x" << formatHex(errorType) << ", "
       << "Instance Base: 0x" << formatHex(instanceBase);
 
-  for (int reg = 0; reg < numberRegs; ++reg)
+  for (int reg = 0; reg < registerCount; ++reg)
   {
     regValue = sectionData["registers"][reg]["value"];
     oss << ", Reg" << reg + 1 << " value: 0x" << formatHex(regValue);
@@ -372,7 +372,7 @@ static int nvidiaSectionHandler(const ordered_json& sectionDescriptor,
 
   if (!sectionDescriptor.contains("severity") ||
       !sectionData.contains("severity") ||
-      !sectionData.contains("numberRegs") ||
+      !sectionData.contains("registerCount") ||
       !sectionData.contains("registers"))
   {
     return CPER_HANDLE_FAIL;
@@ -413,50 +413,52 @@ static int nvidiaSectionHandler(const ordered_json& sectionDescriptor,
 }
 
 int __attribute__((weak))
-addOemSectionHandlerMap(SectionHandlerMap& sectionHandlerMap)
+registerOemSectionHandlers(SectionHandlerRegistry& registry)
 {
   // override this function if you need to replace an existing handler
   // or add OEM-defined sections.
   return CPER_HANDLE_SUCCESS;
 }
 
-static SectionHandlerMap getSectionHandler()
+static SectionHandlerRegistry getSectionHandlerRegistry()
 {
-  SectionHandlerMap sectionHandlerMap = {
-    {"ARM", processorSectionHandler},
-    {"Platform Memory", memorySectionHandler},
-    {"PCIe", pcieSectionHandler},
-    {"NVIDIA", nvidiaSectionHandler},
-  };
+  SectionHandlerRegistry registry({
+    {"ARM", "ArmProcessor", processorSectionHandler},
+    {"Platform Memory", "Memory", memorySectionHandler},
+    {"PCIe", "Pcie", pcieSectionHandler},
+    {"NVIDIA", "Nvidia", nvidiaSectionHandler},
+  });
 
-  addOemSectionHandlerMap(sectionHandlerMap);
+  registerOemSectionHandlers(registry);
 
-  return sectionHandlerMap;
+  return registry;
 }
 
 std::string handleSectionData(const ordered_json& sectionDescriptor,
                               const ordered_json& sectionData)
 {
-  auto sectionHandlerMap = getSectionHandler();
+  auto registry = getSectionHandlerRegistry();
   std::string sectionType = sectionDescriptor["sectionType"]["type"];
   std::string severity = sectionDescriptor["severity"]["name"];
   std::string errorMsg;
 
-  auto it = sectionHandlerMap.find(sectionType);
-  if (it != sectionHandlerMap.end())
+  auto entry = registry.findHandlerEntry(sectionType);
+  if (entry)
   {
     try
     {
-      if (it->second(sectionDescriptor, sectionData, errorMsg))
+      const auto& typeSectionData = sectionData[entry->typeShortName];
+      if (entry->handler(sectionDescriptor, typeSectionData, errorMsg) == 
+          CPER_HANDLE_SUCCESS)
       {
-        throw std::runtime_error("Invalid Section Data Format");
+        return errorMsg;
       }
-      return errorMsg;
+      errorMsg = "Invalid Section Data Format";
     }
     catch(const std::exception& err)
     {
-      errorMsg = "Invalid Section Data Format";
-      syslog(LOG_ERR, "Failed to handle section data. %s", err.what());
+      errorMsg = "Failed to handle CPER section data";
+      syslog(LOG_ERR, "%s, %s", errorMsg.c_str(), err.what());
     }
   }
   else
