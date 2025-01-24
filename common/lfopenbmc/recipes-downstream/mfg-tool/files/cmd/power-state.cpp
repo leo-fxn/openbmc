@@ -106,6 +106,7 @@ struct command
             {HostState::TransitioningToOff, "transition-off"},
             {HostState::Running, "on"},
             {HostState::TransitioningToRunning, "transition-on"},
+            {HostState::Quiesced, "quiesced"},
         };
 
         if (!values.contains(state))
