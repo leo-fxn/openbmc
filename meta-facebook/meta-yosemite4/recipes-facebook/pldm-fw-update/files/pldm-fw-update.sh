@@ -807,22 +807,18 @@ elif [ $# -eq 3 ] && [[ "$2" =~ ^[1-8]+$ ]]; then
 		echo "Initiate SD BIC update"
 	elif [ "$bic_name" == "wf" ]; then
 		echo "Initiate WF BIC update"
+	elif [ "$bic_name" == "sd_retimer" ]; then
+		echo "Initiate SD Retimer update"
+		check_if_no_retimer_sku "$slot_id"
+		exit_code=$?
+		if [ $exit_code -eq $NO_RETIMER_ON_THE_FRU ]; then
+			echo "Retimer update failed, no retimer on the slot${slot_id}."
+			exit $exit_code
+		elif [ $exit_code -ne 0 ]; then
+			exit $exit_code
+		fi
 	fi
 	pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
-	pldm_image="${pldm_image}_re_wrapped"
-	retry_firmware_operation
-elif [ $# -eq 3 ] && [ "$bic_name" == "sd_retimer" ]; then
-	slot_id=$2
-	check_if_no_retimer_sku "$slot_id"
-	exit_code=$?
-	if [ $exit_code -eq $NO_RETIMER_ON_THE_FRU ]; then
-		echo "Retimer update failed, no retimer on the slot${FRU#slot}."
-		exit $exit_code
-	elif [ $exit_code -ne 0 ]; then
-		exit $exit_code
-	fi
-	echo "Initiate SD Retimer update"
-	pldm-package-re-wrapper bic -s "$slot_id" -f "$3"
 	pldm_image="${pldm_image}_re_wrapped"
 	retry_firmware_operation
 else
