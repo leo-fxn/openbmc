@@ -1,0 +1,10 @@
+[Unit]
+Description=Check and remediate if sshd is failing
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/sshd-remediate
+
+[Install]
+WantedBy=multi-user.target
+

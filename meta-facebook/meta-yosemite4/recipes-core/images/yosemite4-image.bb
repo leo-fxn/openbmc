@@ -11,3 +11,5 @@ IMAGE_INSTALL:append = " yaap"
 IMAGE_INSTALL:append = " compute-software-id"
 IMAGE_INSTALL:append = " fw-versions"
 IMAGE_INSTALL:append = " pmic-error-injection"
+# Added as temp memory bloat remediation T213223725
+IMAGE_INSTALL:append = " sshd-remediate"
