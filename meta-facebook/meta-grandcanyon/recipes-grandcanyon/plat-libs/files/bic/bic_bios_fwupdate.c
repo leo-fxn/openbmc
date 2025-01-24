@@ -201,12 +201,12 @@ update_bic_bios(uint8_t comp, char *image, uint8_t force) {
 
   // Set the remain bytes of image to 0xFF
   FILE *image_file = fopen(image, "ab");
-  
+
   if (image_file == NULL) {
     syslog(LOG_ERR, "%s: Update firmware failed because fail to open image, error: %s", __func__, strerror(errno));
     goto error_exit;
   }
-  
+
   initial_buf[0] = INITIAL_BYTE;
   while (remain > 0) {
     if ((fwrite(initial_buf, sizeof(unsigned char), 1, image_file)) != sizeof(unsigned char)) {
@@ -354,7 +354,7 @@ bic_dump_bios_fw(char *path) {
     }
 
     // Write to file
-    count = write(fd, &buf[3], rlen);
+    count = write(fd, &buf[3], rlen-3);
     if (count <= 0) {
       ret = -1;
       goto error_exit;
