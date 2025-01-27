@@ -1,10 +1,11 @@
-From 0c8b3afa7806fe3c62601702ea0b098ff2cff6c0 Mon Sep 17 00:00:00 2001
+From d7cf602f2c85a6332c0e53cebd95001c29e63184 Mon Sep 17 00:00:00 2001
 From: Jason Hsu <jason-hsu@quantatw.com>
 Date: Fri, 29 Nov 2024 10:23:54 +0800
 Subject: [PATCH] meta-facebook: ventura: Add Linux device tree related to
  Meta(Facebook) Ventura patch.
 
 Signed-off-by: Jason Hsu <jason-hsu@quantatw.com>
+LORE: https://lore.kernel.org/lkml/20241127073409.147714-3-jason-hsu@quantatw.com/
 ---
  arch/arm/boot/dts/aspeed/Makefile             |   1 +
  .../aspeed/aspeed-bmc-facebook-ventura.dts    | 877 ++++++++++++++++++
@@ -12,14 +13,17 @@ Signed-off-by: Jason Hsu <jason-hsu@quantatw.com>
  create mode 100644 arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
 
 diff --git a/arch/arm/boot/dts/aspeed/Makefile b/arch/arm/boot/dts/aspeed/Makefile
-index 75559ea6024a..0f512e6ce4a9 100644
+index 2e5f4833a073..e07666d902fb 100644
 --- a/arch/arm/boot/dts/aspeed/Makefile
 +++ b/arch/arm/boot/dts/aspeed/Makefile
-@@ -72,3 +72,4 @@ dtb-$(CONFIG_ARCH_ASPEED) += \
- 	aspeed-bmc-vegman-n110.dtb \
- 	aspeed-bmc-vegman-rx20.dtb \
- 	aspeed-bmc-vegman-sx20.dtb
-+dtb-$(CONFIG_ARCH_ASPEED) += aspeed-bmc-facebook-ventura.dtb
+@@ -28,6 +28,7 @@ dtb-$(CONFIG_ARCH_ASPEED) += \
+ 	aspeed-bmc-facebook-minerva.dtb \
+ 	aspeed-bmc-facebook-minipack.dtb \
+ 	aspeed-bmc-facebook-tiogapass.dtb \
++	aspeed-bmc-facebook-ventura.dtb \
+ 	aspeed-bmc-facebook-wedge40.dtb \
+ 	aspeed-bmc-facebook-wedge100.dtb \
+ 	aspeed-bmc-facebook-wedge400.dtb \
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
 new file mode 100644
 index 000000000000..8bbb7e88bc3c
@@ -904,5 +908,5 @@ index 000000000000..8bbb7e88bc3c
 +	aspeed,ext-pulse-duration = <256>;
 +};
 -- 
-2.34.1
+2.44.2
 
