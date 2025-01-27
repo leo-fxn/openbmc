@@ -21,7 +21,7 @@
     },
     "nic": {
         "nic": {
-            "version header": "^.*NIC version.*$"
+            "version header": "^(Mellanox|Broadcom) .*NIC Version.*$"
         }
     },
     "scc": {
