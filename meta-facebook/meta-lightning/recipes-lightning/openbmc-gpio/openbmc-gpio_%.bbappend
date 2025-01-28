@@ -20,12 +20,12 @@ CFLAGS += " -Wall -Werror "
 
 DEPENDS:append = "update-rc.d-native"
 
-SRC_URI += " \
-          file://openbmc-gpio-1/board_gpio_table.py \
-          file://openbmc-gpio-1/board_passthrough_gpio_table.py \
-          file://openbmc-gpio-1/board_tolerance_gpio_table.py \
-          file://openbmc-gpio-1/openbmc_gpio_setup.py \
-          file://openbmc-gpio-1/setup_board.py \
+LOCAL_URI += " \
+          file://board_gpio_table.py \
+          file://board_passthrough_gpio_table.py \
+          file://board_tolerance_gpio_table.py \
+          file://openbmc_gpio_setup.py \
+          file://setup_board.py \
           "
 OPENBMC_GPIO_SOC_TABLE = "ast2400_gpio_table.py"
 

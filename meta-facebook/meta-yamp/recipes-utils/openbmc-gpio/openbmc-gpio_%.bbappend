@@ -17,11 +17,11 @@
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += " \
-          file://openbmc-gpio-1/board_gpio_table_p1.py \
-          file://openbmc-gpio-1/board_gpio_rev_table.py \
-          file://openbmc-gpio-1/openbmc_gpio_setup.py \
-          file://openbmc-gpio-1/setup_board.py \
+LOCAL_URI += " \
+          file://board_gpio_table_p1.py \
+          file://board_gpio_rev_table.py \
+          file://openbmc_gpio_setup.py \
+          file://setup_board.py \
           "
 OPENBMC_GPIO_SOC_TABLE = "ast2500_gpio_table.py"
 DEPENDS += "update-rc.d-native"

@@ -20,22 +20,23 @@ SECTION = "base"
 LICENSE = "GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://COPYING;md5=eb723b61539feef013de476e68b5c50a"
 
-SRC_URI = " \
-    file://openbmc-gpio-1/COPYING \
-    file://openbmc-gpio-1/board_gpio_table.py \
-    file://openbmc-gpio-1/board_passthrough_gpio_table.py \
-    file://openbmc-gpio-1/board_tolerance_gpio_table.py \
-    file://openbmc-gpio-1/openbmc_gpio.py \
-    file://openbmc-gpio-1/openbmc_gpio_table.py \
-    file://openbmc-gpio-1/openbmc_gpio_util.py \
-    file://openbmc-gpio-1/phymemory.py \
-    file://openbmc-gpio-1/setup.py \
-    file://openbmc-gpio-1/soc_gpio.py \
-    file://openbmc-gpio-1/soc_gpio_table.py \
-    file://openbmc-gpio-1/setup_board.py \
+LOCAL_URI = " \
+    file://COPYING \
+    file://board_gpio_table.py \
+    file://board_passthrough_gpio_table.py \
+    file://board_tolerance_gpio_table.py \
+    file://openbmc_gpio.py \
+    file://openbmc_gpio_table.py \
+    file://openbmc_gpio_util.py \
+    file://phymemory.py \
+    file://setup.py \
+    file://soc_gpio.py \
+    file://soc_gpio_table.py \
+    file://setup_board.py \
     "
 
-S = "${WORKDIR}/openbmc-gpio-1"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 OPENBMC_GPIO_UTILS = " \
     openbmc_gpio_util.py \
@@ -51,10 +52,10 @@ RDEPENDS:${PN} = "python3-core"
 
 do_board_defined_soc_table() {
     if [ "${OPENBMC_GPIO_SOC_TABLE}" != "soc_gpio_table.py" ]; then
-        mv -f "${S}/${OPENBMC_GPIO_SOC_TABLE}" "${S}/soc_gpio_table.py"
+        mv -f "${UNPACKDIR}/${OPENBMC_GPIO_SOC_TABLE}" "${UNPACKDIR}/soc_gpio_table.py"
     fi
 }
-addtask board_defined_soc_table after do_unpack before do_build
+addtask board_defined_soc_table after do_unpack before do_compile
 
 do_install:append() {
     localbindir="${D}/usr/local/bin"
@@ -64,3 +65,4 @@ do_install:append() {
     done
 }
 
+FILES:${PN} += "/usr/local/bin"

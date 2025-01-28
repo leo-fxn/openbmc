@@ -17,8 +17,8 @@
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += " \
-    file://openbmc-gpio-1/soc_gpio.py \
-    file://openbmc-gpio-1/ast2400_gpio_table.py \
-    file://openbmc-gpio-1/ast2500_gpio_table.py \
+LOCAL_URI += " \
+    file://soc_gpio.py \
+    file://ast2400_gpio_table.py \
+    file://ast2500_gpio_table.py \
     "

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright 2015-present Facebook. All rights reserved.
 #
 # This program file is free software; you can redistribute it and/or modify it
@@ -94,7 +95,6 @@ def main():
     setup_board_gpio(soc_gpio_table, board_gpio_table)
     setup_board_gpio(soc_passthrough_gpio_table, board_passthrough_gpio_table)
     setup_board_tolerance_gpio(board_tolerance_gpio_table, board_gpioOffsetDic)
-
     print("Done")
     sys.stdout.flush()
     return 0
