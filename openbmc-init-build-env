@@ -56,12 +56,12 @@ PLAT_DISTRO_OVERRIDES=(
   meta-tahan:lf-master
   meta-ventura:lf-master
   meta-waimeacanyon:lf-master
+  meta-wedge100:lf-master
   meta-yosemite4:lf-master
 # dunfell platforms (pending upgrade)
   meta-cmm:lf-dunfell
   meta-galaxy100:lf-dunfell
   meta-wedge:lf-dunfell
-  meta-wedge100:lf-dunfell
   meta-wedge400:lf-dunfell
   meta-yamp:lf-dunfell
 # Legacy platforms pending kernel upgrade
