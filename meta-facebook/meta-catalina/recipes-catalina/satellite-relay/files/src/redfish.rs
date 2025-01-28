@@ -67,8 +67,11 @@ pub struct EventRecord {
     // not include it.
     pub message: Option<String>,
     pub message_id: Option<String>,
-    pub message_severity: Option<Health>,
-    pub severity: Option<Health>,
+    // FIXME: HMC events don't always follow the Redfish spec for the severity
+    // enum [`Health`](https://fburl.com/xed7p628), so we manually attempt
+    // to decode them and fallback to a default value.
+    pub message_severity: Option<serde_json::Value>,
+    pub severity: Option<serde_json::Value>,
     // NOTE: Everything else just gets recorded as AdditionalData in when the
     // corresponding log is created.
     #[serde(flatten)]
@@ -94,17 +97,10 @@ pub enum EventFormatType {
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Health {
-    #[default]
-    Invalid,
     OK,
     Warning,
+    #[default]
     Critical,
-    // FIXME: This is definitely *not* a valid variant of the Health enum used
-    // in the MessageSeverity field of events, but some basic events from the
-    // HMC (like, reset events) seem to accidentally use the phosphor-logging
-    // level here. After reporting and fixing this in HMC firmware, we should
-    // remove this variant.
-    Informational,
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Deserialize, Serialize)]
@@ -235,5 +231,18 @@ impl Client {
             warn!("-X DELETE {url} returned text: {text}");
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_hmc_schema_violations() {
+        let record = json!({"MessageSeverity": "Fatal"});
+        let record = serde_json::from_value::<EventRecord>(record).unwrap();
+        assert_eq!(record.message_severity, Some(json!("Fatal")));
     }
 }

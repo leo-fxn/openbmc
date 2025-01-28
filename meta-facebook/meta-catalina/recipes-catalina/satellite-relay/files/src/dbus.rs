@@ -3,6 +3,7 @@
 use anyhow::Context;
 use serde::Deserialize;
 use serde::Serialize;
+use tracing::error;
 use zbus::zvariant::OwnedObjectPath;
 
 use std::collections::HashMap;
@@ -172,8 +173,16 @@ impl<'a> TryFrom<&'a rf::EventRecord> for SystemEventLog {
         let message_id = record.message_id.as_deref().unwrap_or_default().to_string();
         let severity = record
             .message_severity
-            .or(record.severity)
-            .unwrap_or_default();
+            .as_ref()
+            .or(record.severity.as_ref())
+            .and_then(|v| match serde_json::from_value(v.to_owned()) {
+                Ok(v) => Some(v),
+                Err(e) => {
+                    error!("Invalid severity, defaulting to Critical: {e:?}");
+                    None
+                }
+            })
+            .unwrap_or(rf::Health::Critical);
 
         let mut additional_data = HashMap::with_capacity(record.additional_data.len());
 
@@ -201,8 +210,7 @@ impl<'a> TryFrom<&'a rf::EventRecord> for SystemEventLog {
         }
 
         let severity = match severity {
-            rf::Health::Invalid => Level::Error,
-            rf::Health::OK | rf::Health::Informational => Level::Informational,
+            rf::Health::OK => Level::Informational,
             rf::Health::Warning => Level::Warning,
             rf::Health::Critical => Level::Critical,
         };
