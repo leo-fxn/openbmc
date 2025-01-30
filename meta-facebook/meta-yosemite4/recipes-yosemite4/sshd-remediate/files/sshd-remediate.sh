@@ -14,6 +14,14 @@ function log_sel {
     xyz.openbmc_project.Logging.Entry.Level.Error 0
 }
 
+function exit_early_if_low_uptime {
+    UPTIME=$(/usr/bin/awk '{printf "%d\n",$1}' /proc/uptime)
+    if [ $UPTIME -lt $((60 * 60 * 3)) ]; then
+        echo "Not rebooting; uptime less than 3 hours"
+        exit 0
+    fi
+}
+
 function fail_ssh_check {
   if [[ ! -f "$FAIL_STAMP" ]]; then
     touch $FAIL_STAMP
@@ -21,6 +29,7 @@ function fail_ssh_check {
   AGE=$(($(date +%s) - $(stat -c %Y "$FAIL_STAMP")))
   echo "Failing for $AGE seconds"
   if [[ $AGE -gt $FAIL_THRESHOLD ]]; then
+    exit_early_if_low_uptime
     log_sel "[sshd-remediate] Rebooting OOB due to continued ssh banner failure"
     /usr/sbin/reboot
   fi
