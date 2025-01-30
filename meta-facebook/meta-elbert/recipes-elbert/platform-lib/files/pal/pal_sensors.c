@@ -3415,7 +3415,7 @@ sensor_thresh_array_init(uint8_t fru) {
       psu_sensor_threshold[PSU1_POUT + (i * PSU_SENSOR_COUNT)][LCR_THRESH] = 0; // unset
       psu_sensor_threshold[PSU1_POUT + (i * PSU_SENSOR_COUNT)][UNC_THRESH] = 0; // unset
       psu_sensor_threshold[PSU1_POUT + (i * PSU_SENSOR_COUNT)][LNC_THRESH] = 0; // unset
-      psu_sensor_threshold[PSU1_IIN + (i * PSU_SENSOR_COUNT)][UCR_THRESH] = 14;
+      psu_sensor_threshold[PSU1_IIN + (i * PSU_SENSOR_COUNT)][UCR_THRESH] = 60;
       psu_sensor_threshold[PSU1_IIN + (i * PSU_SENSOR_COUNT)][LCR_THRESH] = 0; // unset
       psu_sensor_threshold[PSU1_IIN + (i * PSU_SENSOR_COUNT)][UNC_THRESH] = 0; // unset
       psu_sensor_threshold[PSU1_IIN + (i * PSU_SENSOR_COUNT)][LNC_THRESH] = 0; // unset
