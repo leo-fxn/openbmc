@@ -1519,6 +1519,612 @@ paths:
                     properties:
                       value:
                         type: string
+                  HGX_HSC_0_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_1_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_2_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_3_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_4_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_5_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_6_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_7_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_8_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_9_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Standby_HSC_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Total_GPU_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Altitude_Pressure0_P:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_FPGA_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_1_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_2_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_3_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_4_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_5_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_6_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_7_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_8_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_HSC_9_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Standby_HSC_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Inlet_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Inlet_1_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCB_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCB_1_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCB_2_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCB_3_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_1_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_2_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_3_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_4_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_5_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_6_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeRetimer_7_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_1_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_2_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_3_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_4_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_5_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_6_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_7_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_ENRGY_J:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_VOL_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_TEMP_0_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_TEMP_1_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_DRAM_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_GPU_SXM_8_DRAM_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_NVSwitch_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_NVSwitch_1_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_Total_HSC_Power_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_PCIeSwitch_0_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_NVSwitch_2_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HGX_NVSwitch_3_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                   NIC0_MEZZ0_TEMP_C:
                     type: object
                     additionalProperties: false
@@ -1711,6 +2317,18 @@ paths:
                     properties:
                       value:
                         type: string
+                  VPDB_MEDUSA0_POSITIVE_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  VPDB_MEDUSA0_RETURN_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                   HPDB_HSC1_VIN_VOLT_V:
                     type: object
                     additionalProperties: false
@@ -1766,6 +2384,30 @@ paths:
                       value:
                         type: string
                   HPDB_HSC2_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA1_POSITIVE_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA1_RETURN_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA2_POSITIVE_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA2_RETURN_VDROP_V:
                     type: object
                     additionalProperties: false
                     properties:
@@ -1958,6 +2600,12 @@ paths:
                       value:
                         type: string
                   FAN_BP2_FAN15_OUTLET_SPEED_RPM:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  SYSTEM_POWER_W:
                     type: object
                     additionalProperties: false
                     properties:
@@ -2282,12 +2930,6 @@ paths:
                       value:
                         type: string
                   UBB_GPU_WARMEST_MEM_TEMP_C:
-                    type: object
-                    additionalProperties: false
-                    properties:
-                      value:
-                        type: string
-                  SYSTEM_POWER_W:
                     type: object
                     additionalProperties: false
                     properties:

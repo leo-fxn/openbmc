@@ -79,6 +79,30 @@ paths:
                     properties:
                       value:
                         type: string
+                  HPDB_MEDUSA1_POSITIVE_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA1_RETURN_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA2_POSITIVE_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  HPDB_MEDUSA2_RETURN_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
               Actions:
                 type: array
                 items:

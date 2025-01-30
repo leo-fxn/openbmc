@@ -109,6 +109,18 @@ paths:
                     properties:
                       value:
                         type: string
+                  VPDB_MEDUSA0_POSITIVE_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  VPDB_MEDUSA0_RETURN_VDROP_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
               Actions:
                 type: array
                 items:
