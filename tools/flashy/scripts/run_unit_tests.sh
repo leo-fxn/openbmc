@@ -38,7 +38,7 @@ all_packages=$(go list ./...)
 echo "Getting list of tests..." >&2
 for pkg in $all_packages
 do
-    pkg_tests=$(go test "${pkg}" -list .* | grep Test || true)
+    pkg_tests=$(go test "${pkg}" -list ".*" | grep Test || true)
     for pkg_test in $pkg_tests
     do
         all_test_cmds+=("go test -v ${pkg} -run \"^${pkg_test}$\"")
