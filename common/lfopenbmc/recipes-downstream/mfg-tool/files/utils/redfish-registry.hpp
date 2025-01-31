@@ -12,6 +12,7 @@ struct event_t
 {
     message_id_t id;
     std::vector<std::string> args;
+    std::string message = "";
 };
 
 /** Load the Redfish Registries and get the map from OpenBMC Message ID to

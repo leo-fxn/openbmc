@@ -63,7 +63,7 @@ auto load() -> std::unordered_map<message_id_t, event_t>
                 continue;
             }
 
-            event_t e = {prefix + '.' + message, {}};
+            event_t e = {prefix + '.' + message, {}, value["Message"]};
             for (const auto& arg : mapping["Args"])
             {
                 e.args.push_back(arg["Name"]);

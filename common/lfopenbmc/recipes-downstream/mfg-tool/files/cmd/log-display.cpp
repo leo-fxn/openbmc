@@ -112,8 +112,24 @@ struct command
                                 args.emplace_back("");
                             }
                         }
-                        redfish["args"] = std::move(args);
 
+                        if (auto message = std::get<event_t>(*def).message;
+                            !message.empty())
+                        {
+                            for (size_t i = args.size(); i > 0; --i)
+                            {
+                                auto tag = "%" + std::to_string(i);
+                                if (auto pos = message.find(tag);
+                                    pos != std::string::npos)
+                                {
+                                    message.replace(pos, tag.size(),
+                                                    args[i - 1]);
+                                }
+                            }
+                            redfish["message"] = std::move(message);
+                        }
+
+                        redfish["args"] = std::move(args);
                         entry_json["redfish"] = std::move(redfish);
                     }
                 }
