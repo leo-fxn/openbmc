@@ -51,8 +51,8 @@ struct command
 
                 if (arg_position && !pwm_name.contains(*arg_position))
                 {
-                    info("Skipping {PATH} due to position mismatch.", "PATH",
-                         path);
+                    debug("Skipping {PATH} due to position mismatch.", "PATH",
+                          path);
                     co_return;
                 }
 
@@ -102,8 +102,8 @@ struct command
 
                 if (arg_position && !tach_name.contains(*arg_position))
                 {
-                    info("Skipping {PATH} due to position mismatch.", "PATH",
-                         path);
+                    debug("Skipping {PATH} due to position mismatch.", "PATH",
+                          path);
                     co_return;
                 }
 

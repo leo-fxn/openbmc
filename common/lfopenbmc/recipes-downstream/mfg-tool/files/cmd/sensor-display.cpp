@@ -33,7 +33,7 @@ struct command
     {
         auto result = json::empty_map();
 
-        info("Finding sensor entries.");
+        debug("Finding sensor entries.");
         co_await utils::mapper::subtree_for_each(
             ctx, sensor::ns_path, sensor::interface,
 
@@ -72,7 +72,7 @@ struct command
                 }
             });
 
-        info("Finding HardShutdown thresholds");
+        debug("Finding HardShutdown thresholds");
         co_await utils::mapper::subtree_for_each(
             ctx, sensor::ns_path, sensor::hard_shutdown::interface,
 
@@ -108,7 +108,7 @@ struct command
                 }
             });
 
-        info("Finding Critical thresholds");
+        debug("Finding Critical thresholds");
         co_await utils::mapper::subtree_for_each(
             ctx, sensor::ns_path, sensor::critical::interface,
 
@@ -144,7 +144,7 @@ struct command
                 }
             });
 
-        info("Finding Warning thresholds");
+        debug("Finding Warning thresholds");
         co_await utils::mapper::subtree_for_each(
             ctx, sensor::ns_path, sensor::warning::interface,
 
@@ -179,7 +179,7 @@ struct command
                 }
             });
 
-        info("Finding sensor threshold entries.");
+        debug("Finding sensor threshold entries.");
         co_await utils::mapper::subtree_for_each(
             ctx, sensor::ns_path, threshold::interface,
 
@@ -225,7 +225,7 @@ struct command
                 }
             });
 
-        info("Finding metric entries.");
+        debug("Finding metric entries.");
         co_await utils::mapper::subtree_for_each(
             ctx, metric::ns_path, metric::interface,
 
@@ -266,7 +266,7 @@ struct command
                 }
             });
 
-        info("Finding metric threshold entries.");
+        debug("Finding metric threshold entries.");
         co_await utils::mapper::subtree_for_each(
             ctx, metric::ns_path, threshold::interface,
 

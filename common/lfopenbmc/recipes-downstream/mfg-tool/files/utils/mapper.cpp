@@ -75,8 +75,8 @@ auto subtree_for_each(
             }
         }
 
-        info("Examining {INTERFACE} at {PATH}.", "INTERFACE", interface, "PATH",
-             path);
+        debug("Examining {INTERFACE} at {PATH}.", "INTERFACE", interface,
+              "PATH", path);
         co_await coroutine(path, services[0]);
     }
 }
@@ -100,8 +100,8 @@ auto subtree_for_each_interface(
         {
             for (const auto& iface : interfaces)
             {
-                info("Examining {INTERFACE} at {PATH} by {SERVICE}",
-                     "INTERFACE", interface, "PATH", path, "SERVICE", service);
+                debug("Examining {INTERFACE} at {PATH} by {SERVICE}",
+                      "INTERFACE", interface, "PATH", path, "SERVICE", service);
                 co_await coroutine(path, service, iface);
             }
         }

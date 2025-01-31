@@ -24,7 +24,7 @@ struct command
 
         try
         {
-            info("Calling DeleteAll on Logging service");
+            debug("Calling DeleteAll on Logging service");
             co_await delete_all::Proxy(ctx)
                 .service(log_entry::service)
                 .path(log_entry::ns_path)

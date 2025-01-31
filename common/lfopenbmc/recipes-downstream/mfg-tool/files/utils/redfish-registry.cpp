@@ -14,7 +14,7 @@ namespace mfgtool::utils::redfish_registry
 auto load() -> std::unordered_map<message_id_t, event_t>
 {
     PHOSPHOR_LOG2_USING;
-    info("Loading registries from {PATH}", "PATH", registry_directory);
+    debug("Loading registries from {PATH}", "PATH", registry_directory);
 
     std::unordered_map<message_id_t, event_t> result;
 

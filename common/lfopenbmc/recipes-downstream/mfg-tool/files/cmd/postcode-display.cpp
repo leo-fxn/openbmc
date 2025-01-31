@@ -44,7 +44,7 @@ struct command
             co_return;
         }
 
-        info("Getting postcode entries from {SERVICE}.", "SERVICE", *service);
+        debug("Getting postcode entries from {SERVICE}.", "SERVICE", *service);
         auto proxy = host::postcode::Proxy(ctx).service(*service).path(path);
         auto raw_postcodes = co_await proxy.get_post_codes(1);
 

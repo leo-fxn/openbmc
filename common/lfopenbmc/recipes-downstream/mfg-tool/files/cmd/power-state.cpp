@@ -47,7 +47,8 @@ struct command
                 auto state =
                     mapChassisState(co_await proxy.current_power_state());
 
-                info("State for {PATH}: {STATE}", "PATH", path, "STATE", state);
+                debug("State for {PATH}: {STATE}", "PATH", path, "STATE",
+                      state);
                 auto id = path.str.substr(pathPrefix.size());
                 result[id]["standby"] = state;
             });
@@ -68,7 +69,8 @@ struct command
                 auto proxy = host::Proxy(ctx).service(service).path(path.str);
                 auto state = mapHostState(co_await proxy.current_host_state());
 
-                info("State for {PATH}: {STATE}", "PATH", path, "STATE", state);
+                debug("State for {PATH}: {STATE}", "PATH", path, "STATE",
+                      state);
                 auto id = path.str.substr(pathPrefix.size());
                 result[id]["runtime"] = state;
             });

@@ -27,7 +27,7 @@ struct command
     {
         auto result = json::empty_map();
 
-        info("Finding software version objects.");
+        debug("Finding software version objects.");
         co_await utils::mapper::subtree_for_each(
             ctx, version::ns_path, version::interface,
 

@@ -56,7 +56,7 @@ struct command
     auto run(sdbusplus::async::context& ctx) -> sdbusplus::async::task<>
     {
         info("Attempting {SCOPE}:{ACTION} on {POS}.", "POS", arg_pos, "ACTION",
-             arg_action, "SCOPE", arg_scope);
+              arg_action, "SCOPE", arg_scope);
 
         try
         {
@@ -210,7 +210,7 @@ struct execute<Action, scope::runtime>
         if (!service)
         {
             warning("Can't find {PATH}", "PATH", path);
-            info("Trying to escalate to scope=standby");
+            debug("Trying to escalate to scope=standby");
             co_return co_await execute<Action, scope::standby>::op(ctx, pos);
         }
 
@@ -249,7 +249,7 @@ struct execute<action::cycle, scope::acpi>
         if (!service)
         {
             warning("Can't find {PATH}", "PATH", path);
-            info("Trying to escalate to scope=standby");
+            debug("Trying to escalate to scope=standby");
             co_return co_await execute<action::cycle, scope::standby>::op(
                 ctx, pos);
         }

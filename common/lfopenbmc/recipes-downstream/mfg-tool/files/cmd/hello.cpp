@@ -17,7 +17,7 @@ struct command
 
     void run()
     {
-        info("Hello World!");
+        debug("Hello World!");
         json::display(js{"Hello World!"});
     }
 };

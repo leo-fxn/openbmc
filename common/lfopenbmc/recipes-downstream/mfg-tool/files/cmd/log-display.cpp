@@ -38,7 +38,7 @@ struct command
 
         auto result = json::empty_map();
 
-        info("Finding log entries.");
+        debug("Finding log entries.");
         co_await utils::mapper::subtree_for_each(
             ctx, log_entry::ns_path, log_entry::interface,
 
@@ -61,7 +61,7 @@ struct command
 
                     if (properties.resolved && arg_unresolved_only)
                     {
-                        info("Resolved and filtered out.");
+                        debug("Resolved and filtered out.");
                         co_return;
                     }
 

@@ -24,7 +24,7 @@ struct command
                 .path("/org/freedesktop/systemd1")
                 .interface("org.freedesktop.systemd1.Manager");
 
-        info("Calling systemd to get architecture.");
+        debug("Calling systemd to get architecture.");
         auto arch =
             co_await systemd.get_property<std::string>(ctx, "Architecture");
 
