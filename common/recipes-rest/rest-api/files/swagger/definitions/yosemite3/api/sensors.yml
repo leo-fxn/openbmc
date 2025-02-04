@@ -1,4 +1,4 @@
-swagger: "2.0"
+swagger: '2.0'
 info:
   description: Swagger doc for /api/sensors
   title: Swagger doc for /api/sensors
@@ -6,7 +6,8 @@ info:
 paths:
   /api/sensors:
     get:
-      produces: [application/json]
+      produces:
+      - application/json
       responses:
         200:
           description: ok
@@ -16,916 +17,1570 @@ paths:
             properties:
               Information:
                 type: object
-                additionalProperties: true
+                additionalProperties: false
                 properties:
                   MB Inlet Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   MB Outlet Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   FRONT IO Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   PCH Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC CPU Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC Therm Margin:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC CPU TjMax:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   CPU Package Pwr:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC DIMMA Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC DIMMB Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC DIMMC Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC DIMMD Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC DIMME Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SOC DIMMF Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   SSD0 Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   HSC Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIN VR Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCSA VR Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIO VR Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   3V3_STBY VR Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_ABC VR Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_DEF VR Temp:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P12V_STBY Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P3V_BAT Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P3V3_STBY Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P1V05_PCH Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   PVNN_PCH Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   HSC Input Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIN VR Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCSA VR Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIO VR Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P3V3_STBY VR Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_ABC VR Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_DEF VR Vol:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   HSC Output Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIN VR Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCSA VR Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIO VR Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P3V3_STBY VR Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_ABC VR Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_DEF VR Cur:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   HSC Input Pwr:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   HSC Input AvgPwr:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIN VR Pout:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCSA VR Pout:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VCCIO VR Pout:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   P3V3_STBY VRPout:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_ABC VRPout:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   VDDQ_DEF VRPout:
-                    oneof:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
-                  NIC_SENSOR_TEMP:
-                    oneof:
+                  E1S Outlet Temp:
+                    type: array
+                    items:
                       type: object
                       additionalProperties: false
                       properties:
                         value:
                           type: string
+                  E1S P12V_AUX:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S P12V_EDGE:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S P3V3_AUX:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV0 Power:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV0 Voltage:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV0 Temp:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 3V3_ADC_DEV0:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 12V_ADC_DEV0:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV1 Power:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV1 Voltage:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV1 Temp:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 3V3_ADC_DEV1:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 12V_ADC_DEV1:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV2 Power:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV2 Voltage:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV2 Temp:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 3V3_ADC_DEV2:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 12V_ADC_DEV2:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV3 Power:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV3 Voltage:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S DEV3 Temp:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 3V3_ADC_DEV3:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  E1S 12V_ADC_DEV3:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
+                  NIC_SENSOR_TEMP:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                    oneof:
                       type: array
+                      additionalProperties: false
+                      properties:
+                        value:
+                          type: string
                       items:
                         type: string
                   BMC_SENSOR_FAN0_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN1_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN2_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN3_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN4_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN5_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN6_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN7_TACH:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_PWM0:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_PWM1:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_PWM2:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_PWM3:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_OUTLET_TEMP:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_INLET_TEMP:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_P5V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_P12V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_P3V3_STBY:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_P1V15_STBY:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_P1V2_STBY:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_P2V5_STBY:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_TEMP:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_VIN:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_PIN:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_EIN:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_IOUT:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_PEAK_IOUT:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_HSC_PEAK_PIN:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_MEDUSA_VOUT:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_MEDUSA_VIN:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_MEDUSA_CURR:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_MEDUSA_PWR:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_MEDUSA_VDELTA:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_PDB_DL_VDELTA:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_PDB_BB_VDELTA:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_CURR_LEAKAGE:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN_IOUT:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_FAN_PWR:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_NIC_P12V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_NIC_IOUT:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   BMC_SENSOR_NIC_PWR:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
                   SYSTEM_AIRFLOW:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
                     oneof:
-                      type: object
+                      type: array
                       additionalProperties: false
                       properties:
                         value:
                           type: string
-                      type: array
                       items:
                         type: string
               Actions:
