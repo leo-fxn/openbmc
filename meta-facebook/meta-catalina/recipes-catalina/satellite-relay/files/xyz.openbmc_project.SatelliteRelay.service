@@ -1,7 +1,7 @@
 [Unit]
 Description=Start satellite management controller (SMC) event relay
-Requires=xyz.openbmc_project.EntityManager.service
-After=xyz.openbmc_project.EntityManager.service
+After=network-online.target xyz.openbmc_project.EntityManager.service xyz.openbmc_project.Logging.service
+Wants=network-online.target xyz.openbmc_project.EntityManager.service xyz.openbmc_project.Logging.service
 
 [Service]
 Restart=on-failure
