@@ -13,3 +13,5 @@ IMAGE_INSTALL:append = " fw-versions"
 IMAGE_INSTALL:append = " pmic-error-injection"
 # Added as temp memory bloat remediation T213223725
 IMAGE_INSTALL:append = " sshd-remediate"
+# T214301589: Added as a temp fix for power sensor collection on T2 machines
+IMAGE_INSTALL:append = " sensor-cache"
