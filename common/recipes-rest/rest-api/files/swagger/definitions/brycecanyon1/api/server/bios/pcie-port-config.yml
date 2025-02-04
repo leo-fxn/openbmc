@@ -22,7 +22,7 @@ paths:
                     type: array
                     items: 
                       type: string
-                  Note: Actions Format:: 
+                  'Note: Actions Format:': 
                     type: string
               Actions: 
                 type: array
