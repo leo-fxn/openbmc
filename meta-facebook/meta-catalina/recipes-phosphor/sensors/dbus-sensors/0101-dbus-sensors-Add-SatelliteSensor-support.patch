@@ -1,7 +1,7 @@
-From 73af0561892cc3a37daf7cf43658461c2ff05d54 Mon Sep 17 00:00:00 2001
+From 824b12701516a173d43fcfa9f98ec17fa933a74f Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai@quantatw.com>
 Date: Tue, 18 Jun 2024 23:44:55 +0800
-Subject: [PATCH 1/1] dbus-sensors: Add SatelliteSensor support
+Subject: [PATCH] dbus-sensors: Add SatelliteSensor support
 
 Add Nvidia SatelliteSensor support
 
@@ -13,7 +13,7 @@ https://github.com/NVIDIA/dbus-sensors/blob/e1ff2551cfeae86d42fb551953c1e1ccfe01
 Change-Id: I3b20e8538743d9a17602c0aa55ff862df30fcd70
 ---
  meson.build                                   |   4 +
- meson.options                                 |   1 +
+ meson.options                                 |   6 +
  service_files/meson.build                     |   1 +
  ...yz.openbmc_project.satellitesensor.service |  14 +
  src/meson.build                               |   4 +
@@ -21,7 +21,7 @@ Change-Id: I3b20e8538743d9a17602c0aa55ff862df30fcd70
  src/satellite/SatelliteSensor.cpp             | 474 ++++++++++++++++++
  src/satellite/SatelliteSensor.hpp             | 119 +++++
  src/satellite/meson.build                     |  14 +
- 9 files changed, 722 insertions(+)
+ 9 files changed, 727 insertions(+)
  create mode 100644 service_files/xyz.openbmc_project.satellitesensor.service
  create mode 100644 src/satellite/HmcSensor.hpp
  create mode 100644 src/satellite/SatelliteSensor.cpp
@@ -43,19 +43,24 @@ index d1f1207..8e49f6d 100644
  subdir('service_files')
  subdir('src')
 diff --git a/meson.options b/meson.options
-index d6a8b96..2c13603 100644
+index de733c9..61a8298 100644
 --- a/meson.options
 +++ b/meson.options
-@@ -12,3 +12,4 @@ option('external', type: 'feature', value: 'enabled', description: 'Enable Exter
- option('tests', type: 'feature', value: 'enabled', description: 'Build tests.',)
- option('validate-unsecure-feature', type : 'feature', value : 'disabled', description : 'Enables unsecure features required by validation. Note: mustbe turned off for production images.',)
- option('insecure-sensor-override', type : 'feature', value : 'disabled', description : 'Enables Sensor override feature without any check.',)
-+option('satellite', type: 'feature', value: 'disabled', description: 'Enable Satellite sensor.',)
+@@ -83,3 +83,9 @@ option(
+     value: 'disabled',
+     description: 'Enables Sensor override feature without any check.',
+ )
++option(
++    'satellite',
++    type: 'feature',
++    value: 'disabled',
++    description: 'Enable Satellite sensor.',
++)
 diff --git a/service_files/meson.build b/service_files/meson.build
-index 20bd84a..1e7557f 100644
+index c3b23e0..a1e475d 100644
 --- a/service_files/meson.build
 +++ b/service_files/meson.build
-@@ -16,6 +16,7 @@ unit_files = [
+@@ -17,6 +17,7 @@ unit_files = [
      ['nvme', 'xyz.openbmc_project.nvmesensor.service'],
      ['psu', 'xyz.openbmc_project.psusensor.service'],
      ['external', 'xyz.openbmc_project.externalsensor.service'],
@@ -84,10 +89,10 @@ index 0000000..97ab9fe
 +WantedBy=multi-user.target
 +
 diff --git a/src/meson.build b/src/meson.build
-index 64d156d..7214602 100644
+index ca995e5..dba541e 100644
 --- a/src/meson.build
 +++ b/src/meson.build
-@@ -120,3 +120,7 @@ endif
+@@ -118,3 +118,7 @@ endif
  if get_option('tests').allowed()
      subdir('tests')
  endif
@@ -821,5 +826,5 @@ index 0000000..bf64647
 +)
 \ No newline at end of file
 -- 
-2.31.1
+2.43.5
 

@@ -1,7 +1,7 @@
-From f5a86ad73a38625393e3a65de8ce7cc676260207 Mon Sep 17 00:00:00 2001
+From 9c5f4dff919ab11bc318785ec38ba66f706c29d6 Mon Sep 17 00:00:00 2001
 From: Bright Cheng <bright_cheng@wiwynn.com>
 Date: Mon, 26 Aug 2024 11:37:53 +0800
-Subject: [PATCH 5/5] Utils: support powerState for multi-node system
+Subject: [PATCH] Utils: support powerState for multi-node system
 
 The current code of dbus-sensors only get powerState values for Chassis0
 and Host0 which cannot be used for the system with multiple server
@@ -50,22 +50,22 @@ d 36.666
 root@bmc:~# busctl get-property xyz.openbmc_project.PSUSensor /xyz/openbmc_project/sensors/voltage/MEDUSA_MB7_12VHSC_INPUT_VOLT_V xyz.openbmc_project.Sensor.Value Value
 d 12.209
 ---
- src/Utils.cpp                    | 421 ++++++++++++++++++++-----------
+ src/Utils.cpp                    | 433 ++++++++++++++++++++-----------
  src/Utils.hpp                    |  38 ++-
  src/hwmon-temp/HwmonTempMain.cpp |   6 +-
  src/psu/PSUSensor.cpp            |  25 +-
  src/psu/PSUSensor.hpp            |   9 +-
  src/psu/PSUSensorMain.cpp        |  10 +-
  src/sensor.hpp                   |   7 +-
- 7 files changed, 342 insertions(+), 174 deletions(-)
+ 7 files changed, 348 insertions(+), 180 deletions(-)
 
 diff --git a/src/Utils.cpp b/src/Utils.cpp
-index ac0778d..59e989e 100644
+index 2af6b50..291e27c 100644
 --- a/src/Utils.cpp
 +++ b/src/Utils.cpp
-@@ -58,14 +58,24 @@
- 
- namespace fs = std::filesystem;
+@@ -56,14 +56,24 @@
+ #include <variant>
+ #include <vector>
  
 -static bool powerStatusOn = false;
 -static bool biosHasPost = false;
@@ -91,7 +91,7 @@ index ac0778d..59e989e 100644
  
  /**
   * return the contents of a file
-@@ -301,44 +311,84 @@ bool findFiles(const fs::path& dirPath, std::string_view matchString,
+@@ -302,44 +312,84 @@ bool findFiles(const std::filesystem::path& dirPath,
      return true;
  }
  
@@ -106,15 +106,15 @@ index ac0778d..59e989e 100644
 +
 +std::vector<powerMatchPair>::iterator findPowerMatchByPath(
 +    const std::string& path, std::vector<powerMatchPair>& powerMatch)
-+{
+ {
+-    if (!powerMatch)
 +    return std::find_if(
 +        powerMatch.begin(), powerMatch.end(),
 +        [&path](const auto& pair) { return pair.first == std::string(path); });
 +}
 +
 +bool isPowerOn(const size_t& slotId)
- {
--    if (!powerMatch)
++{
 +    std::string path = power::path + std::to_string(slotId);
 +    auto match_it = findPowerMatchByPath(path, powerMatchVec);
 +    if (match_it == powerMatchVec.end())
@@ -189,11 +189,15 @@ index ac0778d..59e989e 100644
      {
          return false;
      }
-@@ -348,11 +398,15 @@ bool readingStateGood(const PowerState& powerState)
+@@ -347,13 +397,17 @@ bool readingStateGood(const PowerState& powerState)
+     return true;
+ }
  
- static void
-     getPowerStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
--                   size_t retries = 2)
+-static void getPowerStatus(
+-    const std::shared_ptr<sdbusplus::asio::connection>& conn,
+-    size_t retries = 2)
++static void
++    getPowerStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
 +                   size_t slotNumber = 0, size_t retries = 2)
  {
 +    std::string busname = power::busname + std::to_string(slotNumber);
@@ -208,7 +212,7 @@ index ac0778d..59e989e 100644
              if (ec)
              {
                  if (retries != 0U)
-@@ -360,10 +414,10 @@ static void
+@@ -361,10 +415,10 @@ static void getPowerStatus(
                      auto timer = std::make_shared<boost::asio::steady_timer>(
                          conn->get_io_context());
                      timer->expires_after(std::chrono::seconds(15));
@@ -223,7 +227,7 @@ index ac0778d..59e989e 100644
                      return;
                  }
  
-@@ -373,19 +427,24 @@ static void
+@@ -374,19 +428,24 @@ static void getPowerStatus(
                            << "\n";
                  return;
              }
@@ -237,9 +241,11 @@ index ac0778d..59e989e 100644
 +        power::property);
  }
  
- static void
-     getPostStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
--                  size_t retries = 2)
+-static void getPostStatus(
+-    const std::shared_ptr<sdbusplus::asio::connection>& conn,
+-    size_t retries = 2)
++static void
++    getPostStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
 +                  size_t slotNumber = 0, size_t retries = 2)
  {
 +    std::string busname = post::busname + std::to_string(slotNumber);
@@ -254,7 +260,7 @@ index ac0778d..59e989e 100644
              if (ec)
              {
                  if (retries != 0U)
-@@ -393,10 +452,10 @@ static void
+@@ -394,10 +453,10 @@ static void getPostStatus(
                      auto timer = std::make_shared<boost::asio::steady_timer>(
                          conn->get_io_context());
                      timer->expires_after(std::chrono::seconds(15));
@@ -269,7 +275,7 @@ index ac0778d..59e989e 100644
                      return;
                  }
                  // we commonly come up before power control, we'll capture the
-@@ -406,21 +465,26 @@ static void
+@@ -407,21 +466,26 @@ static void getPostStatus(
                  return;
              }
              const auto& value = std::get<std::string>(state);
@@ -287,9 +293,11 @@ index ac0778d..59e989e 100644
 +        post::property);
  }
  
- static void
-     getChassisStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
--                     size_t retries = 2)
+-static void getChassisStatus(
+-    const std::shared_ptr<sdbusplus::asio::connection>& conn,
+-    size_t retries = 2)
++static void
++    getChassisStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
 +                     size_t slotNumber = 0, size_t retries = 2)
  {
 +    std::string busname = chassis::busname + std::to_string(slotNumber);
@@ -304,7 +312,7 @@ index ac0778d..59e989e 100644
              if (ec)
              {
                  if (retries != 0U)
-@@ -428,10 +492,10 @@ static void
+@@ -429,10 +493,10 @@ static void getChassisStatus(
                      auto timer = std::make_shared<boost::asio::steady_timer>(
                          conn->get_io_context());
                      timer->expires_after(std::chrono::seconds(15));
@@ -319,7 +327,7 @@ index ac0778d..59e989e 100644
                      return;
                  }
  
-@@ -441,10 +505,10 @@ static void
+@@ -442,10 +506,10 @@ static void getChassisStatus(
                            << ec.message() << "\n";
                  return;
              }
@@ -333,7 +341,7 @@ index ac0778d..59e989e 100644
          chassis::interface, chassis::property);
  }
  
-@@ -452,8 +516,6 @@ void setupPowerMatchCallback(
+@@ -453,8 +517,6 @@ void setupPowerMatchCallback(
      const std::shared_ptr<sdbusplus::asio::connection>& conn,
      std::function<void(PowerState type, bool state)>&& hostStatusCallback)
  {
@@ -342,7 +350,7 @@ index ac0778d..59e989e 100644
      // create a match for powergood changes, first time do a method call to
      // cache the correct value
      if (powerMatch)
-@@ -461,32 +523,64 @@ void setupPowerMatchCallback(
+@@ -462,32 +524,64 @@ void setupPowerMatchCallback(
          return;
      }
  
@@ -432,7 +440,7 @@ index ac0778d..59e989e 100644
                          if (ec == boost::asio::error::operation_aborted)
                          {
                              return;
-@@ -496,78 +590,123 @@ void setupPowerMatchCallback(
+@@ -497,78 +591,123 @@ void setupPowerMatchCallback(
                              std::cerr << "Timer error " << ec.message() << "\n";
                              return;
                          }
@@ -623,10 +631,10 @@ index ac0778d..59e989e 100644
  
  void setupPowerMatch(const std::shared_ptr<sdbusplus::asio::connection>& conn)
 diff --git a/src/Utils.hpp b/src/Utils.hpp
-index 78a6ecd..450a20a 100644
+index be96877..4fcfc94 100644
 --- a/src/Utils.hpp
 +++ b/src/Utils.hpp
-@@ -43,6 +43,7 @@ using ManagedObjectType =
+@@ -55,6 +55,7 @@ using ManagedObjectType =
  using GetSubTreeType = std::vector<
      std::pair<std::string,
                std::vector<std::pair<std::string, std::vector<std::string>>>>>;
@@ -634,7 +642,7 @@ index 78a6ecd..450a20a 100644
  using Association = std::tuple<std::string, std::string, std::string>;
  
  inline std::string escapeName(const std::string& sensorName)
-@@ -67,9 +68,9 @@ bool findFiles(const std::filesystem::path& dirPath,
+@@ -79,9 +80,9 @@ bool findFiles(const std::filesystem::path& dirPath,
                 std::string_view matchString,
                 std::vector<std::filesystem::path>& foundPaths,
                 int symlinkDepth = 1);
@@ -647,7 +655,7 @@ index 78a6ecd..450a20a 100644
  void setupPowerMatchCallback(
      const std::shared_ptr<sdbusplus::asio::connection>& conn,
      std::function<void(PowerState type, bool state)>&& callback);
-@@ -87,7 +88,7 @@ void createAssociation(
+@@ -99,7 +100,7 @@ void createAssociation(
  void findLimits(std::pair<double, double>& limits,
                  const SensorBaseConfiguration* data);
  
@@ -656,7 +664,7 @@ index 78a6ecd..450a20a 100644
  
  constexpr const char* configInterfacePrefix =
      "xyz.openbmc_project.Configuration.";
-@@ -103,6 +104,7 @@ constexpr const char* busName = "xyz.openbmc_project.ObjectMapper";
+@@ -115,6 +116,7 @@ constexpr const char* busName = "xyz.openbmc_project.ObjectMapper";
  constexpr const char* path = "/xyz/openbmc_project/object_mapper";
  constexpr const char* interface = "xyz.openbmc_project.ObjectMapper";
  constexpr const char* subtree = "GetSubTree";
@@ -664,7 +672,7 @@ index 78a6ecd..450a20a 100644
  } // namespace mapper
  
  namespace properties
-@@ -114,27 +116,27 @@ constexpr const char* set = "Set";
+@@ -126,27 +128,27 @@ constexpr const char* set = "Set";
  
  namespace power
  {
@@ -698,7 +706,7 @@ index 78a6ecd..450a20a 100644
  const static constexpr char* property = "OperatingSystemState";
  } // namespace post
  
-@@ -204,6 +206,19 @@ inline PowerState getPowerState(const SensorBaseConfigMap& cfg)
+@@ -216,6 +218,19 @@ inline PowerState getPowerState(const SensorBaseConfigMap& cfg)
      return state;
  }
  
@@ -718,7 +726,7 @@ index 78a6ecd..450a20a 100644
  inline float getPollRate(const SensorBaseConfigMap& cfg, float dflt)
  {
      float pollRate = dflt;
-@@ -246,7 +261,8 @@ struct GetSensorConfiguration :
+@@ -258,7 +273,8 @@ struct GetSensorConfiguration :
      GetSensorConfiguration(
          std::shared_ptr<sdbusplus::asio::connection> connection,
          std::function<void(ManagedObjectType& resp)>&& callbackFunc) :
@@ -729,7 +737,7 @@ index 78a6ecd..450a20a 100644
  
      void getPath(const std::string& path, const std::string& interface,
 diff --git a/src/hwmon-temp/HwmonTempMain.cpp b/src/hwmon-temp/HwmonTempMain.cpp
-index f7ccb4f..82ec61b 100644
+index 1ec199f..4b32d2e 100644
 --- a/src/hwmon-temp/HwmonTempMain.cpp
 +++ b/src/hwmon-temp/HwmonTempMain.cpp
 @@ -590,7 +590,11 @@ static void powerStateChanged(
@@ -786,10 +794,10 @@ index ca77edf..3c7c6f1 100644
      buffer = std::make_shared<std::array<char, 128>>();
      std::string unitPath = sensor_paths::getPathForUnits(sensorUnits);
 diff --git a/src/psu/PSUSensor.hpp b/src/psu/PSUSensor.hpp
-index 7dbd15b..c2afe4a 100644
+index c4f3a38..127145c 100644
 --- a/src/psu/PSUSensor.hpp
 +++ b/src/psu/PSUSensor.hpp
-@@ -25,7 +25,8 @@ class PSUSensor : public Sensor, public std::enable_shared_from_this<PSUSensor>
+@@ -30,7 +30,8 @@ class PSUSensor : public Sensor, public std::enable_shared_from_this<PSUSensor>
                const PowerState& powerState, const std::string& sensorUnits,
                double factor, double max, double min, double offset,
                const std::string& label, size_t tSize, double pollRate,
@@ -799,7 +807,7 @@ index 7dbd15b..c2afe4a 100644
      ~PSUSensor() override;
      void setupRead();
      void activate(const std::string& newPath,
-@@ -62,6 +63,7 @@ class PSUSensor : public Sensor, public std::enable_shared_from_this<PSUSensor>
+@@ -67,6 +68,7 @@ class PSUSensor : public Sensor, public std::enable_shared_from_this<PSUSensor>
      static constexpr double defaultSensorPoll = 1.0;
      static constexpr unsigned int defaultSensorPollMs =
          static_cast<unsigned int>(defaultSensorPoll * 1000);
@@ -807,7 +815,7 @@ index 7dbd15b..c2afe4a 100644
  };
  
  class PSUProperty
-@@ -69,8 +71,9 @@ class PSUProperty
+@@ -74,8 +76,9 @@ class PSUProperty
    public:
      PSUProperty(std::string name, double max, double min, double factor,
                  double offset) :
@@ -820,10 +828,10 @@ index 7dbd15b..c2afe4a 100644
      ~PSUProperty() = default;
  
 diff --git a/src/psu/PSUSensorMain.cpp b/src/psu/PSUSensorMain.cpp
-index e64b1cc..c45aff6 100644
+index 29b93bc..46a277d 100644
 --- a/src/psu/PSUSensorMain.cpp
 +++ b/src/psu/PSUSensorMain.cpp
-@@ -518,6 +518,7 @@ static void createSensorsCallback(
+@@ -522,6 +522,7 @@ static void createSensorsCallback(
          checkGroupEvent(directory.string(), groupEventPathList);
  
          PowerState readState = getPowerState(*baseConfig);
@@ -831,7 +839,7 @@ index e64b1cc..c45aff6 100644
  
          /* Check if there are more sensors in the same interface */
          int i = 1;
-@@ -970,7 +971,8 @@ static void createSensorsCallback(
+@@ -974,7 +975,8 @@ static void createSensorsCallback(
                      readState, findSensorUnit->second, factor,
                      psuProperty.maxReading, psuProperty.minReading,
                      psuProperty.sensorOffset, labelHead, thresholdConfSize,
@@ -841,7 +849,7 @@ index e64b1cc..c45aff6 100644
                  sensors[sensorName]->setupRead();
                  ++numCreated;
                  if constexpr (debug)
-@@ -1149,7 +1151,11 @@ static void powerStateChanged(
+@@ -1153,7 +1155,11 @@ static void powerStateChanged(
          {
              if (sensor != nullptr && sensor->readState == type)
              {
@@ -855,10 +863,10 @@ index e64b1cc..c45aff6 100644
          }
      }
 diff --git a/src/sensor.hpp b/src/sensor.hpp
-index 82798dc..be25504 100644
+index 2eab853..d649ab2 100644
 --- a/src/sensor.hpp
 +++ b/src/sensor.hpp
-@@ -63,7 +63,7 @@ struct Sensor
+@@ -72,7 +72,7 @@ struct Sensor
             const std::string& configurationPath, const std::string& objectType,
             bool isSettable, bool isMutable, const double max, const double min,
             std::shared_ptr<sdbusplus::asio::connection>& conn,
@@ -867,7 +875,7 @@ index 82798dc..be25504 100644
          name(sensor_paths::escapePathForDbus(name)),
          configurationPath(configurationPath),
          configInterface(configInterfaceName(objectType)),
-@@ -71,7 +71,7 @@ struct Sensor
+@@ -80,7 +80,7 @@ struct Sensor
          minValue(min), thresholds(std::move(thresholdData)),
          hysteresisTrigger((max - min) * 0.01),
          hysteresisPublish((max - min) * 0.0001), dbusConnection(conn),
@@ -876,7 +884,7 @@ index 82798dc..be25504 100644
          instrumentation(enableInstrumentation
                              ? std::make_unique<SensorInstrumentation>()
                              : nullptr)
-@@ -105,6 +105,7 @@ struct Sensor
+@@ -114,6 +114,7 @@ struct Sensor
      double hysteresisPublish;
      std::shared_ptr<sdbusplus::asio::connection> dbusConnection;
      PowerState readState;
@@ -884,7 +892,7 @@ index 82798dc..be25504 100644
      size_t errCount{0};
      std::unique_ptr<SensorInstrumentation> instrumentation;
  
-@@ -425,7 +426,7 @@ struct Sensor
+@@ -434,7 +435,7 @@ struct Sensor
  
      bool readingStateGood() const
      {
@@ -894,5 +902,5 @@ index 82798dc..be25504 100644
  
      void markFunctional(bool isFunctional)
 -- 
-2.25.1
+2.43.5
 
