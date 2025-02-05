@@ -128,7 +128,8 @@ class HGXMgr {
 
     result = conn.patch("", std::move(args));
 
-    if (result.code != HTTP_OK && result.code != HTTP_ACCEPTED) {
+    if (result.code != HTTP_OK && result.code != HTTP_ACCEPTED &&
+        result.code != HTTP_NO_CONTENT) {
       throw HTTPException(result.code);
     }
     return result.body;
