@@ -1,4 +1,4 @@
-From ddeed7bc3e5d7e961779c821da1e8bb363d24385 Mon Sep 17 00:00:00 2001
+From 8ee70f7b1ccb6008b4141986210d571e134231b1 Mon Sep 17 00:00:00 2001
 From: Marco Kawajiri <kawajiri@meta.com>
 Date: Fri, 5 Apr 2024 07:54:27 -0700
 Subject: [PATCH 2/2] user-mgr: Allow non-IPMI usernames with dot '.' character
@@ -38,10 +38,10 @@ Signed-off-by: Marco Kawajiri <kawajiri@meta.com>
  2 files changed, 20 insertions(+), 4 deletions(-)
 
 diff --git a/test/user_mgr_test.cpp b/test/user_mgr_test.cpp
-index 664def2..797ed35 100644
+index f07b00c..8bca279 100644
 --- a/test/user_mgr_test.cpp
 +++ b/test/user_mgr_test.cpp
-@@ -565,12 +565,23 @@ TEST_F(UserMgrInTest,
+@@ -569,12 +569,23 @@ TEST_F(UserMgrInTest,
  {
      std::string startWithNumber = "0ABC";
      std::string startWithDisallowedCharacter = "[test";
@@ -66,7 +66,7 @@ index 664def2..797ed35 100644
  
  TEST_F(UserMgrInTest, UserAddNotRootFailedWithInternalFailure)
 diff --git a/user_mgr.cpp b/user_mgr.cpp
-index de4b570..a7e19e1 100644
+index d1c525b..590d78b 100644
 --- a/user_mgr.cpp
 +++ b/user_mgr.cpp
 @@ -124,6 +124,11 @@ constexpr std::array<const char*, 4> allowedGroupPrefix = {
@@ -104,5 +104,5 @@ index de4b570..a7e19e1 100644
          lg2::error("Invalid username '{USERNAME}'", "USERNAME", userName);
          elog<InvalidArgument>(Argument::ARGUMENT_NAME("User name"),
 -- 
-2.43.5
+2.44.2
 
