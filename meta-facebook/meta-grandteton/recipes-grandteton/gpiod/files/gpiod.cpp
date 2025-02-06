@@ -1060,6 +1060,9 @@ static void hmc_ready(int fruID, std::string gpuConfig, std::string gpuBMC) {
       try {
         hgx::syncTime();
         if(fruID == FRU_HGX) {
+          if (system("/usr/local/bin/setup-hmc-eeprom.sh &")) {
+            syslog(LOG_WARNING, "Failed to setup hmc eeprom");
+          }
           hgx_pwr_limit_mon();
         }
         break;

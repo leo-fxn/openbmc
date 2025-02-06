@@ -378,7 +378,7 @@ fru_presence(uint8_t fru_id, uint8_t *status) {
       return false;
     case FRU_HMC:
     case FRU_CX7:
-      if (pal_get_gpu_fru_id() == FRU_HGX) {
+      if (pal_is_gt_hnext()) {
         *status = FRU_PRSNT;
         return true;
       }
