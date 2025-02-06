@@ -11,8 +11,10 @@ PACKAGECONFIG += " \
 "
 
 SRC_URI += " \
-    file://0101-dbus-sensors-Add-SatelliteSensor-support.patch \
-    file://0102-SatelliteSensor-add-PowerState-support.patch \
+    file://0101-dbus-sensors-setup-SatelliteSensor-meson-build.patch \
+    file://0102-dbus-sensors-Add-SatelliteSensor-support.patch \
+    file://0103-dbus-sensors-Fix-SatelliteSensor-build-errors.patch \
+    file://0104-dbus-sensors-fix-abnormal-sensor-readings-from-HMC.patch \
     "
 
 SYSTEMD_OVERRIDE:${PN}:append = "\

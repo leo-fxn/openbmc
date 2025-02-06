@@ -1,73 +1,29 @@
-From 824b12701516a173d43fcfa9f98ec17fa933a74f Mon Sep 17 00:00:00 2001
+From 815f0f09df68c626706e8badf7ecce4ba7b376b8 Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai@quantatw.com>
-Date: Tue, 18 Jun 2024 23:44:55 +0800
-Subject: [PATCH] dbus-sensors: Add SatelliteSensor support
+Date: Tue, 4 Feb 2025 16:41:36 +0800
+Subject: [PATCH 2/4] dbus-sensors: Add SatelliteSensor support
 
 Add Nvidia SatelliteSensor support
 
 Reference from below links:
-https://github.com/NVIDIA/dbus-sensors/blob/e1ff2551cfeae86d42fb551953c1e1ccfe0146ac/src/SatelliteSensor.hpp
-https://github.com/NVIDIA/dbus-sensors/blob/e1ff2551cfeae86d42fb551953c1e1ccfe0146ac/src/SatelliteSensor.cpp
-https://github.com/NVIDIA/dbus-sensors/blob/e1ff2551cfeae86d42fb551953c1e1ccfe0146ac/service_files/xyz.openbmc_project.satellitesensor.service
+https://github.com/NVIDIA/dbus-sensors/blob/1857c44f8fd660bf0456b8fd74dee67418fd9764/src/SatelliteSensor.hpp
+https://github.com/NVIDIA/dbus-sensors/blob/1857c44f8fd660bf0456b8fd74dee67418fd9764/src/SatelliteSensor.cpp
+https://github.com/NVIDIA/dbus-sensors/blob/1857c44f8fd660bf0456b8fd74dee67418fd9764/service_files/xyz.openbmc_project.satellitesensor.service
 
-Change-Id: I3b20e8538743d9a17602c0aa55ff862df30fcd70
+Change-Id: I77cbdf49bd86836bedad88896b968379c6d80780
 ---
- meson.build                                   |   4 +
- meson.options                                 |   6 +
- service_files/meson.build                     |   1 +
  ...yz.openbmc_project.satellitesensor.service |  14 +
- src/meson.build                               |   4 +
- src/satellite/HmcSensor.hpp                   |  91 ++++
- src/satellite/SatelliteSensor.cpp             | 474 ++++++++++++++++++
- src/satellite/SatelliteSensor.hpp             | 119 +++++
+ src/satellite/HmcSensor.hpp                   |  91 +++
+ src/satellite/SatelliteSensor.cpp             | 531 ++++++++++++++++++
+ src/satellite/SatelliteSensor.hpp             | 122 ++++
  src/satellite/meson.build                     |  14 +
- 9 files changed, 727 insertions(+)
+ 5 files changed, 772 insertions(+)
  create mode 100644 service_files/xyz.openbmc_project.satellitesensor.service
  create mode 100644 src/satellite/HmcSensor.hpp
  create mode 100644 src/satellite/SatelliteSensor.cpp
  create mode 100644 src/satellite/SatelliteSensor.hpp
  create mode 100644 src/satellite/meson.build
 
-diff --git a/meson.build b/meson.build
-index d1f1207..8e49f6d 100644
---- a/meson.build
-+++ b/meson.build
-@@ -49,5 +49,9 @@ default_deps = [
-     uring,
- ]
- 
-+if get_option('satellite').enabled()
-+    add_project_arguments('-DAUTO_GEN_SENSOR_HEADER', language : 'cpp')
-+endif
-+
- subdir('service_files')
- subdir('src')
-diff --git a/meson.options b/meson.options
-index de733c9..61a8298 100644
---- a/meson.options
-+++ b/meson.options
-@@ -83,3 +83,9 @@ option(
-     value: 'disabled',
-     description: 'Enables Sensor override feature without any check.',
- )
-+option(
-+    'satellite',
-+    type: 'feature',
-+    value: 'disabled',
-+    description: 'Enable Satellite sensor.',
-+)
-diff --git a/service_files/meson.build b/service_files/meson.build
-index c3b23e0..a1e475d 100644
---- a/service_files/meson.build
-+++ b/service_files/meson.build
-@@ -17,6 +17,7 @@ unit_files = [
-     ['nvme', 'xyz.openbmc_project.nvmesensor.service'],
-     ['psu', 'xyz.openbmc_project.psusensor.service'],
-     ['external', 'xyz.openbmc_project.externalsensor.service'],
-+    ['satellite', 'xyz.openbmc_project.satellitesensor.service'],
- ]
- 
- fs = import('fs')
 diff --git a/service_files/xyz.openbmc_project.satellitesensor.service b/service_files/xyz.openbmc_project.satellitesensor.service
 new file mode 100644
 index 0000000..97ab9fe
@@ -88,18 +44,6 @@ index 0000000..97ab9fe
 +[Install]
 +WantedBy=multi-user.target
 +
-diff --git a/src/meson.build b/src/meson.build
-index ca995e5..dba541e 100644
---- a/src/meson.build
-+++ b/src/meson.build
-@@ -118,3 +118,7 @@ endif
- if get_option('tests').allowed()
-     subdir('tests')
- endif
-+
-+if get_option('satellite').enabled()
-+    subdir('satellite')
-+endif
 diff --git a/src/satellite/HmcSensor.hpp b/src/satellite/HmcSensor.hpp
 new file mode 100644
 index 0000000..cc786e2
@@ -199,10 +143,10 @@ index 0000000..cc786e2
 +};
 diff --git a/src/satellite/SatelliteSensor.cpp b/src/satellite/SatelliteSensor.cpp
 new file mode 100644
-index 0000000..9be7c73
+index 0000000..2e318e7
 --- /dev/null
 +++ b/src/satellite/SatelliteSensor.cpp
-@@ -0,0 +1,474 @@
+@@ -0,0 +1,531 @@
 +/*
 + * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
 + * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
@@ -265,9 +209,11 @@ index 0000000..9be7c73
 +    sdbusplus::asio::object_server& objectServer,
 +    std::vector<thresholds::Threshold>&& thresholdData, uint8_t busId,
 +    uint8_t addr, uint16_t offset, std::string& sensorType,
-+    std::string& valueType, size_t pollTime, double minVal, double maxVal) :
++    std::string& valueType, size_t pollTime, double minVal, double maxVal,
++    const PowerState powerState) :
 +    Sensor(escapeName(sensorName), std::move(thresholdData),
-+           sensorConfiguration, objType, false, false, maxVal, minVal, conn),
++           sensorConfiguration, objType, false, false, maxVal, minVal, conn,
++           powerState),
 +    name(escapeName(sensorName)), busId(busId), addr(addr), offset(offset),
 +    sensorType(sensorType), valueType(valueType), objectServer(objectServer),
 +    waitTimer(io), pollRate(pollTime)
@@ -313,6 +259,12 @@ index 0000000..9be7c73
 +    }
 +}
 +
++void SatelliteSensor::deactivate()
++{
++    markAvailable(false);
++    waitTimer.cancel();
++}
++
 +SatelliteSensor::~SatelliteSensor()
 +{
 +    waitTimer.cancel();
@@ -326,7 +278,8 @@ index 0000000..9be7c73
 +
 +void SatelliteSensor::init()
 +{
-+    read();
++    markAvailable(true);
++    restartRead();
 +}
 +
 +void SatelliteSensor::checkThresholds()
@@ -474,8 +427,7 @@ index 0000000..9be7c73
 +    }
 +    return ret;
 +}
-+
-+void SatelliteSensor::read()
++void SatelliteSensor::restartRead()
 +{
 +    size_t pollTime = getPollRate(); // in seconds
 +
@@ -491,46 +443,59 @@ index 0000000..9be7c73
 +            lg2::error("timer error");
 +            return;
 +        }
-+        double temp = 0;
-+        int len = getLength(offset);
-+        if (len == 0)
-+        {
-+            lg2::error("no offset is specified");
-+            return;
-+        }
-+
-+        int ret = 0;
-+        // Sensor reading value types are sensor-specific. So, read
-+        // and interpret sensor data based on it's value type.
-+        if (valueType == "Raw")
-+        {
-+            ret = readRawEepromData(offset, len, &temp);
-+        }
-+        else if (valueType == "PLDM")
-+        {
-+            ret = readPLDMEepromData(offset, len, &temp);
-+        }
-+        else
-+        {
-+            lg2::error("Invalid ValueType for sensor: {NAME}", "NAME", name);
-+            return;
-+        }
-+
-+        if (ret >= 0)
-+        {
-+            if constexpr (debug)
-+            {
-+                lg2::error("Value update to {TEMP}", "TEMP", temp);
-+            }
-+            updateValue(temp);
-+        }
-+        else
-+        {
-+            lg2::error("Invalid read getRegsInfo");
-+            incrementError();
-+        }
 +        read();
 +    });
++}
++
++void SatelliteSensor::read()
++{
++    if (!readingStateGood())
++    {
++        markAvailable(false);
++        updateValueOnly(std::numeric_limits<double>::quiet_NaN());
++        restartRead();
++        return;
++    }
++
++    double temp = 0;
++    int len = getLength(offset);
++    if (len == 0)
++    {
++        lg2::error("no offset is specified");
++        return;
++    }
++
++    int ret = 0;
++    // Sensor reading value types are sensor-specific. So, read
++    // and interpret sensor data based on it's value type.
++    if (valueType == "Raw")
++    {
++        ret = readRawEepromData(offset, len, &temp);
++    }
++    else if (valueType == "PLDM")
++    {
++        ret = readPLDMEepromData(offset, len, &temp);
++    }
++    else
++    {
++        lg2::error("Invalid ValueType for sensor: {NAME}", "NAME", name);
++        return;
++    }
++
++    if (ret >= 0)
++    {
++        if constexpr (debug)
++        {
++            lg2::error("Value update to {TEMP}", "TEMP", temp);
++        }
++        updateValueOnly(temp);
++    }
++    else
++    {
++        lg2::error("Invalid read getRegsInfo");
++        incrementError();
++    }
++    restartRead();
 +}
 +
 +void createSensors(
@@ -587,6 +552,12 @@ index 0000000..9be7c73
 +
 +                size_t rate = loadVariant<uint8_t>(entry.second, "PollRate");
 +
++                std::string powerSate = loadVariant<std::string>(entry.second,
++                                                                 "PowerState");
++
++                PowerState pwrState;
++                setReadState(powerSate, pwrState);
++
 +                double minVal = loadVariant<double>(entry.second, "MinValue");
 +
 +                double maxVal = loadVariant<double>(entry.second, "MaxValue");
@@ -596,6 +567,7 @@ index 0000000..9be7c73
 +                              "\tName: {NAME}\n"
 +                              "\tBus: {BUS}\n"
 +                              "\tAddress:{ADDR}\n"
++                              "\tPowerState:{PWRSTATE}\n"
 +                              "\tOffset: {OFF}\n"
 +                              "\tType : {TYPE}\n"
 +                              "\tValue Type : {VALUETYPE}\n"
@@ -604,8 +576,8 @@ index 0000000..9be7c73
 +                              "\tMaxValue: {MAX}\n",
 +                              "CONF", entry.first, "NAME", name, "BUS",
 +                              static_cast<int>(busId), "ADDR",
-+                              static_cast<int>(addr), "OFF",
-+                              static_cast<int>(off), "TYPE", sensorType,
++                              static_cast<int>(addr), "PWRSTATE", powerSate,
++                              "OFF", static_cast<int>(off), "TYPE", sensorType,
 +                              "VALUETYPE", valueType, "RATE", rate, "MIN",
 +                              static_cast<double>(minVal), "MAX",
 +                              static_cast<double>(maxVal));
@@ -617,7 +589,7 @@ index 0000000..9be7c73
 +                sensor = std::make_unique<SatelliteSensor>(
 +                    dbusConnection, io, name, pathPair.first, objectType,
 +                    objectServer, std::move(sensorThresholds), busId, addr, off,
-+                    sensorType, valueType, rate, minVal, maxVal);
++                    sensorType, valueType, rate, minVal, maxVal, pwrState);
 +
 +                sensor->init();
 +            }
@@ -625,6 +597,30 @@ index 0000000..9be7c73
 +    },
 +        entityManagerName, "/xyz/openbmc_project/inventory",
 +        "org.freedesktop.DBus.ObjectManager", "GetManagedObjects");
++}
++
++static void powerStateChanged(PowerState type, bool newState)
++{
++    if (type != PowerState::on)
++    {
++        return;
++    }
++    for (auto& [name, sensor] : sensors)
++    {
++        if (sensor != nullptr && sensor->readState == type)
++        {
++            if (newState)
++            {
++                // power on
++                sensor->init();
++            }
++            else
++            {
++                // power off
++                sensor->deactivate();
++            }
++        }
++    }
 +}
 +
 +int main()
@@ -639,6 +635,11 @@ index 0000000..9be7c73
 +        io, [&]() { createSensors(io, objectServer, sensors, systemBus); });
 +
 +    boost::asio::steady_timer configTimer(io);
++
++    auto powerCallBack = [](PowerState type, bool state) {
++        powerStateChanged(type, state);
++    };
++    setupPowerMatchCallback(systemBus, powerCallBack);
 +
 +    std::function<void(sdbusplus::message::message&)> eventHandler =
 +        [&](sdbusplus::message::message&) {
@@ -680,10 +681,10 @@ index 0000000..9be7c73
 \ No newline at end of file
 diff --git a/src/satellite/SatelliteSensor.hpp b/src/satellite/SatelliteSensor.hpp
 new file mode 100644
-index 0000000..200b611
+index 0000000..a3b4888
 --- /dev/null
 +++ b/src/satellite/SatelliteSensor.hpp
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,122 @@
 +/*
 + * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
 + * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
@@ -732,7 +733,8 @@ index 0000000..200b611
 +                    std::vector<thresholds::Threshold>&& thresholdData,
 +                    uint8_t busId, uint8_t addr, uint16_t offset,
 +                    std::string& sensorType, std::string& valueType,
-+                    size_t pollTime, double minVal, double maxVal);
++                    size_t pollTime, double minVal, double maxVal,
++                    PowerState powerState);
 +    ~SatelliteSensor() override;
 +
 +    void checkThresholds() override;
@@ -741,6 +743,8 @@ index 0000000..200b611
 +        return pollRate;
 +    }
 +    void read();
++    void restartRead();
++    void deactivate();
 +    void init();
 +
 +    std::string name;
@@ -826,5 +830,5 @@ index 0000000..bf64647
 +)
 \ No newline at end of file
 -- 
-2.43.5
+2.31.1
 
