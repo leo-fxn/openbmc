@@ -22,4 +22,7 @@ LOCAL_URI += " \
     file://sync_date.sh \
     file://setup-server-uart.sh \
     file://check-fan-cache.sh \
+    file://enable_ACA.sh \
     "
+
+binfiles += " enable_ACA.sh"

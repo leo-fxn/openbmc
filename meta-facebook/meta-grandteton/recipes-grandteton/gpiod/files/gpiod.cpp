@@ -1065,6 +1065,11 @@ static void hmc_ready(int fruID, std::string gpuConfig, std::string gpuBMC) {
           }
           hgx_pwr_limit_mon();
         }
+        else if (fruID == FRU_UBB) {
+          if (system("/usr/local/bin/enable_ACA.sh &")) {
+            syslog(LOG_WARNING, "Failed to enable ACA");
+          }
+        }
         break;
       } catch (std::exception& e) {
         syslog(LOG_WARNING, "%s: Failed to get to %s: %s", gpuConfig.c_str(), gpuBMC.c_str(), e.what());
