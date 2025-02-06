@@ -2135,7 +2135,7 @@
                 ],
                 [
                     3,
-                    "RPU_Pump_Board2_HSC_Power_Status"
+                    "RPU_Pump_Board3_HSC_Power_Status"
                 ]
             ],
             "name": "RPU_Power_Status"
