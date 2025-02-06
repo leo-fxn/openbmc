@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 #
+import json
 import unittest
 from abc import abstractmethod
 
@@ -45,12 +46,34 @@ from tests.wedge400.test_data.sensors.sensors import (
     SMB_SENSORS_W400RESPIN,
 )
 from utils.test_utils import qemu_check
+from utils.shell_util import run_shell_cmd
 
 
 @unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
 class ScmSensorTest(SensorUtilTest, unittest.TestCase):
     def set_sensors_cmd(self):
         self.sensors_cmd = ["/usr/local/bin/sensor-util scm"]
+
+    """
+    overide the base class method
+      to add "--force" option, to avoid use of cached data
+      
+      the issue in Wedge400C, after test rest_endpoint_switch_reset
+      it will force 'wedge_power.sh reset' to reset x86 host
+      While BIOS booting the SOC_DIMMA and SOC_DIMMB will be NA
+      if sensor-mon exactly time interval read, NA will be cached
+        and the test will fail
+    """
+
+    def get_json_threshold_result(self):
+        self.set_sensors_cmd()
+        self.sensors_cmd[0] += " --force --json --threshold"
+        data = run_shell_cmd(self.sensors_cmd)
+        if "not present" in data:
+            return {"present": False}
+        result = {"present": True}
+        result.update(json.loads(data))
+        return result
 
     def test_scm_sensor_keys(self):
         SCM_SENSORS = []
