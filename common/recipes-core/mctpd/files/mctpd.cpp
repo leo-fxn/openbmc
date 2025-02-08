@@ -747,7 +747,7 @@ int enable_hj_polling(struct ctx *ctx) {
 
 int main(int argc, char *const *argv)
 {
-  struct ctx *ctx, _ctx;
+  struct ctx *ctx, _ctx{};
   int rc;
 
   ctx = &_ctx;
