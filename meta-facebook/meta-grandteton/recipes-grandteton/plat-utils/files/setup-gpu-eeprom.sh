@@ -99,7 +99,7 @@ setup_gpu_eeprom () {
       $KV_CMD set $GPU_CONFIG "${gpu[$loop]}" persistent
       $KV_CMD set "${snr_polling[$loop]}" 1
       gpu_snr_mon "${gpu[$loop]}" enable
-      break
+      return
     fi
   done
 
