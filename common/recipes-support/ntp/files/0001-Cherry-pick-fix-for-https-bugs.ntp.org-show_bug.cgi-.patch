@@ -1,0 +1,33 @@
+From 25fdb83e0ce5bdc8768e964ff728f6a2a0b7d272 Mon Sep 17 00:00:00 2001
+From: Amithash Prasad <amithash@meta.com>
+Date: Fri, 7 Feb 2025 17:32:17 -0800
+Subject: [PATCH] Cherry pick fix for https://bugs.ntp.org/show_bug.cgi?id=3928
+ https://bugs.ntp.org/attachment.cgi?id=1897&action=diff
+
+Looks like there is a regression in ntp-4.2.8p18 which can
+cause ntpd to crash when the interface is not available
+---
+ ntpd/ntp_io.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ntpd/ntp_io.c b/ntpd/ntp_io.c
+index 9d79fe4..0e761ff 100644
+--- a/ntpd/ntp_io.c
++++ b/ntpd/ntp_io.c
+@@ -1921,11 +1921,11 @@ update_interfaces(
+ 		}
+ 		else {
+ 			DPRINT_INTERFACE(3,
+-				(ep, "updating ", " new - FAILED"));
++				(ep2, "updating ", " new - FAILED"));
+ 
+ 			msyslog(LOG_ERR,
+ 				"cannot bind address %s",
+-				stoa(&ep->sin));
++				stoa(&ep2->sin));
+ 		}
+ 		free(ep2);
+ 	}
+-- 
+2.43.5
+
