@@ -373,9 +373,9 @@ PAL_SENSOR_MAP hgx_sensor_map[] = {
   {"NVSwitch_1_TEMP" , 0 , read_snr, false, {90.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x71
   {"NVSwitch_2_TEMP" , 0 , read_snr, false, {90.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x72
   {"NVSwitch_3_TEMP" , 0 , read_snr, false, {90.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x73
-  {"NVLink_0_TEMP", 0, read_snr, 0, {105.0, 0, 0, 5.0, 0, 0, 0, 0}, 0}, //0x74
-  {"NVLink_0_PORT_0_TEMP", 0, read_snr, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x75
-  {"NVLink_0_PORT_1_TEMP", 0, read_snr, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x76
+  {"NVLink_0_TEMP", 0, read_snr, 0, {105.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x74
+  {"NVLink_0_PORT_0_TEMP", 0, read_snr, 0, {0, 0, 0, 0, 0, 0, 0, 0}, TEMP}, //0x75
+  {"NVLink_0_PORT_1_TEMP", 0, read_snr, 0, {0, 0, 0, 0, 0, 0, 0, 0}, TEMP}, //0x76
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x77
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x78
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x79
