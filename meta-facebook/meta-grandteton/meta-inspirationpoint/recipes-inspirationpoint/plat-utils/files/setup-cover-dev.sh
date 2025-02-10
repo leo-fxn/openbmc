@@ -277,6 +277,7 @@ fi
 # sku[5:0] | HSC     | RSHUNT | ADC Type | DIF ADC  | SGL ADC  |
 # 000001   | ADM1272 | RLC    | DIF      | INA238   | MAX11617 |
 # 001010   | LTC4287 | ERO    | DIF      | ISL28022 | MAX11617 |
+# 011010   | LTC4287 | ERO    | DIF      | SQ52206
 
 mb_product=$(kv get mb_product)
 if [ "$mb_product" == "GT1.5" ]; then
@@ -284,6 +285,7 @@ if [ "$mb_product" == "GT1.5" ]; then
   HPDB_1ST_SOURCE="0"
   HPDB_2ND_SOURCE="1"
   HPDB_3RD_SOURCE="2"
+  HPDB_4RD_SOURCE="3"
 
   # HPDB IOExpender
   i2c_device_add 37 0x23 pca9555
@@ -323,6 +325,10 @@ if [ "$mb_product" == "GT1.5" ]; then
                   ))"
 
   hpdb_sku=$(kv get hpdb_sku)
+  hpdb_adc="$((
+               $(gpio_get HPDB_SKU_ID_4) << 1 |
+               $(gpio_get HPDB_SKU_ID_3)
+             ))"
 
   if [ "$hpdb_sku" == "1" ]; then
     # HPDB HSC
@@ -335,15 +341,7 @@ if [ "$mb_product" == "GT1.5" ]; then
     i2c_device_add 39 0x1c adm1272
     i2c_device_add 39 0x1f adm1272
     kv set hpdb_hsc_source "$HPDB_2ND_SOURCE"
-
-    # HPDB ADC
-    i2c_device_add 37 0x42 ina238
-    i2c_device_add 37 0x43 ina238
-    i2c_device_add 37 0x44 ina238
-    i2c_device_add 37 0x45 ina238
-    kv set hpdb_adc_source "$HPDB_2ND_SOURCE"
-
-  elif [ "$hpdb_sku" == "10" ]; then
+  elif [ "$hpdb_sku" == "10" ]  || [ "$hpdb_sku" == "26" ]; then
     # HPDB HSC
     i2cset -f -y 39 0x40 0xD9 0x8b
     i2cset -f -y 39 0x41 0xD9 0x8b
@@ -354,13 +352,27 @@ if [ "$mb_product" == "GT1.5" ]; then
     i2c_device_add 39 0x42 ltc4286
     i2c_device_add 39 0x46 ltc4286
     kv set hpdb_hsc_source "$HPDB_1ST_SOURCE"
+  fi
 
-    # HPDB ADC
+  # HPDB ADC
+  if [ "$hpdb_adc" == "0" ]; then
+    i2c_device_add 37 0x42 ina238
+    i2c_device_add 37 0x43 ina238
+    i2c_device_add 37 0x44 ina238
+    i2c_device_add 37 0x45 ina238
+    kv set hpdb_adc_source "$HPDB_2ND_SOURCE"
+  elif [ "$hpdb_adc" == "1" ]; then
     i2c_device_add 37 0x42 isl28022
     i2c_device_add 37 0x43 isl28022
     i2c_device_add 37 0x44 isl28022
     i2c_device_add 37 0x45 isl28022
     kv set hpdb_adc_source "$HPDB_3RD_SOURCE"
+  elif [ "$hpdb_adc" == "3" ]; then
+    i2c_device_add 37 0x42 ina238
+    i2c_device_add 37 0x43 ina238
+    i2c_device_add 37 0x44 ina238
+    i2c_device_add 37 0x45 ina238
+    kv set hpdb_adc_source "$HPDB_4RD_SOURCE"
   fi
 
   # HPDB FRU
