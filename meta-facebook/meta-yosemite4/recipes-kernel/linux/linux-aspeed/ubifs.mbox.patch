@@ -1,0 +1,1685 @@
+From cf08387074fe0e22f2101264d2b8dc959a75a074 Mon Sep 17 00:00:00 2001
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Date: Tue, 18 Jul 2023 14:41:45 +0200
+Subject: [PATCH 01/14] ubifs: Fix memory leak of bud->log_hash
+
+Ensure that the allocated bud->log_hash (if any) is freed in all cases
+when the bud itself is freed, to fix this leak caught by kmemleak:
+
+ # keyctl add logon foo:bar data @s
+ # echo clear > /sys/kernel/debug/kmemleak
+ # mount -t ubifs /dev/ubi0_0 mnt -o auth_hash_name=sha256,auth_key=foo:bar
+ # echo a > mnt/x
+ # umount mnt
+ # mount -t ubifs /dev/ubi0_0 mnt -o auth_hash_name=sha256,auth_key=foo:bar
+ # umount mnt
+ # sleep 5
+ # echo scan > /sys/kernel/debug/kmemleak
+ # echo scan > /sys/kernel/debug/kmemleak
+ # cat /sys/kernel/debug/kmemleak
+ unreferenced object 0xff... (size 128):
+   comm "mount"
+   backtrace:
+     __kmalloc
+     __ubifs_hash_get_desc+0x5d/0xe0 ubifs
+     ubifs_replay_journal
+     ubifs_mount
+     ...
+
+Fixes: da8ef65f9573 ("ubifs: Authenticate replayed journal")
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Reviewed-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/super.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+index 3409488d39ba1..725736297b9fd 100644
+--- a/fs/ubifs/super.c
++++ b/fs/ubifs/super.c
+@@ -923,8 +923,10 @@ static void free_buds(struct ubifs_info *c)
+ {
+ 	struct ubifs_bud *bud, *n;
+ 
+-	rbtree_postorder_for_each_entry_safe(bud, n, &c->buds, rb)
++	rbtree_postorder_for_each_entry_safe(bud, n, &c->buds, rb) {
++		kfree(bud->log_hash);
+ 		kfree(bud);
++	}
+ }
+ 
+ /**
+@@ -1193,6 +1195,7 @@ static void destroy_journal(struct ubifs_info *c)
+ 
+ 		bud = list_entry(c->old_buds.next, struct ubifs_bud, list);
+ 		list_del(&bud->list);
++		kfree(bud->log_hash);
+ 		kfree(bud);
+ 	}
+ 	ubifs_destroy_idx_gc(c);
+-- 
+2.43.5
+
+
+From cdafd28f2d5c2838a81719ec9419485bf0339816 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Sat, 23 Sep 2023 11:28:59 +0800
+Subject: [PATCH 02/14] ubifs: ubifs_link: Fix wrong name len calculating when
+ UBIFS is encrypted
+
+The length of dentry name is calculated after the raw name is encrypted,
+except for ubifs_link(), which could make the size of dir underflow.
+Here is a reproducer:
+
+ touch $TMP/file
+ mkdir $TMP/dir
+ stat $TMP/dir
+ for i in $(seq 1 8)
+ do
+   ln $TMP/file $TMP/dir/$i
+   unlink $TMP/dir/$i
+ done
+ stat $TMP/dir
+
+The size of dir will be underflow(-96).
+
+Fix it by calculating dentry name's length after the name is encrypted.
+
+Fixes: f4f61d2cc6d8 ("ubifs: Implement encrypted filenames")
+Reported-by: Roland Ruckerbauer <roland.ruckerbauer@robart.cc>
+Link: https://lore.kernel.org/linux-mtd/1638777819.2925845.1695222544742.JavaMail.zimbra@robart.cc/T/#u
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/dir.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index be45972ff95d9..b6f1074910b1d 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -724,7 +724,7 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 	struct inode *inode = d_inode(old_dentry);
+ 	struct ubifs_inode *ui = ubifs_inode(inode);
+ 	struct ubifs_inode *dir_ui = ubifs_inode(dir);
+-	int err, sz_change = CALC_DENT_SIZE(dentry->d_name.len);
++	int err, sz_change;
+ 	struct ubifs_budget_req req = { .new_dent = 1, .dirtied_ino = 2,
+ 				.dirtied_ino_d = ALIGN(ui->data_len, 8) };
+ 	struct fscrypt_name nm;
+@@ -748,6 +748,8 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 	if (err)
+ 		return err;
+ 
++	sz_change = CALC_DENT_SIZE(fname_len(&nm));
++
+ 	err = dbg_check_synced_i_size(c, inode);
+ 	if (err)
+ 		goto out_fname;
+-- 
+2.43.5
+
+
+From ebd311853852b9a5df3fbae10ad404afa5c0a9e2 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Mon, 20 Nov 2023 19:13:45 +0800
+Subject: [PATCH 03/14] ubifs: Check @c->dirty_[n|p]n_cnt and @c->nroot state
+ under @c->lp_mutex
+
+The checking of @c->nroot->flags and @c->dirty_[n|p]n_cnt in function
+nothing_to_commit() is not atomic, which could be raced with modifying
+of lpt, for example:
+       P1        P2        P3
+run_gc
+ ubifs_garbage_collect
+              do_commit
+ ubifs_return_leb
+  ubifs_lpt_lookup_dirty
+   dirty_cow_nnode
+                       do_commit
+			nothing_to_commit
+			 if (test_bit(DIRTY_CNODE, &c->nroot->flags)
+			 // false
+   test_and_set_bit(DIRTY_CNODE, &nnode->flags)
+   c->dirty_nn_cnt += 1
+                         ubifs_assert(c, c->dirty_nn_cnt == 0)
+			 // false !
+
+Fetch a reproducer in Link:
+ UBIFS error (ubi0:0 pid 2747): ubifs_assert_failed
+ UBIFS assert failed: c->dirty_pn_cnt == 0, in fs/ubifs/commit.c
+ Call Trace:
+  ubifs_ro_mode+0x58/0x70 [ubifs]
+  ubifs_assert_failed+0x6a/0x90 [ubifs]
+  do_commit+0x5b7/0x930 [ubifs]
+  ubifs_run_commit+0xc6/0x1a0 [ubifs]
+  ubifs_sync_fs+0xd8/0x110 [ubifs]
+  sync_filesystem+0xb4/0x120
+  do_syscall_64+0x6f/0x140
+
+Fix it by checking @c->dirty_[n|p]n_cnt and @c->nroot state with
+@c->lp_mutex locked.
+
+Fixes: 944fdef52ca9 ("UBIFS: do not start the commit if there is nothing to commit")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=218162
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/commit.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/fs/ubifs/commit.c b/fs/ubifs/commit.c
+index c4fc1047fc079..5b3a840098b06 100644
+--- a/fs/ubifs/commit.c
++++ b/fs/ubifs/commit.c
+@@ -69,6 +69,14 @@ static int nothing_to_commit(struct ubifs_info *c)
+ 	if (c->zroot.znode && ubifs_zn_dirty(c->zroot.znode))
+ 		return 0;
+ 
++	/*
++	 * Increasing @c->dirty_pn_cnt/@c->dirty_nn_cnt and marking
++	 * nnodes/pnodes as dirty in run_gc() could race with following
++	 * checking, which leads inconsistent states between @c->nroot
++	 * and @c->dirty_pn_cnt/@c->dirty_nn_cnt, holding @c->lp_mutex
++	 * to avoid that.
++	 */
++	mutex_lock(&c->lp_mutex);
+ 	/*
+ 	 * Even though the TNC is clean, the LPT tree may have dirty nodes. For
+ 	 * example, this may happen if the budgeting subsystem invoked GC to
+@@ -76,12 +84,15 @@ static int nothing_to_commit(struct ubifs_info *c)
+ 	 * free space. In this case GC would just change the lprops of this
+ 	 * LEB (by turning all space into free space) and unmap it.
+ 	 */
+-	if (c->nroot && test_bit(DIRTY_CNODE, &c->nroot->flags))
++	if (c->nroot && test_bit(DIRTY_CNODE, &c->nroot->flags)) {
++		mutex_unlock(&c->lp_mutex);
+ 		return 0;
++	}
+ 
+ 	ubifs_assert(c, atomic_long_read(&c->dirty_zn_cnt) == 0);
+ 	ubifs_assert(c, c->dirty_pn_cnt == 0);
+ 	ubifs_assert(c, c->dirty_nn_cnt == 0);
++	mutex_unlock(&c->lp_mutex);
+ 
+ 	return 1;
+ }
+-- 
+2.43.5
+
+
+From 430d193d5382e34f26b8440de15055f09972e7a9 Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 13 Feb 2024 10:54:07 +0100
+Subject: [PATCH 04/14] ubifs: fix sort function prototype
+
+The global sort() function expects a callback pointer to a function with two
+void* arguments, but ubifs has a function with specific object types, which
+causes a warning in clang-16 and higher:
+
+fs/ubifs/lprops.c:1272:9: error: cast from 'int (*)(struct ubifs_info *, const struct ubifs_lprops *, int, struct ubifs_lp_stats *)' to 'ubifs_lpt_scan_callback' (aka 'int (*)(struct ubifs_info *, const struct ubifs_lprops *, int, void *)') converts to incompatible function type [-Werror,-Wcast-function-type-strict]
+ 1272 |                                     (ubifs_lpt_scan_callback)scan_check_cb,
+      |                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Change the prototype to the regular one and cast the object pointers
+locally instead.
+
+Fixes: 1e51764a3c2a ("UBIFS: add new flash file system")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/find.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/fs/ubifs/find.c b/fs/ubifs/find.c
+index 873e6e1c92b5c..1cb79b167a4f8 100644
+--- a/fs/ubifs/find.c
++++ b/fs/ubifs/find.c
+@@ -726,11 +726,10 @@ int ubifs_find_free_leb_for_idx(struct ubifs_info *c)
+ 	return err;
+ }
+ 
+-static int cmp_dirty_idx(const struct ubifs_lprops **a,
+-			 const struct ubifs_lprops **b)
++static int cmp_dirty_idx(const void *a, const void *b)
+ {
+-	const struct ubifs_lprops *lpa = *a;
+-	const struct ubifs_lprops *lpb = *b;
++	const struct ubifs_lprops *lpa = *(const struct ubifs_lprops **)a;
++	const struct ubifs_lprops *lpb = *(const struct ubifs_lprops **)b;
+ 
+ 	return lpa->dirty + lpa->free - lpb->dirty - lpb->free;
+ }
+@@ -754,7 +753,7 @@ int ubifs_save_dirty_idx_lnums(struct ubifs_info *c)
+ 	       sizeof(void *) * c->dirty_idx.cnt);
+ 	/* Sort it so that the dirtiest is now at the end */
+ 	sort(c->dirty_idx.arr, c->dirty_idx.cnt, sizeof(void *),
+-	     (int (*)(const void *, const void *))cmp_dirty_idx, NULL);
++	     cmp_dirty_idx, NULL);
+ 	dbg_find("found %d dirty index LEBs", c->dirty_idx.cnt);
+ 	if (c->dirty_idx.cnt)
+ 		dbg_find("dirtiest index LEB is %d with dirty %d and free %d",
+-- 
+2.43.5
+
+
+From 39f375d2bb9abfeed98fec1dbc3add409ab84992 Mon Sep 17 00:00:00 2001
+From: Kunwu Chan <chentao@kylinos.cn>
+Date: Thu, 11 Jan 2024 14:36:56 +0800
+Subject: [PATCH 05/14] ubifs: Remove unreachable code in dbg_check_ltab_lnum
+
+Because there is no break statement in the dead loop above,it is
+impossible to execute the 'err=0' statement.Delete the code that
+will never execute.
+
+Fixes: 6fb324a4b0c3 ("UBIFS: allocate ltab checking buffer on demand")
+Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
+Cc: Kunwu Chan <kunwu.chan@hotmail.com>
+Suggested-by: Richard Weinberger <richard.weinberger@gmail.com>
+Reviewed-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/lpt_commit.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/fs/ubifs/lpt_commit.c b/fs/ubifs/lpt_commit.c
+index c4d079328b929..07351fdce7223 100644
+--- a/fs/ubifs/lpt_commit.c
++++ b/fs/ubifs/lpt_commit.c
+@@ -1646,7 +1646,6 @@ static int dbg_check_ltab_lnum(struct ubifs_info *c, int lnum)
+ 		len -= node_len;
+ 	}
+ 
+-	err = 0;
+ out:
+ 	vfree(buf);
+ 	return err;
+-- 
+2.43.5
+
+
+From 5be808ebfa99e02c6dcb42bc7d3c64096603a909 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Mon, 8 Jan 2024 10:41:04 +0800
+Subject: [PATCH 06/14] ubifs: dbg_check_idx_size: Fix kmemleak if loading
+ znode failed
+
+If function dbg_check_idx_size() failed by loading znode in mounting
+process, there are two problems:
+  1. Allocated znodes won't be freed, which causes kmemleak in kernel:
+     ubifs_mount
+      dbg_check_idx_size
+       dbg_walk_index
+        c->zroot.znode = ubifs_load_znode
+	child = ubifs_load_znode // failed
+	// Loaded znodes won't be freed in error handling path.
+  2. Global variable ubifs_clean_zn_cnt is not decreased, because
+     ubifs_tnc_close() is not invoked in error handling path, which
+     triggers a warning in ubifs_exit():
+      WARNING: CPU: 1 PID: 1576 at fs/ubifs/super.c:2486 ubifs_exit
+      Modules linked in: zstd ubifs(-) ubi nandsim
+      CPU: 1 PID: 1576 Comm: rmmod Not tainted 6.7.0-rc6
+      Call Trace:
+	ubifs_exit+0xca/0xc70 [ubifs]
+	__do_sys_delete_module+0x29a/0x4a0
+	do_syscall_64+0x6f/0x140
+
+Fix it by adding error handling path in dbg_check_idx_size() to release
+tnc tree.
+
+Fixes: 1e51764a3c2a ("UBIFS: add new flash file system")
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Suggested-by: Richard Weinberger <richard@nod.at>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/debug.c    |  9 +++++++--
+ fs/ubifs/tnc.c      |  9 +--------
+ fs/ubifs/tnc_misc.c | 22 ++++++++++++++++++++++
+ fs/ubifs/ubifs.h    |  1 +
+ 4 files changed, 31 insertions(+), 10 deletions(-)
+
+diff --git a/fs/ubifs/debug.c b/fs/ubifs/debug.c
+index eef9e527d9ff9..b89df8a2335f3 100644
+--- a/fs/ubifs/debug.c
++++ b/fs/ubifs/debug.c
+@@ -1742,17 +1742,22 @@ int dbg_check_idx_size(struct ubifs_info *c, long long idx_size)
+ 	err = dbg_walk_index(c, NULL, add_size, &calc);
+ 	if (err) {
+ 		ubifs_err(c, "error %d while walking the index", err);
+-		return err;
++		goto out_err;
+ 	}
+ 
+ 	if (calc != idx_size) {
+ 		ubifs_err(c, "index size check failed: calculated size is %lld, should be %lld",
+ 			  calc, idx_size);
+ 		dump_stack();
+-		return -EINVAL;
++		err = -EINVAL;
++		goto out_err;
+ 	}
+ 
+ 	return 0;
++
++out_err:
++	ubifs_destroy_tnc_tree(c);
++	return err;
+ }
+ 
+ /**
+diff --git a/fs/ubifs/tnc.c b/fs/ubifs/tnc.c
+index f4728e65d1bda..45cacdcd4746b 100644
+--- a/fs/ubifs/tnc.c
++++ b/fs/ubifs/tnc.c
+@@ -3116,14 +3116,7 @@ static void tnc_destroy_cnext(struct ubifs_info *c)
+ void ubifs_tnc_close(struct ubifs_info *c)
+ {
+ 	tnc_destroy_cnext(c);
+-	if (c->zroot.znode) {
+-		long n, freed;
+-
+-		n = atomic_long_read(&c->clean_zn_cnt);
+-		freed = ubifs_destroy_tnc_subtree(c, c->zroot.znode);
+-		ubifs_assert(c, freed == n);
+-		atomic_long_sub(n, &ubifs_clean_zn_cnt);
+-	}
++	ubifs_destroy_tnc_tree(c);
+ 	kfree(c->gap_lebs);
+ 	kfree(c->ilebs);
+ 	destroy_old_idx(c);
+diff --git a/fs/ubifs/tnc_misc.c b/fs/ubifs/tnc_misc.c
+index 4d686e34e64d9..d3f8a6aa1f49d 100644
+--- a/fs/ubifs/tnc_misc.c
++++ b/fs/ubifs/tnc_misc.c
+@@ -250,6 +250,28 @@ long ubifs_destroy_tnc_subtree(const struct ubifs_info *c,
+ 	}
+ }
+ 
++/**
++ * ubifs_destroy_tnc_tree - destroy all znodes connected to the TNC tree.
++ * @c: UBIFS file-system description object
++ *
++ * This function destroys the whole TNC tree and updates clean global znode
++ * count.
++ */
++void ubifs_destroy_tnc_tree(struct ubifs_info *c)
++{
++	long n, freed;
++
++	if (!c->zroot.znode)
++		return;
++
++	n = atomic_long_read(&c->clean_zn_cnt);
++	freed = ubifs_destroy_tnc_subtree(c, c->zroot.znode);
++	ubifs_assert(c, freed == n);
++	atomic_long_sub(n, &ubifs_clean_zn_cnt);
++
++	c->zroot.znode = NULL;
++}
++
+ /**
+  * read_znode - read an indexing node from flash and fill znode.
+  * @c: UBIFS file-system description object
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index ebb3ad6b5e7e6..0eae7eefef509 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -1903,6 +1903,7 @@ struct ubifs_znode *ubifs_tnc_postorder_next(const struct ubifs_info *c,
+ 					     struct ubifs_znode *znode);
+ long ubifs_destroy_tnc_subtree(const struct ubifs_info *c,
+ 			       struct ubifs_znode *zr);
++void ubifs_destroy_tnc_tree(struct ubifs_info *c);
+ struct ubifs_znode *ubifs_load_znode(struct ubifs_info *c,
+ 				     struct ubifs_zbranch *zbr,
+ 				     struct ubifs_znode *parent, int iip);
+-- 
+2.43.5
+
+
+From 3bbf93edae1d4f76a1fb21e35e6a469762a81beb Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Mon, 22 Jan 2024 14:31:03 +0800
+Subject: [PATCH 07/14] ubifs: Queue up space reservation tasks if retrying
+ many times
+
+Recently we catched ENOSPC returned by make_reservation() while doing
+fsstress on UBIFS, we got following information when it occurred (See
+details in Link):
+
+ UBIFS error (ubi0:0 pid 3640152): make_reservation [ubifs]: cannot
+ reserve 112 bytes in jhead 2, error -28
+ CPU: 2 PID: 3640152 Comm: kworker/u16:2 Tainted: G    B   W
+ Hardware name: Hisilicon PhosphorHi1230 EMU (DT)
+ Workqueue: writeback wb_workfn (flush-ubifs_0_0)
+ Call trace:
+  dump_stack+0x114/0x198
+  make_reservation+0x564/0x610 [ubifs]
+  ubifs_jnl_write_data+0x328/0x48c [ubifs]
+  do_writepage+0x2a8/0x3e4 [ubifs]
+  ubifs_writepage+0x16c/0x374 [ubifs]
+  generic_writepages+0xb4/0x114
+  do_writepages+0xcc/0x11c
+  writeback_sb_inodes+0x2d0/0x564
+  wb_writeback+0x20c/0x2b4
+  wb_workfn+0x404/0x510
+  process_one_work+0x304/0x4ac
+  worker_thread+0x31c/0x4e4
+  kthread+0x23c/0x290
+  Budgeting info: data budget sum 17576, total budget sum 17768
+	budg_data_growth 4144, budg_dd_growth 13432, budg_idx_growth 192
+	min_idx_lebs 13, old_idx_sz 988640, uncommitted_idx 0
+	page_budget 4144, inode_budget 160, dent_budget 312
+	nospace 0, nospace_rp 0
+	dark_wm 8192, dead_wm 4096, max_idx_node_sz 192
+	freeable_cnt 0, calc_idx_sz 988640, idx_gc_cnt 0
+	dirty_pg_cnt 4, dirty_zn_cnt 0, clean_zn_cnt 4811
+	gc_lnum 21, ihead_lnum 14
+	jhead 0 (GC)	 LEB 16
+	jhead 1 (base)	 LEB 34
+	jhead 2 (data)	 LEB 23
+	bud LEB 16
+	bud LEB 23
+	bud LEB 34
+	old bud LEB 33
+	old bud LEB 31
+	old bud LEB 15
+	commit state 4
+ Budgeting predictions:
+	available: 33832, outstanding 17576, free 15356
+ (pid 3640152) start dumping LEB properties
+ (pid 3640152) Lprops statistics: empty_lebs 3, idx_lebs  11
+	taken_empty_lebs 1, total_free 1253376, total_dirty 2445736
+	total_used 3438712, total_dark 65536, total_dead 17248
+ LEB 15 free 0      dirty 248000   used 5952   (taken)
+ LEB 16 free 110592 dirty 896      used 142464 (taken, jhead 0 (GC))
+ LEB 21 free 253952 dirty 0        used 0      (taken, GC LEB)
+ LEB 23 free 0      dirty 248104   used 5848   (taken, jhead 2 (data))
+ LEB 29 free 253952 dirty 0        used 0      (empty)
+ LEB 33 free 0      dirty 253952   used 0      (taken)
+ LEB 34 free 217088 dirty 36544    used 320    (taken, jhead 1 (base))
+ LEB 37 free 253952 dirty 0        used 0      (empty)
+ OTHERS: index lebs, zero-available non-index lebs
+
+According to the budget algorithm, there are 5 LEBs reserved for budget:
+three journal heads(16,23,34), 1 GC LEB(21) and 1 deletion LEB(can be
+used in make_reservation()). There are 2 empty LEBs used for index nodes,
+which is calculated as min_idx_lebs - idx_lebs = 2. In theory, LEB 15
+and 33 should be reclaimed as free state after committing, but it is now
+in taken state. After looking the realization of reserve_space(), there's
+a possible situation:
+
+LEB 15: free 2000 dirty 248000 used 3952 (jhead 2)
+LEB 23: free 2000 dirty 248104 used 3848 (bud, taken)
+LEB 33: free 2000 dirty 251952 used 0    (bud, taken)
+
+      wb_workfn          wb_workfn_2
+do_writepage // write 3000 bytes
+ ubifs_jnl_write_data
+  make_reservation
+   reserve_space
+    ubifs_garbage_collect
+     ubifs_find_dirty_leb // ret ENOSPC, dirty LEBs are taken
+   nospc_retries++  // 1
+   ubifs_run_commit
+    do_commit
+
+LEB 15: free 2000 dirty 248000 used 3952 (jhead 2)
+LEB 23: free 2000 dirty 248104 used 3848 (dirty)
+LEB 33: free 2000 dirty 251952 used 0    (dirty)
+
+                   do_writepage // write 2000 bytes for 3 times
+		    ubifs_jnl_write_data
+		    // grabs 15\23\33
+
+LEB 15: free 0    dirty 248000 used 5952 (bud, taken)
+LEB 23: free 0    dirty 248104 used 5848 (jhead 2)
+LEB 33: free 0    dirty 253952 used 0    (bud, taken)
+
+   reserve_space
+    ubifs_garbage_collect
+     ubifs_find_dirty_leb // ret ENOSPC, dirty LEBs are taken
+   if (nospc_retries++ < 2) // false
+ ubifs_ro_mode !
+
+Fetch a reproducer in Link.
+
+The dirty LEBs could be grabbed by other threads, which fails finding dirty
+LEBs of GC in current thread, so make_reservation() could try many times to
+invoke GC&&committing, but current realization limits the times of retrying
+as 'nospc_retries'(twice).
+Fix it by adding a wait queue, start queuing up space reservation tasks
+when someone task has retried gc + commit for many times. Then there is
+only one task making space reservation at any time, and it can always make
+success under the premise of correct budgeting.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=218164
+Fixes: 1e51764a3c2a ("UBIFS: add new flash file system")
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/journal.c | 171 +++++++++++++++++++++++++++++++++++++++------
+ fs/ubifs/super.c   |   2 +
+ fs/ubifs/ubifs.h   |   4 ++
+ 3 files changed, 155 insertions(+), 22 deletions(-)
+
+diff --git a/fs/ubifs/journal.c b/fs/ubifs/journal.c
+index ffc9beee7be65..ab287d47ecaf9 100644
+--- a/fs/ubifs/journal.c
++++ b/fs/ubifs/journal.c
+@@ -292,6 +292,96 @@ static int write_head(struct ubifs_info *c, int jhead, void *buf, int len,
+ 	return err;
+ }
+ 
++/**
++ * __queue_and_wait - queue a task and wait until the task is waked up.
++ * @c: UBIFS file-system description object
++ *
++ * This function adds current task in queue and waits until the task is waked
++ * up. This function should be called with @c->reserve_space_wq locked.
++ */
++static void __queue_and_wait(struct ubifs_info *c)
++{
++	DEFINE_WAIT(wait);
++
++	__add_wait_queue_entry_tail_exclusive(&c->reserve_space_wq, &wait);
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	spin_unlock(&c->reserve_space_wq.lock);
++
++	schedule();
++	finish_wait(&c->reserve_space_wq, &wait);
++}
++
++/**
++ * wait_for_reservation - try queuing current task to wait until waked up.
++ * @c: UBIFS file-system description object
++ *
++ * This function queues current task to wait until waked up, if queuing is
++ * started(@c->need_wait_space is not %0). Returns %true if current task is
++ * added in queue, otherwise %false is returned.
++ */
++static bool wait_for_reservation(struct ubifs_info *c)
++{
++	if (likely(atomic_read(&c->need_wait_space) == 0))
++		/* Quick path to check whether queuing is started. */
++		return false;
++
++	spin_lock(&c->reserve_space_wq.lock);
++	if (atomic_read(&c->need_wait_space) == 0) {
++		/* Queuing is not started, don't queue current task. */
++		spin_unlock(&c->reserve_space_wq.lock);
++		return false;
++	}
++
++	__queue_and_wait(c);
++	return true;
++}
++
++/**
++ * wake_up_reservation - wake up first task in queue or stop queuing.
++ * @c: UBIFS file-system description object
++ *
++ * This function wakes up the first task in queue if it exists, or stops
++ * queuing if no tasks in queue.
++ */
++static void wake_up_reservation(struct ubifs_info *c)
++{
++	spin_lock(&c->reserve_space_wq.lock);
++	if (waitqueue_active(&c->reserve_space_wq))
++		wake_up_locked(&c->reserve_space_wq);
++	else
++		/*
++		 * Compared with wait_for_reservation(), set @c->need_wait_space
++		 * under the protection of wait queue lock, which can avoid that
++		 * @c->need_wait_space is set to 0 after new task queued.
++		 */
++		atomic_set(&c->need_wait_space, 0);
++	spin_unlock(&c->reserve_space_wq.lock);
++}
++
++/**
++ * wake_up_reservation - add current task in queue or start queuing.
++ * @c: UBIFS file-system description object
++ *
++ * This function starts queuing if queuing is not started, otherwise adds
++ * current task in queue.
++ */
++static void add_or_start_queue(struct ubifs_info *c)
++{
++	spin_lock(&c->reserve_space_wq.lock);
++	if (atomic_cmpxchg(&c->need_wait_space, 0, 1) == 0) {
++		/* Starts queuing, task can go on directly. */
++		spin_unlock(&c->reserve_space_wq.lock);
++		return;
++	}
++
++	/*
++	 * There are at least two tasks have retried more than 32 times
++	 * at certain point, first task has started queuing, just queue
++	 * the left tasks.
++	 */
++	__queue_and_wait(c);
++}
++
+ /**
+  * make_reservation - reserve journal space.
+  * @c: UBIFS file-system description object
+@@ -311,33 +401,27 @@ static int write_head(struct ubifs_info *c, int jhead, void *buf, int len,
+ static int make_reservation(struct ubifs_info *c, int jhead, int len)
+ {
+ 	int err, cmt_retries = 0, nospc_retries = 0;
++	bool blocked = wait_for_reservation(c);
+ 
+ again:
+ 	down_read(&c->commit_sem);
+ 	err = reserve_space(c, jhead, len);
+-	if (!err)
++	if (!err) {
+ 		/* c->commit_sem will get released via finish_reservation(). */
+-		return 0;
++		goto out_wake_up;
++	}
+ 	up_read(&c->commit_sem);
+ 
+ 	if (err == -ENOSPC) {
+ 		/*
+ 		 * GC could not make any progress. We should try to commit
+-		 * once because it could make some dirty space and GC would
+-		 * make progress, so make the error -EAGAIN so that the below
++		 * because it could make some dirty space and GC would make
++		 * progress, so make the error -EAGAIN so that the below
+ 		 * will commit and re-try.
+ 		 */
+-		if (nospc_retries++ < 2) {
+-			dbg_jnl("no space, retry");
+-			err = -EAGAIN;
+-		}
+-
+-		/*
+-		 * This means that the budgeting is incorrect. We always have
+-		 * to be able to write to the media, because all operations are
+-		 * budgeted. Deletions are not budgeted, though, but we reserve
+-		 * an extra LEB for them.
+-		 */
++		nospc_retries++;
++		dbg_jnl("no space, retry");
++		err = -EAGAIN;
+ 	}
+ 
+ 	if (err != -EAGAIN)
+@@ -349,15 +433,37 @@ static int make_reservation(struct ubifs_info *c, int jhead, int len)
+ 	 */
+ 	if (cmt_retries > 128) {
+ 		/*
+-		 * This should not happen unless the journal size limitations
+-		 * are too tough.
++		 * This should not happen unless:
++		 * 1. The journal size limitations are too tough.
++		 * 2. The budgeting is incorrect. We always have to be able to
++		 *    write to the media, because all operations are budgeted.
++		 *    Deletions are not budgeted, though, but we reserve an
++		 *    extra LEB for them.
+ 		 */
+-		ubifs_err(c, "stuck in space allocation");
++		ubifs_err(c, "stuck in space allocation, nospc_retries %d",
++			  nospc_retries);
+ 		err = -ENOSPC;
+ 		goto out;
+-	} else if (cmt_retries > 32)
+-		ubifs_warn(c, "too many space allocation re-tries (%d)",
+-			   cmt_retries);
++	} else if (cmt_retries > 32) {
++		/*
++		 * It's almost impossible to happen, unless there are many tasks
++		 * making reservation concurrently and someone task has retried
++		 * gc + commit for many times, generated available space during
++		 * this period are grabbed by other tasks.
++		 * But if it happens, start queuing up all tasks that will make
++		 * space reservation, then there is only one task making space
++		 * reservation at any time, and it can always make success under
++		 * the premise of correct budgeting.
++		 */
++		ubifs_warn(c, "too many space allocation cmt_retries (%d) "
++			   "nospc_retries (%d), start queuing tasks",
++			   cmt_retries, nospc_retries);
++
++		if (!blocked) {
++			blocked = true;
++			add_or_start_queue(c);
++		}
++	}
+ 
+ 	dbg_jnl("-EAGAIN, commit and retry (retried %d times)",
+ 		cmt_retries);
+@@ -365,7 +471,7 @@ static int make_reservation(struct ubifs_info *c, int jhead, int len)
+ 
+ 	err = ubifs_run_commit(c);
+ 	if (err)
+-		return err;
++		goto out_wake_up;
+ 	goto again;
+ 
+ out:
+@@ -380,6 +486,27 @@ static int make_reservation(struct ubifs_info *c, int jhead, int len)
+ 		cmt_retries = dbg_check_lprops(c);
+ 		up_write(&c->commit_sem);
+ 	}
++out_wake_up:
++	if (blocked) {
++		/*
++		 * Only tasks that have ever started queuing or ever been queued
++		 * can wake up other queued tasks, which can make sure that
++		 * there is only one task waked up to make space reservation.
++		 * For example:
++		 *      task A          task B           task C
++		 *                 make_reservation  make_reservation
++		 * reserve_space // 0
++		 * wake_up_reservation
++		 *                  atomic_cmpxchg // 0, start queuing
++		 *                  reserve_space
++		 *                                    wait_for_reservation
++		 *                                     __queue_and_wait
++		 *                                      add_wait_queue
++		 *  if (blocked) // false
++		 *  // So that task C won't be waked up to race with task B
++		 */
++		wake_up_reservation(c);
++	}
+ 	return err;
+ }
+ 
+diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+index 725736297b9fd..cc9d42d9ef93c 100644
+--- a/fs/ubifs/super.c
++++ b/fs/ubifs/super.c
+@@ -2155,6 +2155,8 @@ static struct ubifs_info *alloc_ubifs_info(struct ubi_volume_desc *ubi)
+ 		mutex_init(&c->bu_mutex);
+ 		mutex_init(&c->write_reserve_mutex);
+ 		init_waitqueue_head(&c->cmt_wq);
++		init_waitqueue_head(&c->reserve_space_wq);
++		atomic_set(&c->need_wait_space, 0);
+ 		c->buds = RB_ROOT;
+ 		c->old_idx = RB_ROOT;
+ 		c->size_tree = RB_ROOT;
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index 0eae7eefef509..37a42728cd77c 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -1047,6 +1047,8 @@ struct ubifs_debug_info;
+  * @bg_bud_bytes: number of bud bytes when background commit is initiated
+  * @old_buds: buds to be released after commit ends
+  * @max_bud_cnt: maximum number of buds
++ * @need_wait_space: Non %0 means space reservation tasks need to wait in queue
++ * @reserve_space_wq: wait queue to sleep on if @need_wait_space is not %0
+  *
+  * @commit_sem: synchronizes committer with other processes
+  * @cmt_state: commit state
+@@ -1305,6 +1307,8 @@ struct ubifs_info {
+ 	long long bg_bud_bytes;
+ 	struct list_head old_buds;
+ 	int max_bud_cnt;
++	atomic_t need_wait_space;
++	wait_queue_head_t reserve_space_wq;
+ 
+ 	struct rw_semaphore commit_sem;
+ 	int cmt_state;
+-- 
+2.43.5
+
+
+From 7bfe81d566d4dd149d8a6c55dfe0f65b18c0dfb6 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:43 +0800
+Subject: [PATCH 08/14] ubifs: Fix unattached xattr inode if powercut happens
+ after deleting
+
+When powercut happens after deleting file, the xattr inode could be
+alone existing in TNC but its' xattr entry cannot be found in TNC.
+File inode and xattr inode are added into orphan list after deleting
+file, file inode's nlink is 0 but xattr inode's nlink is not 0 (PS:
+zero nlink xattr inode is written on disk in evicting process by
+ubifs_jnl_write_inode). So, following process could happen:
+ 1. touch file
+ 2. setxattr(file)
+ 3. unlink file
+    // inode(nlink=0), xattr inode(nlink=1) are added into orphan list
+ 4. commit
+    // write inode inum and xattr inum into orphan area
+ 5. powercut
+ 6. mount
+    do_kill_orphans
+     // inode(nlink=0) is deleted from TNC by ubifs_tnc_remove_range,
+     // xattr entry is deleted too.
+     // xattr inode(nlink=1) is not deleted from TNC
+Finally we could see following error while debugging UBIFS:
+ UBIFS error (ubi0:0 pid 1093): dbg_check_filesystem [ubifs]: inode 66
+ nlink is 1, but calculated nlink is 0
+ UBIFS (ubi0:0): dump of the inode 66 sitting in LEB 12:2128
+   node_type      0 (inode node)
+   group_type     1 (in node group)
+   len            197
+   key            (66, inode)
+   size           37
+   nlink          1
+   flags          0x20
+   xattr_cnt      0
+   xattr_size     0
+   xattr_names    0
+   data len       37
+
+Fix it by removing entire inode with it's xattrs while replaying orphan,
+just replace function ubifs_tnc_remove_range by ubifs_tnc_remove_ino.
+
+Fixes: ee1438ce5dc4 ("ubifs: Check link count of inodes when killing orphans.")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=218661
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/orphan.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/fs/ubifs/orphan.c b/fs/ubifs/orphan.c
+index 4909321d84cf8..ddeb125e69305 100644
+--- a/fs/ubifs/orphan.c
++++ b/fs/ubifs/orphan.c
+@@ -691,12 +691,12 @@ static int do_kill_orphans(struct ubifs_info *c, struct ubifs_scan_leb *sleb,
+ 
+ 		n = (le32_to_cpu(orph->ch.len) - UBIFS_ORPH_NODE_SZ) >> 3;
+ 		for (i = 0; i < n; i++) {
+-			union ubifs_key key1, key2;
++			union ubifs_key key;
+ 
+ 			inum = le64_to_cpu(orph->inos[i]);
+ 
+-			ino_key_init(c, &key1, inum);
+-			err = ubifs_tnc_lookup(c, &key1, ino);
++			ino_key_init(c, &key, inum);
++			err = ubifs_tnc_lookup(c, &key, ino);
+ 			if (err && err != -ENOENT)
+ 				goto out_free;
+ 
+@@ -708,10 +708,7 @@ static int do_kill_orphans(struct ubifs_info *c, struct ubifs_scan_leb *sleb,
+ 				dbg_rcvry("deleting orphaned inode %lu",
+ 					  (unsigned long)inum);
+ 
+-				lowest_ino_key(c, &key1, inum);
+-				highest_ino_key(c, &key2, inum);
+-
+-				err = ubifs_tnc_remove_range(c, &key1, &key2);
++				err = ubifs_tnc_remove_ino(c, inum);
+ 				if (err)
+ 					goto out_ro;
+ 			}
+-- 
+2.43.5
+
+
+From e397d752ed48113c80b51642f6d7dedf9bf7cf26 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:47 +0800
+Subject: [PATCH 09/14] ubifs: Fix adding orphan entry twice for the same inode
+
+The tmpfile could be added into orphan list twice, first time is
+creation, the second time is removing after it is linked. The orphan
+entry could be added twice for tmpfile if following sequence is
+satisfied:
+
+ubifs_tmpfile
+ ubifs_jnl_update
+  ubifs_add_orphan // first time to add orphan entry
+
+    P1                        P2
+ubifs_link                 do_commit
+                            ubifs_orphan_start_commit
+			     orphan->cmt = 1
+ ubifs_delete_orphan
+  orphan_delete
+   if (orph->cmt)
+    orph->del = 1; // orphan entry is not deleted from tree
+    return
+ubifs_unlink
+ ubifs_jnl_update
+  ubifs_add_orphan
+   orphan_add // found old orphan entry, second time to add orphan entry
+    ubifs_err(c, "orphaned twice")
+    return -EINVAL // unlink failed!
+                            ubifs_orphan_end_commit
+			     erase_deleted // delete old orphan entry
+			      rb_erase(&orphan->rb, &c->orph_tree)
+
+Fix it by removing orphan entry from orphan tree in advance, rather than
+remove it from orphan tree in committing process.
+
+Fixes: 32fe905c17f0 ("ubifs: Fix O_TMPFILE corner case in ubifs_link()")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=218672
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/orphan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/ubifs/orphan.c b/fs/ubifs/orphan.c
+index ddeb125e69305..87c680e26ebcf 100644
+--- a/fs/ubifs/orphan.c
++++ b/fs/ubifs/orphan.c
+@@ -135,6 +135,7 @@ static void orphan_delete(struct ubifs_info *c, struct ubifs_orphan *orph)
+ 
+ 	if (orph->cmt) {
+ 		orph->del = 1;
++		rb_erase(&orph->rb, &c->orph_tree);
+ 		orph->dnext = c->orph_dnext;
+ 		c->orph_dnext = orph;
+ 		dbg_gen("delete later ino %lu", (unsigned long)orph->inum);
+@@ -518,7 +519,6 @@ static void erase_deleted(struct ubifs_info *c)
+ 		dnext = orphan->dnext;
+ 		ubifs_assert(c, !orphan->new);
+ 		ubifs_assert(c, orphan->del);
+-		rb_erase(&orphan->rb, &c->orph_tree);
+ 		list_del(&orphan->list);
+ 		c->tot_orphans -= 1;
+ 		dbg_gen("deleting orphan ino %lu", (unsigned long)orphan->inum);
+-- 
+2.43.5
+
+
+From 66fffdb274f7d35d01b4fb5d2d2542e4303c7432 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:49 +0800
+Subject: [PATCH 10/14] ubifs: Fix space leak when powercut happens in linking
+ tmpfile
+
+There is a potential space leak problem when powercut happens in linking
+tmpfile, in which case, inode node (with nlink=0) and its' data nodes can
+be found from tnc (on flash), but there are no dentries related to the
+inode, so the file is invisible but takes free space. Detailed process is
+shown as:
+ ubifs_tmpfile
+  ubifs_jnl_update // Add bud A into log area
+   ubifs_add_orphan // Add inode into orphan list
+
+     P1             P2
+ ubifs_link
+  ubifs_delete_orphan // Delete inode from orphan list, then inode won't
+		      // be written into orphan area, there is no chance
+		      // to delete inode by replaying orphan.
+                commit // bud A won't be replayed in next mounting
+   >> powercut <<
+  ubifs_jnl_update // Link inode to dentry
+
+The root cause is that orphan entry deletion and journal writing(for link)
+are interrupted by commit, which makes the two operations are not atomic.
+Fix it by doing ubifs_delete_orphan under the protection of c->commit_sem
+within ubifs_jnl_update. This is also a preparation to support all creating
+new files by orphan inode.
+
+v1 is https://lore.kernel.org/linux-mtd/20200701093227.674945-1-chengzhihao1@huawei.com/
+
+Fixes: 32fe905c17f0 ("ubifs: Fix O_TMPFILE corner case in ubifs_link()")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=208405
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/dir.c     | 22 ++++++++--------------
+ fs/ubifs/journal.c |  6 +++++-
+ fs/ubifs/ubifs.h   |  2 +-
+ fs/ubifs/xattr.c   |  2 +-
+ 4 files changed, 15 insertions(+), 17 deletions(-)
+
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index b6f1074910b1d..4f13f7ede25b6 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -325,7 +325,7 @@ static int ubifs_create(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -479,7 +479,7 @@ static int ubifs_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+ 	mutex_unlock(&ui->ui_mutex);
+ 
+ 	lock_2_inodes(dir, inode);
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -760,17 +760,13 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 
+ 	lock_2_inodes(dir, inode);
+ 
+-	/* Handle O_TMPFILE corner case, it is allowed to link a O_TMPFILE. */
+-	if (inode->i_nlink == 0)
+-		ubifs_delete_orphan(c, inode->i_ino);
+-
+ 	inc_nlink(inode);
+ 	ihold(inode);
+ 	inode_set_ctime_current(inode);
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, inode->i_nlink == 1);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -784,8 +780,6 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	drop_nlink(inode);
+-	if (inode->i_nlink == 0)
+-		ubifs_add_orphan(c, inode->i_ino);
+ 	unlock_2_inodes(dir, inode);
+ 	ubifs_release_budget(c, &req);
+ 	iput(inode);
+@@ -844,7 +838,7 @@ static int ubifs_unlink(struct inode *dir, struct dentry *dentry)
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -947,7 +941,7 @@ static int ubifs_rmdir(struct inode *dir, struct dentry *dentry)
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -1021,7 +1015,7 @@ static int ubifs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err) {
+ 		ubifs_err(c, "cannot create directory, error %d", err);
+ 		goto out_cancel;
+@@ -1112,7 +1106,7 @@ static int ubifs_mknod(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -1212,7 +1206,7 @@ static int ubifs_symlink(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+diff --git a/fs/ubifs/journal.c b/fs/ubifs/journal.c
+index ab287d47ecaf9..e76f0cad2e180 100644
+--- a/fs/ubifs/journal.c
++++ b/fs/ubifs/journal.c
+@@ -643,6 +643,7 @@ static void set_dent_cookie(struct ubifs_info *c, struct ubifs_dent_node *dent)
+  * @inode: inode to update
+  * @deletion: indicates a directory entry deletion i.e unlink or rmdir
+  * @xent: non-zero if the directory entry is an extended attribute entry
++ * @delete_orphan: indicates an orphan entry deletion for @inode
+  *
+  * This function updates an inode by writing a directory entry (or extended
+  * attribute entry), the inode itself, and the parent directory inode (or the
+@@ -664,7 +665,7 @@ static void set_dent_cookie(struct ubifs_info *c, struct ubifs_dent_node *dent)
+  */
+ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 		     const struct fscrypt_name *nm, const struct inode *inode,
+-		     int deletion, int xent)
++		     int deletion, int xent, int delete_orphan)
+ {
+ 	int err, dlen, ilen, len, lnum, ino_offs, dent_offs, orphan_added = 0;
+ 	int aligned_dlen, aligned_ilen, sync = IS_DIRSYNC(dir);
+@@ -806,6 +807,9 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 	if (err)
+ 		goto out_ro;
+ 
++	if (delete_orphan)
++		ubifs_delete_orphan(c, inode->i_ino);
++
+ 	finish_reservation(c);
+ 	spin_lock(&ui->ui_lock);
+ 	ui->synced_i_size = ui->ui_size;
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index 37a42728cd77c..ea49d367cd9cf 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -1803,7 +1803,7 @@ int ubifs_consolidate_log(struct ubifs_info *c);
+ /* journal.c */
+ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 		     const struct fscrypt_name *nm, const struct inode *inode,
+-		     int deletion, int xent);
++		     int deletion, int xent, int delete_orphan);
+ int ubifs_jnl_write_data(struct ubifs_info *c, const struct inode *inode,
+ 			 const union ubifs_key *key, const void *buf, int len);
+ int ubifs_jnl_write_inode(struct ubifs_info *c, const struct inode *inode);
+diff --git a/fs/ubifs/xattr.c b/fs/ubifs/xattr.c
+index 406c82eab5138..b7b512070d76d 100644
+--- a/fs/ubifs/xattr.c
++++ b/fs/ubifs/xattr.c
+@@ -149,7 +149,7 @@ static int create_xattr(struct ubifs_info *c, struct inode *host,
+ 	if (strcmp(fname_name(nm), UBIFS_XATTR_NAME_ENCRYPTION_CONTEXT) == 0)
+ 		host_ui->flags |= UBIFS_CRYPT_FL;
+ 
+-	err = ubifs_jnl_update(c, host, nm, inode, 0, 1);
++	err = ubifs_jnl_update(c, host, nm, inode, 0, 1, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	ubifs_set_inode_flags(host);
+-- 
+2.43.5
+
+
+From af1eb2e4d3988adcbe340c80dab82943ab410718 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:50 +0800
+Subject: [PATCH 11/14] ubifs: Fix unattached inode when powercut happens in
+ creating
+
+For selinux or encryption scenarios, UBIFS could become inconsistent
+while creating new files in powercut case. Encryption/selinux related
+xattrs will be created before creating file dentry, which makes creation
+process is not atomic, details are shown as:
+
+Encryption case:
+ubifs_create
+ ubifs_new_inode
+  fscrypt_set_context
+   ubifs_xattr_set
+    create_xattr
+     ubifs_jnl_update  // Disk: xentry xinode inode(LAST_OF_NODE_GROUP)
+ >> power cut <<
+ ubifs_jnl_update  // Disk: dentry inode parent_inode(LAST_OF_NODE_GROUP)
+
+Selinux case:
+ubifs_create
+ ubifs_new_inode
+ ubifs_init_security
+  security_inode_init_security
+   ubifs_xattr_set
+    create_xattr
+     ubifs_jnl_update  // Disk: xentry xinode inode(LAST_OF_NODE_GROUP)
+ >> power cut <<
+ ubifs_jnl_update  // Disk: dentry inode parent_inode(LAST_OF_NODE_GROUP)
+
+Above process will make chk_fs failed in next mounting:
+ UBIFS error (ubi0:0 pid 7995): dbg_check_filesystem [ubifs]: inode 66
+ nlink is 1, but calculated nlink is 0
+
+Fix it by allocating orphan inode for each non-xattr file creation, then
+removing orphan list in journal writing process, which ensures that both
+xattr and dentry be effective in atomic when powercut happens.
+
+Fixes: d7f0b70d30ff ("UBIFS: Add security.* XATTR support for the UBIFS")
+Fixes: d475a507457b ("ubifs: Add skeleton for fscrypto")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=218309
+Suggested-by: Zhang Yi <yi.zhang@huawei.com>
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/dir.c     | 59 +++++++++++++++++++++++++++++++---------------
+ fs/ubifs/journal.c | 14 +++++++----
+ fs/ubifs/ubifs.h   |  4 ++--
+ 3 files changed, 51 insertions(+), 26 deletions(-)
+
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index 4f13f7ede25b6..eb8cf7263ff37 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -71,8 +71,13 @@ static int inherit_flags(const struct inode *dir, umode_t mode)
+  * @is_xattr: whether the inode is xattr inode
+  *
+  * This function finds an unused inode number, allocates new inode and
+- * initializes it. Returns new inode in case of success and an error code in
+- * case of failure.
++ * initializes it. Non-xattr new inode may be written with xattrs(selinux/
++ * encryption) before writing dentry, which could cause inconsistent problem
++ * when powercut happens between two operations. To deal with it, non-xattr
++ * new inode is initialized with zero-nlink and added into orphan list, caller
++ * should make sure that inode is relinked later, and make sure that orphan
++ * removing and journal writing into an committing atomic operation. Returns
++ * new inode in case of success and an error code in case of failure.
+  */
+ struct inode *ubifs_new_inode(struct ubifs_info *c, struct inode *dir,
+ 			      umode_t mode, bool is_xattr)
+@@ -163,9 +168,25 @@ struct inode *ubifs_new_inode(struct ubifs_info *c, struct inode *dir,
+ 	ui->creat_sqnum = ++c->max_sqnum;
+ 	spin_unlock(&c->cnt_lock);
+ 
++	if (!is_xattr) {
++		set_nlink(inode, 0);
++		err = ubifs_add_orphan(c, inode->i_ino);
++		if (err) {
++			ubifs_err(c, "ubifs_add_orphan failed: %i", err);
++			goto out_iput;
++		}
++		down_read(&c->commit_sem);
++		ui->del_cmtno = c->cmt_no;
++		up_read(&c->commit_sem);
++	}
++
+ 	if (encrypted) {
+ 		err = fscrypt_set_context(inode, NULL);
+ 		if (err) {
++			if (!is_xattr) {
++				set_nlink(inode, 1);
++				ubifs_delete_orphan(c, inode->i_ino);
++			}
+ 			ubifs_err(c, "fscrypt_set_context failed: %i", err);
+ 			goto out_iput;
+ 		}
+@@ -321,11 +342,12 @@ static int ubifs_create(struct mnt_idmap *idmap, struct inode *dir,
+ 	if (err)
+ 		goto out_inode;
+ 
++	set_nlink(inode, 1);
+ 	mutex_lock(&dir_ui->ui_mutex);
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 1);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -340,8 +362,8 @@ static int ubifs_create(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	mutex_unlock(&dir_ui->ui_mutex);
++	set_nlink(inode, 0);
+ out_inode:
+-	make_bad_inode(inode);
+ 	iput(inode);
+ out_fname:
+ 	fscrypt_free_filename(&nm);
+@@ -386,7 +408,6 @@ static struct inode *create_whiteout(struct inode *dir, struct dentry *dentry)
+ 	return inode;
+ 
+ out_inode:
+-	make_bad_inode(inode);
+ 	iput(inode);
+ out_free:
+ 	ubifs_err(c, "cannot create whiteout file, error %d", err);
+@@ -470,6 +491,7 @@ static int ubifs_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+ 	if (err)
+ 		goto out_inode;
+ 
++	set_nlink(inode, 1);
+ 	mutex_lock(&ui->ui_mutex);
+ 	insert_inode_hash(inode);
+ 	d_tmpfile(file, inode);
+@@ -479,7 +501,7 @@ static int ubifs_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+ 	mutex_unlock(&ui->ui_mutex);
+ 
+ 	lock_2_inodes(dir, inode);
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 1);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -492,7 +514,6 @@ static int ubifs_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+ out_cancel:
+ 	unlock_2_inodes(dir, inode);
+ out_inode:
+-	make_bad_inode(inode);
+ 	if (!instantiated)
+ 		iput(inode);
+ out_budg:
+@@ -1008,6 +1029,7 @@ static int ubifs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+ 	if (err)
+ 		goto out_inode;
+ 
++	set_nlink(inode, 1);
+ 	mutex_lock(&dir_ui->ui_mutex);
+ 	insert_inode_hash(inode);
+ 	inc_nlink(inode);
+@@ -1015,7 +1037,7 @@ static int ubifs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 1);
+ 	if (err) {
+ 		ubifs_err(c, "cannot create directory, error %d", err);
+ 		goto out_cancel;
+@@ -1032,8 +1054,8 @@ static int ubifs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir_ui->ui_size = dir->i_size;
+ 	drop_nlink(dir);
+ 	mutex_unlock(&dir_ui->ui_mutex);
++	set_nlink(inode, 0);
+ out_inode:
+-	make_bad_inode(inode);
+ 	iput(inode);
+ out_fname:
+ 	fscrypt_free_filename(&nm);
+@@ -1097,6 +1119,7 @@ static int ubifs_mknod(struct mnt_idmap *idmap, struct inode *dir,
+ 	ui = ubifs_inode(inode);
+ 	ui->data = dev;
+ 	ui->data_len = devlen;
++	set_nlink(inode, 1);
+ 
+ 	err = ubifs_init_security(dir, inode, &dentry->d_name);
+ 	if (err)
+@@ -1106,7 +1129,7 @@ static int ubifs_mknod(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 1);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -1121,8 +1144,8 @@ static int ubifs_mknod(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	mutex_unlock(&dir_ui->ui_mutex);
++	set_nlink(inode, 0);
+ out_inode:
+-	make_bad_inode(inode);
+ 	iput(inode);
+ out_fname:
+ 	fscrypt_free_filename(&nm);
+@@ -1197,6 +1220,7 @@ static int ubifs_symlink(struct mnt_idmap *idmap, struct inode *dir,
+ 	 */
+ 	ui->data_len = disk_link.len - 1;
+ 	inode->i_size = ubifs_inode(inode)->ui_size = disk_link.len - 1;
++	set_nlink(inode, 1);
+ 
+ 	err = ubifs_init_security(dir, inode, &dentry->d_name);
+ 	if (err)
+@@ -1206,7 +1230,7 @@ static int ubifs_symlink(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 1);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -1220,10 +1244,10 @@ static int ubifs_symlink(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	mutex_unlock(&dir_ui->ui_mutex);
++	set_nlink(inode, 0);
+ out_inode:
+ 	/* Free inode->i_link before inode is marked as bad. */
+ 	fscrypt_free_inode(inode);
+-	make_bad_inode(inode);
+ 	iput(inode);
+ out_fname:
+ 	fscrypt_free_filename(&nm);
+@@ -1391,14 +1415,10 @@ static int do_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 		 */
+ 		err = ubifs_budget_space(c, &wht_req);
+ 		if (err) {
+-			/*
+-			 * Whiteout inode can not be written on flash by
+-			 * ubifs_jnl_write_inode(), because it's neither
+-			 * dirty nor zero-nlink.
+-			 */
+ 			iput(whiteout);
+ 			goto out_release;
+ 		}
++		set_nlink(whiteout, 1);
+ 
+ 		/* Add the old_dentry size to the old_dir size. */
+ 		old_sz -= CALC_DENT_SIZE(fname_len(&old_nm));
+@@ -1477,7 +1497,7 @@ static int do_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	}
+ 
+ 	err = ubifs_jnl_rename(c, old_dir, old_inode, &old_nm, new_dir,
+-			       new_inode, &new_nm, whiteout, sync);
++			       new_inode, &new_nm, whiteout, sync, !!whiteout);
+ 	if (err)
+ 		goto out_cancel;
+ 
+@@ -1530,6 +1550,7 @@ static int do_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	unlock_4_inodes(old_dir, new_dir, new_inode, whiteout);
+ 	if (whiteout) {
+ 		ubifs_release_budget(c, &wht_req);
++		set_nlink(whiteout, 0);
+ 		iput(whiteout);
+ 	}
+ out_release:
+diff --git a/fs/ubifs/journal.c b/fs/ubifs/journal.c
+index e76f0cad2e180..a169ab2085aba 100644
+--- a/fs/ubifs/journal.c
++++ b/fs/ubifs/journal.c
+@@ -643,7 +643,7 @@ static void set_dent_cookie(struct ubifs_info *c, struct ubifs_dent_node *dent)
+  * @inode: inode to update
+  * @deletion: indicates a directory entry deletion i.e unlink or rmdir
+  * @xent: non-zero if the directory entry is an extended attribute entry
+- * @delete_orphan: indicates an orphan entry deletion for @inode
++ * @in_orphan: indicates whether the @inode is in orphan list
+  *
+  * This function updates an inode by writing a directory entry (or extended
+  * attribute entry), the inode itself, and the parent directory inode (or the
+@@ -665,7 +665,7 @@ static void set_dent_cookie(struct ubifs_info *c, struct ubifs_dent_node *dent)
+  */
+ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 		     const struct fscrypt_name *nm, const struct inode *inode,
+-		     int deletion, int xent, int delete_orphan)
++		     int deletion, int xent, int in_orphan)
+ {
+ 	int err, dlen, ilen, len, lnum, ino_offs, dent_offs, orphan_added = 0;
+ 	int aligned_dlen, aligned_ilen, sync = IS_DIRSYNC(dir);
+@@ -751,7 +751,7 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 	if (err)
+ 		goto out_release;
+ 
+-	if (last_reference) {
++	if (last_reference && !in_orphan) {
+ 		err = ubifs_add_orphan(c, inode->i_ino);
+ 		if (err) {
+ 			release_head(c, BASEHD);
+@@ -807,7 +807,7 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 	if (err)
+ 		goto out_ro;
+ 
+-	if (delete_orphan)
++	if (in_orphan && inode->i_nlink)
+ 		ubifs_delete_orphan(c, inode->i_ino);
+ 
+ 	finish_reservation(c);
+@@ -1340,6 +1340,7 @@ int ubifs_jnl_xrename(struct ubifs_info *c, const struct inode *fst_dir,
+  * @new_nm: new name of the new directory entry
+  * @whiteout: whiteout inode
+  * @sync: non-zero if the write-buffer has to be synchronized
++ * @delete_orphan: indicates an orphan entry deletion for @whiteout
+  *
+  * This function implements the re-name operation which may involve writing up
+  * to 4 inodes(new inode, whiteout inode, old and new parent directory inodes)
+@@ -1352,7 +1353,7 @@ int ubifs_jnl_rename(struct ubifs_info *c, const struct inode *old_dir,
+ 		     const struct inode *new_dir,
+ 		     const struct inode *new_inode,
+ 		     const struct fscrypt_name *new_nm,
+-		     const struct inode *whiteout, int sync)
++		     const struct inode *whiteout, int sync, int delete_orphan)
+ {
+ 	void *p;
+ 	union ubifs_key key;
+@@ -1569,6 +1570,9 @@ int ubifs_jnl_rename(struct ubifs_info *c, const struct inode *old_dir,
+ 			goto out_ro;
+ 	}
+ 
++	if (delete_orphan)
++		ubifs_delete_orphan(c, whiteout->i_ino);
++
+ 	finish_reservation(c);
+ 	if (new_inode) {
+ 		mark_inode_clean(c, new_ui);
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index ea49d367cd9cf..4e15a1559595c 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -1803,7 +1803,7 @@ int ubifs_consolidate_log(struct ubifs_info *c);
+ /* journal.c */
+ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 		     const struct fscrypt_name *nm, const struct inode *inode,
+-		     int deletion, int xent, int delete_orphan);
++		     int deletion, int xent, int in_orphan);
+ int ubifs_jnl_write_data(struct ubifs_info *c, const struct inode *inode,
+ 			 const union ubifs_key *key, const void *buf, int len);
+ int ubifs_jnl_write_inode(struct ubifs_info *c, const struct inode *inode);
+@@ -1820,7 +1820,7 @@ int ubifs_jnl_rename(struct ubifs_info *c, const struct inode *old_dir,
+ 		     const struct inode *new_dir,
+ 		     const struct inode *new_inode,
+ 		     const struct fscrypt_name *new_nm,
+-		     const struct inode *whiteout, int sync);
++		     const struct inode *whiteout, int sync, int delete_orphan);
+ int ubifs_jnl_truncate(struct ubifs_info *c, const struct inode *inode,
+ 		       loff_t old_size, loff_t new_size);
+ int ubifs_jnl_delete_xattr(struct ubifs_info *c, const struct inode *host,
+-- 
+2.43.5
+
+
+From e682a3e896e9ab9f688a416c81792339e162ede2 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:51 +0800
+Subject: [PATCH 12/14] ubifs: dbg_orphan_check: Fix missed key type checking
+
+When selinux/encryption is enabled, xattr entry node is added into TNC
+before host inode when creating new file. So it is possible to find
+xattr entry without host inode from TNC. Orphan debug checking is called
+by ubifs_orphan_end_commit(), at that time, the commit semaphore is
+already unlock, so the new creation won't be blocked.
+
+Fixes: d7f0b70d30ff ("UBIFS: Add security.* XATTR support for the UBIFS")
+Fixes: d475a507457b ("ubifs: Add skeleton for fscrypto")
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/orphan.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ubifs/orphan.c b/fs/ubifs/orphan.c
+index 87c680e26ebcf..38303d311dd9a 100644
+--- a/fs/ubifs/orphan.c
++++ b/fs/ubifs/orphan.c
+@@ -922,8 +922,12 @@ static int dbg_orphan_check(struct ubifs_info *c, struct ubifs_zbranch *zbr,
+ 
+ 	inum = key_inum(c, &zbr->key);
+ 	if (inum != ci->last_ino) {
+-		/* Lowest node type is the inode node, so it comes first */
+-		if (key_type(c, &zbr->key) != UBIFS_INO_KEY)
++		/*
++		 * Lowest node type is the inode node or xattr entry(when
++		 * selinux/encryption is enabled), so it comes first
++		 */
++		if (key_type(c, &zbr->key) != UBIFS_INO_KEY &&
++		    key_type(c, &zbr->key) != UBIFS_XENT_KEY)
+ 			ubifs_err(c, "found orphan node ino %lu, type %d",
+ 				  (unsigned long)inum, key_type(c, &zbr->key));
+ 		ci->last_ino = inum;
+-- 
+2.43.5
+
+
+From d36bfa4e5ff3f4a0fca791ab006770cae1a783d4 Mon Sep 17 00:00:00 2001
+From: Chen Ni <nichen@iscas.ac.cn>
+Date: Thu, 20 Jun 2024 16:19:26 +0800
+Subject: [PATCH 13/14] ubifs: add check for crypto_shash_tfm_digest
+
+Add check for the return value of crypto_shash_tfm_digest() and return
+the error if it fails in order to catch the error.
+
+Fixes: 817aa094842d ("ubifs: support offline signed images")
+Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
+Reviewed-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/master.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/ubifs/master.c b/fs/ubifs/master.c
+index 7adc37c10b6af..a148760fa49ed 100644
+--- a/fs/ubifs/master.c
++++ b/fs/ubifs/master.c
+@@ -67,10 +67,13 @@ static int mst_node_check_hash(const struct ubifs_info *c,
+ {
+ 	u8 calc[UBIFS_MAX_HASH_LEN];
+ 	const void *node = mst;
++	int ret;
+ 
+-	crypto_shash_tfm_digest(c->hash_tfm, node + sizeof(struct ubifs_ch),
++	ret = crypto_shash_tfm_digest(c->hash_tfm, node + sizeof(struct ubifs_ch),
+ 				UBIFS_MST_NODE_SZ - sizeof(struct ubifs_ch),
+ 				calc);
++	if (ret)
++		return ret;
+ 
+ 	if (ubifs_check_hash(c, expected, calc))
+ 		return -EPERM;
+-- 
+2.43.5
+
+
+From 8ed16522eed76f299924374ecf294c6a0da28d03 Mon Sep 17 00:00:00 2001
+From: pangliyuan <pangliyuan1@huawei.com>
+Date: Tue, 24 Dec 2024 16:18:23 +0800
+Subject: [PATCH 14/14] ubifs: skip dumping tnc tree when zroot is null
+
+Clearing slab cache will free all znode in memory and make
+c->zroot.znode = NULL, then dumping tnc tree will access
+c->zroot.znode which cause null pointer dereference.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=219624#c0
+Fixes: 1e51764a3c2a ("UBIFS: add new flash file system")
+Signed-off-by: pangliyuan <pangliyuan1@huawei.com>
+Reviewed-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/debug.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/fs/ubifs/debug.c b/fs/ubifs/debug.c
+index b89df8a2335f3..1694d0b07a073 100644
+--- a/fs/ubifs/debug.c
++++ b/fs/ubifs/debug.c
+@@ -946,16 +946,20 @@ void ubifs_dump_tnc(struct ubifs_info *c)
+ 
+ 	pr_err("\n");
+ 	pr_err("(pid %d) start dumping TNC tree\n", current->pid);
+-	znode = ubifs_tnc_levelorder_next(c, c->zroot.znode, NULL);
+-	level = znode->level;
+-	pr_err("== Level %d ==\n", level);
+-	while (znode) {
+-		if (level != znode->level) {
+-			level = znode->level;
+-			pr_err("== Level %d ==\n", level);
++	if (c->zroot.znode) {
++		znode = ubifs_tnc_levelorder_next(c, c->zroot.znode, NULL);
++		level = znode->level;
++		pr_err("== Level %d ==\n", level);
++		while (znode) {
++			if (level != znode->level) {
++				level = znode->level;
++				pr_err("== Level %d ==\n", level);
++			}
++			ubifs_dump_znode(c, znode);
++			znode = ubifs_tnc_levelorder_next(c, c->zroot.znode, znode);
+ 		}
+-		ubifs_dump_znode(c, znode);
+-		znode = ubifs_tnc_levelorder_next(c, c->zroot.znode, znode);
++	} else {
++		pr_err("empty TNC tree in memory\n");
+ 	}
+ 	pr_err("(pid %d) finish dumping TNC tree\n", current->pid);
+ }
+-- 
+2.43.5
+
