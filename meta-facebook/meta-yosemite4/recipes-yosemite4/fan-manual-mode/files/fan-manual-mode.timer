@@ -1,0 +1,9 @@
+[Unit]
+Description=Conditionally set the fans to manual mode 5 minutes after boot
+
+[Timer]
+OnBootSec=2min
+OnBootSec=5min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Set fans to manual mode if environment variable exists
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/fan-manual-mode
+
+[Install]
+WantedBy=multi-user.target
