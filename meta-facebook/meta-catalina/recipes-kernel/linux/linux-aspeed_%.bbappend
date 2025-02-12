@@ -12,5 +12,10 @@ SRC_URI += " \
     file://1010-ARM-dts-aspeed-catalina-enable-uart-dma-mode.patch \
     file://1011-ARM-dts-aspeed-catalina-update-pdb-board-cpld-ioexp-.patch \
     file://1012-ARM-dts-aspeed-catalina-add-hdd-board-cpld-ioexp.patch \
+    file://1013-ARM-dts-aspeed-catalina-Add-Delta-brick-nodes.patch \
+    file://1014-ARM-dts-aspeed-catalina-Add-multi-master-support-to-.patch \
+    file://1015-bindings-ipmi-ssif-bmc-Add-property-to-adjust-respon.patch \
+    file://1016-ipmi-ssif_bmc-Add-support-for-adjustable-response-ti.patch \
+    file://1017-ARM-dts-aspeed-catalina-Increase-SSIF-response-timeo.patch \
     file://catalina-uart.cfg \
 "

@@ -1,0 +1,50 @@
+From b77d2f54a8624270a3ca7cea1f64bac29ed6ecb0 Mon Sep 17 00:00:00 2001
+From: Potin Lai <potin.lai.pt@gmail.com>
+Date: Thu, 9 Jan 2025 14:38:01 +0800
+Subject: [PATCH 1/2] ARM: dts: aspeed: catalina: Add Delta brick nodes
+
+Add Delta brick nodes to support power sensors monitoring on PDB brick
+board.
+
+Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
+---
+This patch will remain in fb-openbmc for now due to compatible string
+"pmbus" not exist on upstream.
+---
+ .../aspeed/aspeed-bmc-facebook-catalina.dts   | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+index 3888cb2711df6..03b27cee2f3a9 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+@@ -574,6 +574,26 @@ vrm@62 {
+ 				compatible = "isil,raa228004";
+ 				reg = <0x62>;
+ 			};
++			delta_brick@63 {
++				compatible = "pmbus";
++				reg = <0x63>;
++			};
++			delta_brick@64 {
++				compatible = "pmbus";
++				reg = <0x64>;
++			};
++			delta_brick@65 {
++				compatible = "pmbus";
++				reg = <0x65>;
++			};
++			delta_brick@66 {
++				compatible = "pmbus";
++				reg = <0x66>;
++			};
++			delta_brick@67 {
++				compatible = "pmbus";
++				reg = <0x67>;
++			};
+ 		};
+ 		i2c1mux0ch4: i2c@4 {
+ 			#address-cells = <1>;
+-- 
+2.31.1
+
