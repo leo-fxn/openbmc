@@ -13,5 +13,6 @@ SRC_URI += " \
     file://1010-ARM-dts-aspeed-yosemite4-add-fan-led-config.patch \
     file://1011-arm-dts-aspeed-yosemite4-add-gpio-related-settings.patch \
     file://1012-ARM-dts-aspeed-yosemite4-modify-I2C-mode-and-freq.patch \
+    file://1013-yosemite4-support-CAT9532-led-controller.patch \
     file://yosemite4-local.cfg \
 "
