@@ -56,6 +56,7 @@ const ProcMtdFilePath = "/proc/mtd"
 const etcIssueFilePath = "/etc/issue"
 const etcOsReleaseFilePath = "/etc/os-release"
 const procMountsPath = "/proc/mounts"
+const spiManufacturerPath = "/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer"
 
 // other flashers + the "flashy" binary
 var otherFlasherBaseNames = []string{
@@ -363,6 +364,20 @@ var IsLFOpenBMC = func() (bool) {
 	}
 
 	return strings.Contains(string(osReleaseBuf), magic)
+}
+
+// Checks SPI flash manufacturer on BSM (ie Winbond or Macronix). Related to
+// S483584, which is a SEV affecting specific versions on Winbond chips
+var GetBSMFlashManufacturerFromFile = func() (string, error) {
+	spiManufacturerBuf, err := fileutils.ReadFile(spiManufacturerPath)
+	if err != nil {
+		return "", errors.Errorf("Error reading '%v': %v",
+			spiManufacturerPath, err)
+	}
+	if len(spiManufacturerBuf) == 0 {
+		return "", errors.Errorf("'%v' file is empty", spiManufacturerPath)
+	}
+	return strings.TrimSpace(string(spiManufacturerBuf)), nil
 }
 
 // IsBMCLite check whether the system is running BMC-lite

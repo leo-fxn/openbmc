@@ -31,6 +31,7 @@ import (
 	// all packages containing steps must be included to successfully run install
 	_ "github.com/facebook/openbmc/tools/flashy/checks_and_remediations/bletchley"
 	_ "github.com/facebook/openbmc/tools/flashy/checks_and_remediations/common"
+	_ "github.com/facebook/openbmc/tools/flashy/checks_and_remediations/ventura"
 	_ "github.com/facebook/openbmc/tools/flashy/checks_and_remediations/wedge100"
 	_ "github.com/facebook/openbmc/tools/flashy/checks_and_remediations/yamp"
 	_ "github.com/facebook/openbmc/tools/flashy/flash_procedure"

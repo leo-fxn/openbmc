@@ -620,6 +620,65 @@ func TestGetOpenBMCVersionFromIssueFile(t *testing.T) {
 	}
 }
 
+func TestGetBSMFlashManufacturerFromFile(t *testing.T) {
+	// mock and defer restore ReadFile
+	readFileOrig := fileutils.ReadFile
+	defer func() {
+		fileutils.ReadFile = readFileOrig
+	}()
+	cases := []struct {
+		name             string
+		readFileContents string
+		readFileError    error
+		want             string
+		wantErr          error
+	}{
+		{
+			name: "Manufacturer + newline",
+			readFileContents: `winbond
+			 `,
+			readFileError: nil,
+			want:          "winbond",
+			wantErr:       nil,
+		},
+		{
+			name:             "Empty response",
+			readFileContents: "",
+			readFileError:    nil,
+			want:             "",
+			wantErr:          errors.Errorf("'/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer' " + 
+				"file is empty"),
+		},
+		{
+			name:             "spi-nor/manufacturer file read error",
+			readFileContents: "",
+			readFileError:    errors.Errorf("file read error"),
+			want:             "",
+			wantErr: errors.Errorf("Error reading " +
+				"'/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer': " +
+				"file read error"),
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fileutils.ReadFile = func(filename string) ([]byte, error) {
+				if filename != "/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer" {
+					t.Errorf("filename: want '%v' got '%v'",
+						"/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer", filename)
+				}
+				return []byte(tc.readFileContents), tc.readFileError
+			}
+
+			got, err := GetBSMFlashManufacturerFromFile()
+			if tc.want != got {
+				t.Errorf("want '%v' got '%v'", tc.want, got)
+			}
+			tests.CompareTestErrors(tc.wantErr, err, t)
+		})
+	}
+}
+
+
 func TestIsOpenBMC(t *testing.T) {
 	// mock and defer restore ReadFile
 	readFileOrig := fileutils.ReadFile
