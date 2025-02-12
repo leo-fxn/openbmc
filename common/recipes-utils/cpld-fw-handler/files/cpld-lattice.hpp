@@ -32,6 +32,7 @@ enum cpldI2cCmd
     CMD_RESET_CONFIG_FLASH = 0x46,
     CMD_PROGRAM_DONE = 0x5E,
     CMD_PROGRAM_PAGE = 0x70,
+    CMD_READ_PAGE = 0x73,
     CMD_ENABLE_CONFIG_MODE = 0x74,
     CMD_READ_FW_VERSION = 0xC0,
     CMD_PROGRAM_USER_CODE = 0xC2,
@@ -75,6 +76,8 @@ class CpldLatticeManager : public CpldManager
     int writeProgramPage();
     int programUserCode();
     int programDone();
+    int verifyData();
+    int verifyUserCode();
     int disableusyAndVerify();
     int disableConfigInterface();
     int readBusyFlag(uint8_t& busyFlag);

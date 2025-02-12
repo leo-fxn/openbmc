@@ -563,6 +563,60 @@ int CpldLatticeManager::programDone()
     return 0;
 }
 
+int CpldLatticeManager::verifyData()
+{
+    // CMD_READ_PAGE = 0x73
+    std::vector<uint8_t> cmd = {CMD_READ_PAGE, 0x0, 0x0, 0x1};
+    std::vector<uint8_t> read(16);
+    size_t iterSize = 16;
+
+    for (size_t i = 0; i < fwInfo.cfgData.size(); i += iterSize)
+    {
+        double progressRate =
+            ((double(i) / double(fwInfo.cfgData.size())) * 100);
+        std::cout << "Verify :" << std::fixed << std::dec
+                  << std::setprecision(2) << progressRate << "% \r";
+
+        uint8_t len = ((i + iterSize) < fwInfo.cfgData.size())
+                          ? iterSize
+                          : (fwInfo.cfgData.size() - i);
+
+        if (i2cWriteReadCmd(cmd, len, read) < 0)
+        {
+            return -1;
+        }
+
+        for (size_t j = 0; j < len; j++)
+        {
+            if (fwInfo.cfgData.at(i + j) != read.at(j))
+            {
+                std::cerr << "Verify failed at " << i + j << std::endl;
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int CpldLatticeManager::verifyUserCode()
+{
+    uint32_t userCode = 0;
+    if (readUserCode(userCode) < 0)
+    {
+        std::cerr << "Fail to read user code." << std::endl;
+        return -1;
+    }
+
+    if (userCode != fwInfo.Version)
+    {
+        std::cerr << "UserCode verify failed." << std::endl;
+        return -1;
+    }
+
+    return 0;
+}
+
 int CpldLatticeManager::disableConfigInterface()
 {
     // CMD_DISABLE_CONFIG_INTERFACE = 0x26,
@@ -737,10 +791,10 @@ int CpldLatticeManager::XO2XO3Family_update()
         return -1;
     }
 
-    std::cout << "Reset config flash." << std::endl;
+    std::cout << "Reset config flash for write." << std::endl;
     if (resetConfigFlash() < 0)
     {
-        std::cerr << "Reset config flash failed." << std::endl;
+        std::cerr << "Reset config flash for write failed." << std::endl;
         return -1;
     }
 
@@ -762,6 +816,27 @@ int CpldLatticeManager::XO2XO3Family_update()
     if (programDone() < 0)
     {
         std::cerr << "Program not done." << std::endl;
+        return -1;
+    }
+
+    std::cout << "Reset config flash for varification." << std::endl;
+    if (resetConfigFlash() < 0)
+    {
+        std::cerr << "Reset config flash for varification failed." << std::endl;
+        return -1;
+    }
+
+    std::cout << "Verify data." << std::endl;
+    if (verifyData() < 0)
+    {
+        std::cerr << "Verify data failed." << std::endl;
+        return -1;
+    }
+
+    std::cout << "Verify user code." << std::endl;
+    if (verifyUserCode() < 0)
+    {
+        std::cerr << "Verify user code failed." << std::endl;
         return -1;
     }
 
