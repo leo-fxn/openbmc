@@ -304,10 +304,10 @@ var eraseFlashDevice = func(
 		//
 		// In practice erasesize will be smaller than chunkSize but
 		// in any case this will still trigger every so often.
-		sleepTodo = sleepTodo - int32(m.erasesize);
+		sleepTodo = sleepTodo - int32(m.erasesize)
 		if sleepTodo <= 0 {
-			sleepTodo = int32(chunkSize);
-			utils.Sleep(time.Millisecond * 250);
+			sleepTodo = int32(chunkSize)
+			utils.Sleep(time.Millisecond * 250)
 		}
 	}
 
@@ -338,7 +338,7 @@ var flashImage = func(
 		if size > chunkSize {
 			size = chunkSize
 		}
-		activeImageData, err := utils.BytesSliceRange(imFile.data, off, off + size)
+		activeImageData, err := utils.BytesSliceRange(imFile.data, off, off+size)
 		if err != nil {
 			return errors.Errorf("Unable to get image data after roOffset (%v): %v", roOffset, err)
 		}
@@ -355,7 +355,7 @@ var flashImage = func(
 		// For every chunkSize bytes of work done, sleep for 1/4s to
 		// allow for other work on the system (especially I/O to the
 		// SPI) to complete.
-		utils.Sleep(time.Millisecond * 250);
+		utils.Sleep(time.Millisecond * 250)
 	}
 
 	log.Printf("Finished flashing image '%v' on to flash device '%v'",
@@ -409,7 +409,7 @@ var verifyFlash = func(
 				break
 			}
 		}
-		errMsg := fmt.Sprintf("Verification failed: flash and image data " +
+		errMsg := fmt.Sprintf("Verification failed: flash and image data "+
 			"mismatch beginning at offset %v + roOffset %v.", off, roOffset)
 		log.Print(errMsg)
 		return errors.Errorf("%v", errMsg)

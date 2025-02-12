@@ -183,35 +183,35 @@ func TestFlashCpAndValidate(t *testing.T) {
 	}()
 
 	cases := []struct {
-		name          string
-		flashCpErr    error
-		removeErr     error
-		want          error
+		name       string
+		flashCpErr error
+		removeErr  error
+		want       error
 	}{
 		{
-			name:          "succeeded",
-			flashCpErr:    nil,
-			removeErr:     nil,
-			want:          nil,
+			name:       "succeeded",
+			flashCpErr: nil,
+			removeErr:  nil,
+			want:       nil,
 		},
 		{
-			name:          "flashCpErr error",
-			flashCpErr:    errors.Errorf("flashing failed"),
-			removeErr:     nil,
-			want:          errors.Errorf("flashing failed"),
+			name:       "flashCpErr error",
+			flashCpErr: errors.Errorf("flashing failed"),
+			removeErr:  nil,
+			want:       errors.Errorf("flashing failed"),
 		},
 		{
-			name:          "succeeded, with remove failure",
-			flashCpErr:    nil,
-			removeErr:     errors.Errorf("aw nuts"),
-			want:          nil,
+			name:       "succeeded, with remove failure",
+			flashCpErr: nil,
+			removeErr:  errors.Errorf("aw nuts"),
+			want:       nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			exampleImageFilePath := "/img/mock"
-			fileutils.RemoveFile = func(filename string) (error) {
+			fileutils.RemoveFile = func(filename string) error {
 				return tc.removeErr
 			}
 			flashcp.FlashCp = func(imageFilePath, flashDevicePath string, offset uint32) error {

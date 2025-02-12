@@ -247,7 +247,7 @@ func TestLFMetaConvertPartType(t *testing.T) {
 		},
 		{
 			name:    "bad-type",
-			intype: LF_PART_TEST_ONLY,
+			intype:  LF_PART_TEST_ONLY,
 			outtype: IGNORE,
 		},
 	}

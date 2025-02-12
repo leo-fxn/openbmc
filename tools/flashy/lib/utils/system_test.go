@@ -25,9 +25,9 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
-	"regexp"
 
 	"github.com/facebook/openbmc/tools/flashy/lib/fileutils"
 	"github.com/facebook/openbmc/tools/flashy/tests"
@@ -565,12 +565,12 @@ func TestGetOpenBMCVersionFromIssueFile(t *testing.T) {
 			wantErr:         nil,
 		},
 		{
-			name:             "ancient /etc/issue",
+			name: "ancient /etc/issue",
 			etcIssueContents: `OpenBMC Release 
 `,
-			etcIssueReadErr:  nil,
-			want:             "unknown-v1",
-			wantErr:          nil,
+			etcIssueReadErr: nil,
+			want:            "unknown-v1",
+			wantErr:         nil,
 		},
 		{
 			name:             "read error",
@@ -594,12 +594,12 @@ func TestGetOpenBMCVersionFromIssueFile(t *testing.T) {
 			wantErr:          nil,
 		},
 		{
-			name:             "early bletchley",
+			name: "early bletchley",
 			etcIssueContents: `Facebook OpenBMC bletchley-v2023.02.1 \\n \\l
 `,
-			etcIssueReadErr:  nil,
-			want:             "bletchley-v2023.02.1",
-			wantErr:          nil,
+			etcIssueReadErr: nil,
+			want:            "bletchley-v2023.02.1",
+			wantErr:         nil,
 		},
 	}
 	for _, tc := range cases {
@@ -646,7 +646,7 @@ func TestGetBSMFlashManufacturerFromFile(t *testing.T) {
 			readFileContents: "",
 			readFileError:    nil,
 			want:             "",
-			wantErr:          errors.Errorf("'/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer' " + 
+			wantErr: errors.Errorf("'/sys/bus/spi/devices/spi0.0/spi-nor/manufacturer' " +
 				"file is empty"),
 		},
 		{
@@ -677,7 +677,6 @@ func TestGetBSMFlashManufacturerFromFile(t *testing.T) {
 		})
 	}
 }
-
 
 func TestIsOpenBMC(t *testing.T) {
 	// mock and defer restore ReadFile
@@ -748,10 +747,10 @@ func TestIsLFOpenBMC(t *testing.T) {
 		want             bool
 	}{
 		{
-			name: "Is LFOpenBMC",
+			name:             "Is LFOpenBMC",
 			readFileContents: `OPENBMC_TARGET_MACHINE=foo`,
-			readFileError: nil,
-			want:          true,
+			readFileError:    nil,
+			want:             true,
 		},
 		{
 			name:             "Not OpenBMC",
@@ -797,10 +796,10 @@ func TestIsBMCLite(t *testing.T) {
 		want             bool
 	}{
 		{
-			name: "Is BMC Lite",
+			name:             "Is BMC Lite",
 			readFileContents: `OpenBMC Release fbdarwin-v2022.27.1`,
-			readFileError: nil,
-			want:          true,
+			readFileError:    nil,
+			want:             true,
 		},
 		{
 			name:             "Not BMC Lite",

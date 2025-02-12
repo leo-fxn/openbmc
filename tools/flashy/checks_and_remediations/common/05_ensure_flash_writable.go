@@ -40,15 +40,15 @@ func init() {
 // A check for verified boot systems where the second flash is unwritable.
 //
 // On vboot BMCs the first chip is intended to be read-only in hardware and
-// contains the Golden Image.  The second chip is intended to be read-write. 
+// contains the Golden Image.  The second chip is intended to be read-write.
 // Some possible & obvious reasons this could go wrong:
 //
-// - the chips were installed in the wrong slots during manufacture.
-// - the chips were erroneously swapped during repair (this is a valid
-//   repair flow for non-vboot BMCs, though).
-// - two read-only chips were installed.
+//   - the chips were installed in the wrong slots during manufacture.
+//   - the chips were erroneously swapped during repair (this is a valid
+//     repair flow for non-vboot BMCs, though).
+//   - two read-only chips were installed.
 //
-// If the second chip is read-only, it's not possible to flash the BMC here. 
+// If the second chip is read-only, it's not possible to flash the BMC here.
 // Rebooting the BMC could have unpredictable consequences.  Leave these
 // BMCs in place for later detection and repair.
 //
@@ -67,16 +67,15 @@ func ensureFlashWritable(stepParams step.StepParams) step.StepExitError {
 	buf, err := fileutils.ReadFile("/proc/mtd")
 	if err != nil {
 		return step.ExitBadFlashChip{Err: err}
-	
+
 	}
 	mtdStr := string(buf)
 	mtdRegex := regexp.MustCompile(`mtd0:\s+\d+\s+\d+\s+"spi0\.1"`)
 	mtdMatch := mtdRegex.FindStringSubmatch(mtdStr)
 	if len(mtdMatch) > 0 {
 		log.Printf("Skipping ensure_flash_writable check for this device due to S356523")
-		return nil 
+		return nil
 	}
-
 
 	// First up check that fw_printenv works okay and produces output.
 	cmd := []string{"fw_printenv", "bootargs"}
@@ -104,8 +103,8 @@ func ensureFlashWritable(stepParams step.StepParams) step.StepExitError {
 	_, err, stdout, stderr = utils.RunCommand(cmd, 30*time.Second)
 	if err != nil || !strings.Contains(stdout, value) {
 		errMsg := errors.Errorf(
-			"U-Boot environment is read only: flash chips swapped?" +
-			" Error code: %v, stderr: %v", err, stderr)
+			"U-Boot environment is read only: flash chips swapped?"+
+				" Error code: %v, stderr: %v", err, stderr)
 		errRet = step.ExitBadFlashChip{Err: errMsg}
 		log.Printf("U-Boot environment is READ ONLY")
 	} else {

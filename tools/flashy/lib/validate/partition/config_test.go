@@ -26,7 +26,9 @@ import (
 // Checks to make sure ImageFormat is properly entered
 // (1) Make sure two adjacent partitions don't overlap
 // (2) Make sure Offset and Size are multiples of 1024 (prevent accidental kB entry)
-//     As of now we don't have any sizes/offsets requiring a higher precision.
+//
+//	As of now we don't have any sizes/offsets requiring a higher precision.
+//
 // (3) Make sure FIT partitions specify FitImageNodes (fw-util assumes 1 if not specified)
 // (4) Make sure final Size + Offset <= 128 * 1024 * 1024 (128MB)
 func TestImageFormats(t *testing.T) {

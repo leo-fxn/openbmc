@@ -34,49 +34,49 @@ func TestCheckVersion(t *testing.T) {
 		utils.GetOpenBMCVersionFromIssueFile = getOpenBMCVersionFromIssueFileOrig
 	}()
 	cases := []struct {
-		name      string
-		version   string
-		err       error
-		want      step.StepExitError
+		name    string
+		version string
+		err     error
+		want    step.StepExitError
 	}{
 		{
-			name:      "failed",
-			version:   "bletchley-v2023.02.1",
-			err:       nil,
+			name:    "failed",
+			version: "bletchley-v2023.02.1",
+			err:     nil,
 			want: step.ExitUnsafeToReboot{
 				errors.Errorf("Cannot upgrade this version: bletchley-v2023.02.1"),
 			},
 		},
 		{
-			name:      "succeeded",
-			version:   "bletchley-v2023.07.1",
-			err:       nil,
-			want:      nil,
+			name:    "succeeded",
+			version: "bletchley-v2023.07.1",
+			err:     nil,
+			want:    nil,
 		},
 		{
-			name:      "bitbaked",
-			version:   "bletchley-123abc",
-			err:       nil,
-			want:      nil,
+			name:    "bitbaked",
+			version: "bletchley-123abc",
+			err:     nil,
+			want:    nil,
 		},
 		{
-			name:      "dirty",
-			version:   "bletchley-123abc-dirty",
-			err:       nil,
-			want:      nil,
+			name:    "dirty",
+			version: "bletchley-123abc-dirty",
+			err:     nil,
+			want:    nil,
 		},
 		{
-			name:      "garbage",
-			version:   "garbage",
-			err:       nil,
+			name:    "garbage",
+			version: "garbage",
+			err:     nil,
 			want: step.ExitUnsafeToReboot{
 				errors.Errorf("Unable to parse version info: No match for regex 'bletchley-v(?P<year>[0-9]+).(?P<week>[0-9]+)' for input 'garbage'"),
 			},
 		},
 		{
-			name:      "error",
-			version:   "",
-			err:       errors.Errorf("fail"),
+			name:    "error",
+			version: "",
+			err:     errors.Errorf("fail"),
 			want: step.ExitUnsafeToReboot{
 				errors.Errorf("Unable to fetch version info: fail"),
 			},

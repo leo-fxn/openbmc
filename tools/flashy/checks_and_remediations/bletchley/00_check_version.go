@@ -21,8 +21,8 @@ package remediations_bletchley
 
 import (
 	"log"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/facebook/openbmc/tools/flashy/lib/step"
 	"github.com/facebook/openbmc/tools/flashy/lib/utils"
@@ -63,7 +63,7 @@ func checkVersion(stepParams step.StepParams) step.StepExitError {
 		errMsg := errors.Errorf("Unable to parse version info: %v", err)
 		return step.ExitUnsafeToReboot{Err: errMsg}
 	}
-	
+
 	if year < 2023 || (year == 2023 && week < 07) {
 		errMsg := errors.Errorf("Cannot upgrade this version: %v", version)
 		return step.ExitUnsafeToReboot{Err: errMsg}

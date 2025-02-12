@@ -355,7 +355,7 @@ var IsOpenBMC = func() (bool, error) {
 // IsLFOpenBMC check whether the system is running LF-OpenBMC
 // by checking whether the string "OPENBMC_TARGET_MACHINE" exists
 // in /etc/os-release.
-var IsLFOpenBMC = func() (bool) {
+var IsLFOpenBMC = func() bool {
 	const magic = "OPENBMC_TARGET_MACHINE"
 
 	osReleaseBuf, err := fileutils.ReadFile(etcOsReleaseFilePath)
@@ -382,7 +382,7 @@ var GetBSMFlashManufacturerFromFile = func() (string, error) {
 
 // IsBMCLite check whether the system is running BMC-lite
 // For S368275.   Make this beautiful later.
-var IsBMCLite = func() (bool) {
+var IsBMCLite = func() bool {
 	magics := []string{"fbdarwin", "meru", "janga", "montblanc", "tahan", "morgan800cc"}
 
 	issueBuf, err := fileutils.ReadFile(etcIssueFilePath)
@@ -392,7 +392,7 @@ var IsBMCLite = func() (bool) {
 
 	for _, magic := range magics {
 		if strings.Contains(string(issueBuf), magic) {
-			return true;
+			return true
 		}
 	}
 	return false
@@ -569,12 +569,12 @@ func tryPetWatchdog() bool {
 
 // Try to pet the watchdog and increase its timeout.  This works in two ways:
 //
-// - When /dev/watchdog is busy because it's held open by healthd / systemd
-//   / fscd, the delay here will hopefully allow the thread petting the
-//   watchdog to get some CPU time.
+//   - When /dev/watchdog is busy because it's held open by healthd / systemd
+//     / fscd, the delay here will hopefully allow the thread petting the
+//     watchdog to get some CPU time.
 //
-// - When /dev/watchdog it NOT busy and there are no concurrent instances of
-//   wdtcli, the watchdog timeout will be extended and the watchdog petted.
+//   - When /dev/watchdog it NOT busy and there are no concurrent instances of
+//     wdtcli, the watchdog timeout will be extended and the watchdog petted.
 var PetWatchdog = func() {
 	if IsBMCLite() {
 		log.Printf("Watchdog not petted; BMC Lite")

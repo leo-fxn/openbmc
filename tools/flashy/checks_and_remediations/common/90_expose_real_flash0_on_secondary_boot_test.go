@@ -48,7 +48,6 @@ func TestExposeRealFlash0OnSecondaryBoot(t *testing.T) {
 	MmapDevMemRwOrig := MmapDevMemRw
 	GetOpenBMCVersionFromIssueFileOrig := utils.GetOpenBMCVersionFromIssueFile
 
-
 	defer func() { WDT2_STATUS_REG_ADDR = WDT2_STATUS_REG_ADDR_ORIG }()
 	defer func() { WDT2_CLR_STATUS_REG_ADDR = WDT2_CLR_STATUS_REG_ADDR_ORIG }()
 	defer func() { MmapDevMemRw = MmapDevMemRwOrig }()
@@ -69,7 +68,7 @@ func TestExposeRealFlash0OnSecondaryBoot(t *testing.T) {
 
 		ResetWDT2StatusRegOrig := ResetWDT2StatusReg
 		defer func() { ResetWDT2StatusReg = ResetWDT2StatusRegOrig }()
-                GetMachineOrig := utils.GetMachine
+		GetMachineOrig := utils.GetMachine
 		defer func() { utils.GetMachine = GetMachineOrig }()
 
 		ResetWDT2StatusReg = func(mem []byte) error { return errors.Errorf("Should not have been called") }
@@ -96,7 +95,7 @@ func TestExposeRealFlash0OnSecondaryBoot(t *testing.T) {
 
 		ResetWDT2StatusRegOrig := ResetWDT2StatusReg
 		defer func() { ResetWDT2StatusReg = ResetWDT2StatusRegOrig }()
-                GetMachineOrig := utils.GetMachine
+		GetMachineOrig := utils.GetMachine
 		defer func() { utils.GetMachine = GetMachineOrig }()
 
 		ResetWDT2StatusReg = func(mem []byte) error {
@@ -136,7 +135,7 @@ func TestExposeRealFlash0OnSecondaryBoot(t *testing.T) {
 
 		ResetWDT2StatusRegOrig := ResetWDT2StatusReg
 		defer func() { ResetWDT2StatusReg = ResetWDT2StatusRegOrig }()
-                GetMachineOrig := utils.GetMachine
+		GetMachineOrig := utils.GetMachine
 		defer func() { utils.GetMachine = GetMachineOrig }()
 
 		ResetWDT2StatusReg = func(mem []byte) error {
@@ -166,7 +165,7 @@ func TestExposeRealFlash0OnSecondaryBoot(t *testing.T) {
 		var buf bytes.Buffer
 		log.SetOutput(&buf)
 
-                GetMachineOrig := utils.GetMachine
+		GetMachineOrig := utils.GetMachine
 		defer func() { utils.GetMachine = GetMachineOrig }()
 		utils.GetMachine = func() (string, error) { return "lumpajunka", nil }
 

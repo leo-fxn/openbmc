@@ -58,12 +58,17 @@ type PartitionConfigInfo struct {
 // until one succeeds; if all fails, then the image is not valid.
 // Differences:
 // (1) flashy can support uboot validation, hence it is not ignored
-//     (only in certain cases)
+//
+//	(only in certain cases)
+//
 // (2) size and offset are in bytes
 // (3) FitImageNodes (named num-nodes in fw-util) are explicitly 1 if not
-//     specified in fw-util.
+//
+//	specified in fw-util.
+//
 // (4) vboot spl+recovery can be treated as UBOOT. It will be ignored if the flash1
-//     header is RO (e.g. fbtp)
+//
+//	header is RO (e.g. fbtp)
 var ImageFormats = []ImageFormat{
 	{
 		// covers both vboot-meta and fit-meta

@@ -143,10 +143,13 @@ func (p *FitPartition) validateImageNode(imageNode *dt.Node) error {
 
 // get data from the image via 2 known methods.
 // (1) getDataFromImageNodeViaDataProp (e.g. wedge100)
-//     Use the 'data' prop which in its value stores the data required.
+//
+//	Use the 'data' prop which in its value stores the data required.
+//
 // (2) getDataFromImageNodeViaDataLink (e.g. fbtp)
-//     Use the 'data-position' and 'data-size' prop to determine which part
-//     in p.Data the data is.
+//
+//	Use the 'data-position' and 'data-size' prop to determine which part
+//	in p.Data the data is.
 func (p *FitPartition) getDataFromImageNode(imageNode *dt.Node) ([]byte, error) {
 	var data []byte
 	var err error

@@ -143,7 +143,7 @@ var runDataPartitionUnmountProcess = func() error {
 	log.Printf("Copying /mnt/data/kv_store to /tmp/mnt/data/kv_store")
 	cmd = []string{"cp", "-r", "/mnt/data/kv_store", "/tmp/mnt/data/kv_store"}
 	_, err, _, stderr = utils.RunCommand(cmd, 2*time.Minute)
-	if err != nil && !strings.Contains(stderr, "No such file or directory"){
+	if err != nil && !strings.Contains(stderr, "No such file or directory") {
 		return errors.Errorf("Copying /mnt/data/kv_store to /tmp/mnt/data/kv_store failed: "+
 			"%v, stderr: %v", err, stderr)
 	}

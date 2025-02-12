@@ -142,7 +142,7 @@ func TestUnmountDataPartition(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			umountCalled := false
 			remountCalled := false
-			utils.IsLFOpenBMC = func() (bool) {
+			utils.IsLFOpenBMC = func() bool {
 				return tc.isLFOpenBMC
 			}
 			utils.IsDataPartitionMounted = func() (bool, error) {
@@ -196,7 +196,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 		// map from arg[0] of command to error
 		// if not present, nil assumed
 		cmdErrs  map[string]error
-		stderr string
+		stderr   string
 		mountErr error
 		wantCmds []string
 		want     error
@@ -204,7 +204,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 		{
 			name:     "succeeded",
 			cmdErrs:  map[string]error{},
-			stderr: "",
+			stderr:   "",
 			mountErr: nil,
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",
@@ -220,7 +220,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 			cmdErrs: map[string]error{
 				"umount /mnt/data": errors.Errorf("umount failed"),
 			},
-			stderr: "",
+			stderr:   "",
 			mountErr: nil,
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",
@@ -245,7 +245,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 			cmdErrs: map[string]error{
 				"cp -r /mnt/data/etc/ssh /tmp/mnt/data/etc": errors.Errorf("cp failed"),
 			},
-			stderr: "",
+			stderr:   "",
 			mountErr: nil,
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",
@@ -259,7 +259,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 			cmdErrs: map[string]error{
 				"cp -r /mnt/data/kv_store /tmp/mnt/data/kv_store": errors.Errorf("cp failed"),
 			},
-			stderr: "oops",
+			stderr:   "oops",
 			mountErr: nil,
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",
@@ -274,7 +274,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 			cmdErrs: map[string]error{
 				"cp -r /mnt/data/kv_store /tmp/mnt/data/kv_store": errors.Errorf("cp failed"),
 			},
-			stderr: "Error: No such file or directory",
+			stderr:   "Error: No such file or directory",
 			mountErr: nil,
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",
@@ -290,7 +290,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 			cmdErrs: map[string]error{
 				"mkdir -p /tmp/mnt": errors.Errorf("mkdir failed"),
 			},
-			stderr: "",
+			stderr:   "",
 			mountErr: nil,
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",
@@ -300,7 +300,7 @@ func TestRunDataPartitionUnmountProcess(t *testing.T) {
 		{
 			name:     "mount error",
 			cmdErrs:  map[string]error{},
-			stderr: "",
+			stderr:   "",
 			mountErr: errors.Errorf("Bind mount failed"),
 			wantCmds: []string{
 				"mkdir -p /tmp/mnt",

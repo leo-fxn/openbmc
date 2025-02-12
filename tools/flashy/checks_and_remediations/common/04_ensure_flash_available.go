@@ -42,7 +42,7 @@ const bootargsAppend = "mtdparts=spi0.0:32M@0x0(flash0),0x20000@0x60000(env)"
 // Only very old images exhibit this bug and all have a 32MB SPI chip with
 // the same layout (wedge/wedge100/galaxy100).
 //
-// It's possible for "flash0" to be invisible on other platforms (e.g. 
+// It's possible for "flash0" to be invisible on other platforms (e.g.
 // minipack) because of a kernel driver bug but in that case the "env"
 // partition will also be invisible: we won't be able to make any changes
 // via fw_setenv here.
@@ -79,8 +79,8 @@ func ensureFlashAvailable(stepParams step.StepParams) step.StepExitError {
 	_, err, stdout, stderr = utils.RunCommand(cmd, 30*time.Second)
 	if err != nil {
 		errMsg := errors.Errorf(
-			"Broken flash chip? Cannot see MTD chips on device." +
-			" Error code: %v, stderr: %v", err, stderr)
+			"Broken flash chip? Cannot see MTD chips on device."+
+				" Error code: %v, stderr: %v", err, stderr)
 		return step.ExitMissingMtd{Err: errMsg}
 	}
 
@@ -89,8 +89,8 @@ func ensureFlashAvailable(stepParams step.StepParams) step.StepExitError {
 	_, err, stdout, stderr = utils.RunCommand(cmd, 30*time.Second)
 	if err != nil {
 		errMsg := errors.Errorf(
-			"Broken flash chip? U-Boot environment is inaccessible." +
-			" Error code: %v, stderr: %v", err, stderr)
+			"Broken flash chip? U-Boot environment is inaccessible."+
+				" Error code: %v, stderr: %v", err, stderr)
 		return step.ExitBadFlashChip{Err: errMsg}
 	}
 	bootargs := strings.Replace(strings.TrimSpace(stdout), "bootargs=", "", 1)

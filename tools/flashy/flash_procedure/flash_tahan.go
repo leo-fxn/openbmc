@@ -1,4 +1,3 @@
-	
 /**
  * Copyright 2020-present Facebook. All Rights Reserved.
  *

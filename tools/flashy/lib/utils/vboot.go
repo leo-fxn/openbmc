@@ -30,7 +30,7 @@ import (
 )
 
 // AST_SRAM_VBS_BASE is the location in SRAM used for verified boot content/flags.
-const AST_SRAM_VBS_BASE = 0x1E720200 // ast2400, ast2500
+const AST_SRAM_VBS_BASE = 0x1E720200    // ast2400, ast2500
 const AST_SRAM_VBS_BASE_G6 = 0x10015800 // ast2600
 
 // AST_SRAM_VBS_SIZE is the size of verified boot content/flags.

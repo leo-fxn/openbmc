@@ -83,7 +83,9 @@ func Uint32Find(val uint32, arr []uint32) int {
 // `match` must already have matched with the subexpNames, otherwise an
 // error will be returned.
 // e.g. match: []string{"", "foo", "bar"}
-//      subexpNames: []string{"", "F", "B"}
+//
+//	subexpNames: []string{"", "F", "B"}
+//
 // -> map[string]string { "F": "foo", "B": "bar" }
 func regexSubexpMapHelper(match, subexpNames []string) (map[string]string, error) {
 	m := map[string]string{}
@@ -127,7 +129,9 @@ func regexSubexpMapHelper(match, subexpNames []string) (map[string]string, error
 // uses beyond well-defined regexes with valid capturing groups will
 // result in errors or undefined behavior
 // e.g. regex: "(?P<type>[a-z]+):(?P<specifier>.+)"
-//      inputString: "mtd:flash0"
+//
+//	inputString: "mtd:flash0"
+//
 // -> map[string]string { "type": "mtd", "specifier": "flash0" }
 // Returns an error if match was not successful.
 func GetRegexSubexpMap(regEx, inputString string) (map[string]string, error) {
