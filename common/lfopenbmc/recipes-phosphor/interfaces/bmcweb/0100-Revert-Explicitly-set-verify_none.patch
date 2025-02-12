@@ -1,7 +1,7 @@
-From ccf976b110ab45593bee09c438023f90649c3351 Mon Sep 17 00:00:00 2001
+From 03474f1787a11d97f3fdfdb9b84ad776513dc5dc Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Mon, 11 Nov 2024 18:10:41 -0500
-Subject: [PATCH 100/101] Revert "Explicitly set verify_none"
+Subject: [PATCH 100/102] Revert "Explicitly set verify_none"
 
 This reverts commit 463a0e3e880340a119bf986bab039d1afbe1a432.
 ---
@@ -10,10 +10,10 @@ This reverts commit 463a0e3e880340a119bf986bab039d1afbe1a432.
  2 files changed, 9 insertions(+), 13 deletions(-)
 
 diff --git a/http/http_connection.hpp b/http/http_connection.hpp
-index 29d4fc82..bea10aa0 100644
+index c9eb2aee..8aa28e22 100644
 --- a/http/http_connection.hpp
 +++ b/http/http_connection.hpp
-@@ -108,9 +108,6 @@ class Connection :
+@@ -122,9 +122,6 @@ class Connection :
              persistent_data::SessionStore::getInstance().getAuthMethodsConfig();
          if (c.tlsStrict)
          {
@@ -24,7 +24,7 @@ index 29d4fc82..bea10aa0 100644
          }
          // If tls strict mode is disabled
 diff --git a/src/ssl_key_handler.cpp b/src/ssl_key_handler.cpp
-index c82922cd..e967e969 100644
+index b2a78b8e..25ec7245 100644
 --- a/src/ssl_key_handler.cpp
 +++ b/src/ssl_key_handler.cpp
 @@ -545,21 +545,20 @@ std::shared_ptr<boost::asio::ssl::context> getSslServerContext()

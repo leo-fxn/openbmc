@@ -1,7 +1,7 @@
-From 30a4bdd47cbb34a671f38b8900e03234bce66cc2 Mon Sep 17 00:00:00 2001
+From a73c382a7c67854a67b8ecebb1fa76b75de0dd32 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 16:21:45 +0800
-Subject: [PATCH 12/15] Support OEM-META command for getting Http boot
+Subject: [PATCH 12/16] Support OEM-META command for getting Http boot
  certification
 
 Summary:
@@ -24,10 +24,10 @@ Signed-off-by: Lora Lin <lora.lin.wiwynn@gmail.com>
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_http_boot.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 6cbf924..de9e778 100644
+index 769c340..9f0687e 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -72,6 +72,7 @@ if get_option('oem-meta').allowed()
+@@ -76,6 +76,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_apml_alert.cpp',
@@ -36,7 +36,7 @@ index 6cbf924..de9e778 100644
  endif
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
-index 36ff128..f363f87 100644
+index 91a7e35..3fe980a 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -3,6 +3,7 @@
@@ -47,7 +47,7 @@ index 36ff128..f363f87 100644
  #include "oem_meta_file_io_type_post_code.hpp"
  #include "oem_meta_file_io_type_power_control.hpp"
  #include "xyz/openbmc_project/Common/error.hpp"
-@@ -39,6 +40,9 @@ std::unique_ptr<FileHandler>
+@@ -39,6 +40,9 @@ std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
              return std::make_unique<PowerControlHandler>(
                  messageTid, configurationDiscovery->getConfigurations(),
                  dBusIntf);
@@ -137,7 +137,7 @@ index 36ff128..f363f87 100644
 +
  } // namespace pldm::responder::oem_meta
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.hpp b/oem/meta/libpldmresponder/oem_meta_file_io.hpp
-index edde91d..e7f854b 100644
+index 4d6221f..e82d925 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.hpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.hpp
 @@ -27,6 +27,12 @@ class FileIOHandler : public CmdHandler
@@ -168,8 +168,8 @@ index edde91d..e7f854b 100644
 +    Response readFileIO(pldm_tid_t tid, const pldm_msg* request,
 +                        size_t payloadLength);
 +
-     std::unique_ptr<FileHandler>
-         getHandlerByType(pldm_tid_t tid, uint8_t fileIOType);
+     std::unique_ptr<FileHandler> getHandlerByType(pldm_tid_t tid,
+                                                   uint8_t fileIOType);
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_by_type.hpp b/oem/meta/libpldmresponder/oem_meta_file_io_by_type.hpp
 index bdd5fce..89d3385 100644

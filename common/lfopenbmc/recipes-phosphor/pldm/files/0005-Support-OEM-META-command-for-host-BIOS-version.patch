@@ -1,7 +1,7 @@
-From 144912558d17922be7bc82226ca96b361c297b39 Mon Sep 17 00:00:00 2001
+From 2d66f60f67428c2b64f00e38c83cc05b5a52fd14 Mon Sep 17 00:00:00 2001
 From: Chris Wang <Chris_Wang@wiwynn.com>
 Date: Wed, 10 Apr 2024 21:04:02 +0800
-Subject: [PATCH 05/15] Support OEM-META command for host BIOS version
+Subject: [PATCH 05/16] Support OEM-META command for host BIOS version
 
 Summary:
   - Add handler for write-file command "BIOS_VERSION", which is sent
@@ -23,10 +23,10 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 459f4ba..6c97957 100644
+index 723fcc0..3a81364 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -68,6 +68,7 @@ if get_option('oem-meta').allowed()
+@@ -72,6 +72,7 @@ if get_option('oem-meta').allowed()
      sources += [
          '../oem/meta/libpldmresponder/oem_meta_file_io.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp',
@@ -35,7 +35,7 @@ index 459f4ba..6c97957 100644
  endif
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
-index c45eea6..68bb64d 100644
+index 763d164..03ee07d 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -1,5 +1,6 @@
@@ -45,7 +45,7 @@ index c45eea6..68bb64d 100644
  #include "oem_meta_file_io_type_post_code.hpp"
  #include "xyz/openbmc_project/Common/error.hpp"
  
-@@ -21,7 +22,11 @@ std::unique_ptr<FileHandler>
+@@ -21,7 +22,11 @@ std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
      {
          case POST_CODE:
              return std::make_unique<PostCodeHandler>(
@@ -59,7 +59,7 @@ index c45eea6..68bb64d 100644
              error("Get invalid file io type, FILEIOTYPE={FILEIOTYPE}",
                    "FILEIOTYPE", fileIOType);
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.hpp b/oem/meta/libpldmresponder/oem_meta_file_io.hpp
-index f25235d..edde91d 100644
+index d5c173d..4d6221f 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.hpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.hpp
 @@ -17,8 +17,9 @@ namespace pldm::responder::oem_meta
@@ -75,8 +75,8 @@ index f25235d..edde91d 100644
          handlers.emplace(
              PLDM_OEM_META_FILE_IO_CMD_WRITE_FILE,
 @@ -43,7 +44,13 @@ class FileIOHandler : public CmdHandler
-     std::unique_ptr<FileHandler>
-         getHandlerByType(pldm_tid_t tid, uint8_t fileIOType);
+     std::unique_ptr<FileHandler> getHandlerByType(pldm_tid_t tid,
+                                                   uint8_t fileIOType);
  
 -    pldm::ConfigurationDiscoveryHandler* configurationDescovery;
 +    /** @brief D-Bus Interface object*/
@@ -103,7 +103,7 @@ index 3f27583..abf8369 100644
  class FileHandler
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp
 new file mode 100644
-index 0000000..a9315c6
+index 0000000..c9a3ae2
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp
 @@ -0,0 +1,151 @@
@@ -187,8 +187,8 @@ index 0000000..a9315c6
 +    return result;
 +}
 +
-+const std::string
-+    BIOSVersionHandler::getDbusPathOfBoardContainingTheEndpoint(uint8_t tid)
++const std::string BIOSVersionHandler::getDbusPathOfBoardContainingTheEndpoint(
++    uint8_t tid)
 +{
 +    std::string result{};
 +
@@ -249,8 +249,8 @@ index 0000000..a9315c6
 +    }
 +}
 +
-+pldm::utils::PropertyValue
-+    BIOSVersionHandler::convertToBIOSVersionStr(const message& data)
++pldm::utils::PropertyValue BIOSVersionHandler::convertToBIOSVersionStr(
++    const message& data)
 +{
 +    std::string biosVersion(data.begin(), data.end());
 +
@@ -349,7 +349,7 @@ index 0000000..ad672f0
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index 4c90fde..47bf761 100644
+index 934339c..4334dda 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -278,7 +278,7 @@ int main(int argc, char** argv)

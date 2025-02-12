@@ -1,7 +1,7 @@
-From c99914e195213dd9bd8d49b7b164aad031c72e70 Mon Sep 17 00:00:00 2001
+From d0891fba59b08a8e46d42b49316afdf559e58f1a Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
-Subject: [PATCH 04/15] platform-mc: Add OEM Meta event handler
+Subject: [PATCH 04/16] platform-mc: Add OEM Meta event handler
 
 Add OEM Meta handler with event type 0xFB. It will print the logs
 with prefix "BIOS_IPMI_SEL", so the user can utilize it to filter
@@ -67,7 +67,7 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
 diff --git a/meson.build b/meson.build
-index 7cd5981..f2f456a 100644
+index 543f953..6de09f2 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -263,6 +263,7 @@ executable(
@@ -1130,7 +1130,7 @@ index e8ea6b7..64c2701 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index ac78c48..4c90fde 100644
+index e663aa1..934339c 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -290,7 +290,8 @@ int main(int argc, char** argv)

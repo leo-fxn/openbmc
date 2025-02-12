@@ -1,7 +1,7 @@
-From f249175b8667d20d3b68e50680e5ff97c8a0c3b7 Mon Sep 17 00:00:00 2001
+From 385f9e2012ab592db829b5ab17896a12b1ffa576 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Fri, 28 Jun 2024 11:19:43 +0800
-Subject: [PATCH 08/15] oem-meta: Add APML alert handler
+Subject: [PATCH 08/16] oem-meta: Add APML alert handler
 
 Add APML alert handler. It will call `amd-ras` to do ADDC.
 
@@ -17,10 +17,10 @@ Change-Id: I9b8587c345e20a17ae858cfb021478c5878c55ab
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_apml_alert.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 5dee580..6cbf924 100644
+index 6d53ca2..769c340 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -71,6 +71,7 @@ if get_option('oem-meta').allowed()
+@@ -75,6 +75,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp',
@@ -29,7 +29,7 @@ index 5dee580..6cbf924 100644
  endif
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
-index b897db2..36ff128 100644
+index a74a0cf..91a7e35 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -1,5 +1,6 @@
@@ -39,7 +39,7 @@ index b897db2..36ff128 100644
  #include "oem_meta_file_io_type_bios_version.hpp"
  #include "oem_meta_file_io_type_event_log.hpp"
  #include "oem_meta_file_io_type_post_code.hpp"
-@@ -29,6 +30,8 @@ std::unique_ptr<FileHandler>
+@@ -29,6 +30,8 @@ std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
              return std::make_unique<BIOSVersionHandler>(
                  messageTid, configurationDiscovery->getConfigurations(),
                  dBusIntf);

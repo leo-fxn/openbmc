@@ -1,7 +1,7 @@
-From 40fd5c05dc3becb6f34d96cc6f23f3901d016b2d Mon Sep 17 00:00:00 2001
+From 288a44fa013a028bf247fbda55e9d415562cc1d7 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Tue, 31 Dec 2024 10:29:35 +0800
-Subject: [PATCH] Support OEM-META command for crashdump from BIC
+Subject: [PATCH 15/16] Support OEM-META command for crashdump from BIC
 
 Add a handler for write file IO command with type "crashdump".
 The BIOS will send crashdump data to BIC, and the BIC will send
@@ -16,16 +16,16 @@ Signed-off-by: PeterHo-wiwynn <peter.ho.wiwynn@gmail.com>
  .../libpldmresponder/oem_meta_file_io.cpp     |   4 +
  .../oem_meta_file_io_by_type.hpp              |   3 +-
  .../oem_meta_file_io_type_crash_dump.cpp      | 678 ++++++++++++++++++
- .../oem_meta_file_io_type_crash_dump.hpp      |  60 ++
- 5 files changed, 745 insertions(+), 1 deletion(-)
+ .../oem_meta_file_io_type_crash_dump.hpp      |  59 ++
+ 5 files changed, 744 insertions(+), 1 deletion(-)
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.cpp
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index de9e778..30f5934 100644
+index 9f0687e..653d90e 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -73,6 +73,7 @@ if get_option('oem-meta').allowed()
+@@ -77,6 +77,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_apml_alert.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_http_boot.cpp',
@@ -34,7 +34,7 @@ index de9e778..30f5934 100644
  endif
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
-index f363f87..9b4591b 100644
+index 3fe980a..ca5ad77 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -2,6 +2,7 @@
@@ -45,7 +45,7 @@ index f363f87..9b4591b 100644
  #include "oem_meta_file_io_type_event_log.hpp"
  #include "oem_meta_file_io_type_http_boot.hpp"
  #include "oem_meta_file_io_type_post_code.hpp"
-@@ -43,6 +44,9 @@ std::unique_ptr<FileHandler>
+@@ -43,6 +44,9 @@ std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
          case HTTP_BOOT:
              return std::make_unique<HttpBootHandler>(
                  messageTid, configurationDiscovery->getConfigurations());
@@ -78,7 +78,7 @@ index 89d3385..ae6ca5a 100644
  class FileHandler
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.cpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.cpp
 new file mode 100644
-index 0000000..be19fd8
+index 0000000..af2b0b8
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.cpp
 @@ -0,0 +1,678 @@
@@ -312,8 +312,8 @@ index 0000000..be19fd8
 +}
 +
 +template <typename T>
-+static int
-+    handleVirtualBank(std::span<const uint8_t> data, std::stringstream& ss)
++static int handleVirtualBank(std::span<const uint8_t> data,
++                             std::stringstream& ss)
 +{
 +    if (data.size() < sizeof(T))
 +    {
@@ -762,10 +762,10 @@ index 0000000..be19fd8
 +} // namespace pldm::responder::oem_meta
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.hpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.hpp
 new file mode 100644
-index 0000000..051daff
+index 0000000..03922cb
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.hpp
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,59 @@
 +#pragma once
 +
 +#include "common/utils.hpp"
@@ -791,8 +791,7 @@ index 0000000..051daff
 +
 +    explicit CrashDumpHandler(
 +        uint8_t tid, std::map<std::string, MctpEndpoint>& configurations) :
-+        tid(tid),
-+        configurations(configurations)
++        tid(tid), configurations(configurations)
 +    {}
 +
 +    int write(const message& data) override;
@@ -827,5 +826,5 @@ index 0000000..051daff
 +
 +} // namespace pldm::responder::oem_meta
 -- 
-2.25.1
+2.44.2
 

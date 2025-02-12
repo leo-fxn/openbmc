@@ -1,7 +1,7 @@
-From 4a0bccb31330fedad48b55bf05c86e306579526b Mon Sep 17 00:00:00 2001
+From c6332d549432b7ef2ec73564dcfcc6f41d1086ad Mon Sep 17 00:00:00 2001
 From: Bright Cheng <bright_cheng@wiwynn.com>
 Date: Wed, 26 Jun 2024 14:25:18 +0800
-Subject: [PATCH 06/15] Support OEM-META command for Event Logs from BIC
+Subject: [PATCH 06/16] Support OEM-META command for Event Logs from BIC
 
 Summary:
   - Add handler for write-file command "EVENT_LOG", which is sent
@@ -20,10 +20,10 @@ Change-Id: I55a19b6c22e05cae3a9572a8d6707769ae7ee402
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 6c97957..6abd601 100644
+index 3a81364..5fc72d5 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -69,6 +69,7 @@ if get_option('oem-meta').allowed()
+@@ -73,6 +73,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp',
@@ -32,7 +32,7 @@ index 6c97957..6abd601 100644
  endif
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
-index 68bb64d..1653a39 100644
+index 03ee07d..422907b 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -1,6 +1,7 @@
@@ -43,7 +43,7 @@ index 68bb64d..1653a39 100644
  #include "oem_meta_file_io_type_post_code.hpp"
  #include "xyz/openbmc_project/Common/error.hpp"
  
-@@ -27,6 +28,9 @@ std::unique_ptr<FileHandler>
+@@ -27,6 +28,9 @@ std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
              return std::make_unique<BIOSVersionHandler>(
                  messageTid, configurationDiscovery->getConfigurations(),
                  dBusIntf);

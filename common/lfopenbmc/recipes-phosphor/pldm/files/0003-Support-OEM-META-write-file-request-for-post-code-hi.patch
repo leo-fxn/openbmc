@@ -1,7 +1,7 @@
-From 3a9a5bc0d6b7d6ae0ff16af9368ae8904bfe3106 Mon Sep 17 00:00:00 2001
+From fc4c8b8fe37d17e2d0c01a0c546a0e66fe162aae Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
-Subject: [PATCH 03/15] Support OEM-META write file request for post code
+Subject: [PATCH 03/16] Support OEM-META write file request for post code
  history
 
 Support write file req when multiple hosts send postcode to BMC
@@ -10,8 +10,6 @@ and store its post code history.
 Change-Id: I56d303a5bc2f059451ee207a1de591be0d9993ac
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 ---
- common/utils.cpp                              |  15 ++
- common/utils.hpp                              |  20 +++
  libpldmresponder/meson.build                  |   9 ++
  meson.build                                   |   4 +
  meson.options                                 |   8 ++
@@ -21,89 +19,18 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  .../oem_meta_file_io_type_post_code.cpp       | 130 ++++++++++++++++++
  .../oem_meta_file_io_type_post_code.hpp       |  53 +++++++
  pldmd/pldmd.cpp                               |   9 ++
- 11 files changed, 395 insertions(+)
+ 9 files changed, 360 insertions(+)
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io.cpp
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io.hpp
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_by_type.hpp
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.hpp
 
-diff --git a/common/utils.cpp b/common/utils.cpp
-index 22f86d9..3956f32 100644
---- a/common/utils.cpp
-+++ b/common/utils.cpp
-@@ -263,6 +263,21 @@ GetSubTreeResponse
-     return response;
- }
- 
-+GetAncestorsResponse
-+    DBusHandler::getAncestors(const std::string& searchPath,
-+                              const std::vector<std::string>& ifaceList) const
-+{
-+    auto& bus = pldm::utils::DBusHandler::getBus();
-+    auto method = bus.new_method_call(ObjectMapper::default_service,
-+                                      ObjectMapper::instance_path,
-+                                      ObjectMapper::interface, "GetAncestors");
-+    method.append(searchPath, ifaceList);
-+    auto reply = bus.call(method, dbusTimeout);
-+    GetAncestorsResponse response;
-+    reply.read(response);
-+    return response;
-+}
-+
- GetSubTreePathsResponse DBusHandler::getSubTreePaths(
-     const std::string& objectPath, int depth,
-     const std::vector<std::string>& ifaceList) const
-diff --git a/common/utils.hpp b/common/utils.hpp
-index 98e8539..0c44c81 100644
---- a/common/utils.hpp
-+++ b/common/utils.hpp
-@@ -194,6 +194,8 @@ using Interfaces = std::vector<std::string>;
- using MapperServiceMap = std::vector<std::pair<ServiceName, Interfaces>>;
- using GetSubTreeResponse = std::vector<std::pair<ObjectPath, MapperServiceMap>>;
- using GetSubTreePathsResponse = std::vector<std::string>;
-+using GetAncestorsResponse =
-+    std::vector<std::pair<ObjectPath, MapperServiceMap>>;
- using PropertyMap = std::map<std::string, PropertyValue>;
- using InterfaceMap = std::map<std::string, PropertyMap>;
- using ObjectValueTree = std::map<sdbusplus::message::object_path, InterfaceMap>;
-@@ -216,6 +218,10 @@ class DBusHandlerInterface
-         getSubTreePaths(const std::string& objectPath, int depth,
-                         const std::vector<std::string>& ifaceList) const = 0;
- 
-+    virtual GetAncestorsResponse
-+        getAncestors(const std::string& path,
-+                     const std::vector<std::string>& ifaceList) const = 0;
-+
-     virtual void setDbusProperty(const DBusMapping& dBusMap,
-                                  const PropertyValue& value) const = 0;
- 
-@@ -279,6 +285,20 @@ class DBusHandler : public DBusHandlerInterface
-     GetSubTreeResponse
-         getSubtree(const std::string& path, int depth,
-                    const std::vector<std::string>& ifaceList) const override;
-+    /**
-+     *  @brief Get the Ancestors response from the mapper
-+     *
-+     *  @param[in] path - DBUS object path
-+     *  @param[in] ifaceList - list of the interface that are being
-+     *                         queried from the mapper
-+     *
-+     *  @return GetAncestorsResponse - the mapper GetAncestors response
-+     *
-+     *  @throw sdbusplus::exception_t when it fails
-+     */
-+    GetAncestorsResponse
-+        getAncestors(const std::string& path,
-+                     const std::vector<std::string>& ifaceList) const override;
- 
-     /** @brief Get Subtree path response from the mapper
-      *
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index cf6ecf5..459f4ba 100644
+index 14c8bb0..723fcc0 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -34,6 +34,7 @@ sources = [
+@@ -38,6 +38,7 @@ sources = [
      '../host-bmc/utils.cpp',
      '../host-bmc/dbus/pcie_device.cpp',
      '../host-bmc/dbus/pcie_slot.cpp',
@@ -111,7 +38,7 @@ index cf6ecf5..459f4ba 100644
      'event_parser.cpp',
  ]
  
-@@ -62,6 +63,14 @@ if get_option('oem-ibm').allowed()
+@@ -66,6 +67,14 @@ if get_option('oem-ibm').allowed()
      ]
  endif
  
@@ -127,7 +54,7 @@ index cf6ecf5..459f4ba 100644
      'pldmresponder',
      sources,
 diff --git a/meson.build b/meson.build
-index 017ca18..7cd5981 100644
+index b744284..543f953 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -140,6 +140,10 @@ conf_data.set('SENSOR_POLLING_TIME', get_option('sensor-polling-time'))
@@ -142,11 +69,11 @@ index 017ca18..7cd5981 100644
      '-include',
      '@0@'.format(meson.current_build_dir() / 'config.h'),
 diff --git a/meson.options b/meson.options
-index bf08324..1714c7b 100644
+index 531f9d4..b95b3ac 100644
 --- a/meson.options
 +++ b/meson.options
-@@ -166,6 +166,14 @@ option(
-     description: 'Enable IBM OEM PLDM'
+@@ -161,6 +161,14 @@ option(
+     description: 'Enable IBM OEM PLDM',
  )
  
 +# OEM Meta Options
@@ -154,7 +81,7 @@ index bf08324..1714c7b 100644
 +    'oem-meta',
 +    type: 'feature',
 +    value: 'enabled',
-+    description: 'Enable Meta OEM PLDM'
++    description: 'Enable Meta OEM PLDM',
 +)
 +
  option(
@@ -162,7 +89,7 @@ index bf08324..1714c7b 100644
      type: 'integer',
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 new file mode 100644
-index 0000000..c45eea6
+index 0000000..763d164
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -0,0 +1,66 @@
@@ -182,8 +109,8 @@ index 0000000..c45eea6
 +static constexpr auto mctpEndpointInterface =
 +    "xyz.openbmc_project.Configuration.MCTPEndpoint";
 +
-+std::unique_ptr<FileHandler>
-+    FileIOHandler::getHandlerByType(uint8_t messageTid, uint8_t fileIOType)
++std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
++                                                             uint8_t fileIOType)
 +{
 +    switch (fileIOType)
 +    {
@@ -234,7 +161,7 @@ index 0000000..c45eea6
 +} // namespace pldm::responder::oem_meta
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.hpp b/oem/meta/libpldmresponder/oem_meta_file_io.hpp
 new file mode 100644
-index 0000000..f25235d
+index 0000000..d5c173d
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.hpp
 @@ -0,0 +1,49 @@
@@ -280,8 +207,8 @@ index 0000000..f25235d
 +    Response writeFileIO(pldm_tid_t tid, const pldm_msg* request,
 +                         size_t payloadLength);
 +
-+    std::unique_ptr<FileHandler>
-+        getHandlerByType(pldm_tid_t tid, uint8_t fileIOType);
++    std::unique_ptr<FileHandler> getHandlerByType(pldm_tid_t tid,
++                                                  uint8_t fileIOType);
 +
 +    pldm::ConfigurationDiscoveryHandler* configurationDescovery;
 +};
@@ -327,7 +254,7 @@ index 0000000..3f27583
 +} // namespace pldm::responder::oem_meta
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp
 new file mode 100644
-index 0000000..7ac86af
+index 0000000..e453af5
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp
 @@ -0,0 +1,130 @@
@@ -435,7 +362,7 @@ index 0000000..7ac86af
 +
 +    std::for_each(postCodeList.rbegin(), postCodeList.rend(),
 +                  [&primaryPostCode](auto postcode) {
-+                    primaryPostCode.push_back(postcode);
++                      primaryPostCode.push_back(postcode);
 +                  });
 +
 +    try
@@ -521,7 +448,7 @@ index 0000000..81ff4eb
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index cf7755b..ac78c48 100644
+index f69afd1..e663aa1 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -68,6 +68,9 @@ PHOSPHOR_LOG2_USING;

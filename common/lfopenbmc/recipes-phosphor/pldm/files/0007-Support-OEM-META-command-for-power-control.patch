@@ -1,7 +1,7 @@
-From 92a9fc510272367543b8096a3dd5692e9cf6789f Mon Sep 17 00:00:00 2001
+From 6042bd62e30f7cdc68ca4da67a61af6da72d96ea Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Fri, 14 Jun 2024 16:24:31 +0800
-Subject: [PATCH 07/15] Support OEM-META command for power control
+Subject: [PATCH 07/16] Support OEM-META command for power control
 
 Summary:
   - Add handler for write-file command "SLED_CYCLE, 12V-CYCLE
@@ -24,10 +24,10 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 6abd601..5dee580 100644
+index 5fc72d5..6d53ca2 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -70,6 +70,7 @@ if get_option('oem-meta').allowed()
+@@ -74,6 +74,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp',
@@ -36,7 +36,7 @@ index 6abd601..5dee580 100644
  endif
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io.cpp b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
-index 1653a39..b897db2 100644
+index 422907b..a74a0cf 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io.cpp
 @@ -3,6 +3,7 @@
@@ -47,7 +47,7 @@ index 1653a39..b897db2 100644
  #include "xyz/openbmc_project/Common/error.hpp"
  
  #include <libpldm/oem/meta/file_io.h>
-@@ -31,6 +32,10 @@ std::unique_ptr<FileHandler>
+@@ -31,6 +32,10 @@ std::unique_ptr<FileHandler> FileIOHandler::getHandlerByType(uint8_t messageTid,
          case EVENT_LOG:
              return std::make_unique<EventLogHandler>(
                  messageTid, configurationDiscovery->getConfigurations());
@@ -80,7 +80,7 @@ index f2e44de..3ebbf82 100644
  
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp
 new file mode 100644
-index 0000000..4f86f14
+index 0000000..3dfa83e
 --- /dev/null
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp
 @@ -0,0 +1,167 @@
@@ -202,8 +202,8 @@ index 0000000..4f86f14
 +    return result;
 +}
 +
-+const std::string
-+    PowerControlHandler::getDbusPathOfBoardContainingTheEndpoint(uint8_t tid)
++const std::string PowerControlHandler::getDbusPathOfBoardContainingTheEndpoint(
++    uint8_t tid)
 +{
 +    std::string result{};
 +

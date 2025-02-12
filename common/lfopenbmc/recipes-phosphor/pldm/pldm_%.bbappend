@@ -18,7 +18,7 @@ SRC_URI:append:openbmc-fb-lf = " \
     file://0012-Support-OEM-META-command-for-getting-Http-boot-certi.patch \
     file://0013-platform-mc-Handle-get-PLDM-Commands-failure.patch \
     file://0014-requester-Validate-MCTP-EID-before-removal.patch \
-    file://0015-oem-meta-Add-crash-dump-handler.patch \
+    file://0015-Support-OEM-META-command-for-crashdump-from-BIC.patch \
     file://0016-pldatform-mc-startSensorPolling-post-PDR-init.patch \
 "
 
