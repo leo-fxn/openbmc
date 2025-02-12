@@ -610,8 +610,8 @@ pal_parse_oem_unified_sel_common(uint8_t fru, uint8_t *sel, char *error_log)
     "Memory uncorrectable error",
     "Memory correctable error (Patrol scrub)",
     "Memory uncorrectable error (Patrol scrub)",
-    "Memory Parity Error (PCC=0)",
-    "Memory Parity Error (PCC=1)",
+    "Memory correctable error (Command/Address Parity)",
+    "Memory uncorrectable error (Command/Address Parity)",
     "Memory PMIC Error",
     "CXL Memory training error",
     "Reserved"
