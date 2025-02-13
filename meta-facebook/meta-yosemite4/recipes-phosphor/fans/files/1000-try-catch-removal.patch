@@ -1,0 +1,45 @@
+commit 1ff29877cca253a8c4c8d432bd8a4e58fd6914f0
+Author: Pete O_o <pmb@meta.com>
+Date:   Wed Feb 12 15:56:17 2025 -0800
+
+    [phosphor-pid-control] Remove blind exception handler
+    Summary: We are noticing cases where we are experiencing fd exhaustion.
+    This shows up as a caught exception here, and everything is retried.
+    
+    Removing this for testing, so that we can see which exceptions are
+    normally raised and we can handle them appropriately
+    
+    Test Plan:
+    
+    Reviewers:
+    
+    Subscribers:
+    
+    Tasks:
+    
+    Tags:
+
+diff --git a/main.cpp b/main.cpp
+index e91d109..d821e6e 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -199,17 +199,8 @@ void tryRestartControlLoops(bool first)
+             return;
+         }
+ 
+-        // retry when restartControlLoops() has some failure.
+-        try
+-        {
+-            restartControlLoops();
+-        }
+-        catch (const std::exception& e)
+-        {
+-            std::cerr << "Failed during restartControlLoops, try again: "
+-                      << e.what() << "\n";
+-            tryRestartControlLoops(false);
+-        }
++        // Allow exceptions to fall through.
++        restartControlLoops();
+     };
+ 
+     // first time of trying to restart the control loop without a delay
