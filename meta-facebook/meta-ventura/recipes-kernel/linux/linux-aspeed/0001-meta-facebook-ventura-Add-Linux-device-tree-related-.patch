@@ -1,18 +1,19 @@
-From 2a1f84dd1b8e54dab94e9d02e1cd900ad677957a Mon Sep 17 00:00:00 2001
+From 76bf6cc695ba6666f601a30afdb15424c6718bbe Mon Sep 17 00:00:00 2001
 From: Jason Hsu <jason-hsu@quantatw.com>
-Date: Mon, 10 Feb 2025 16:52:40 +0800
-Subject: [PATCH] meta-facebook: ventura: Add Linux device tree related to
- front panel LED
+Date: Fri, 29 Nov 2024 10:23:54 +0800
+Subject: [PATCH 1/2] meta-facebook: ventura: Add Linux device tree related to
+ Meta(Facebook) Ventura patch.
 
 Signed-off-by: Jason Hsu <jason-hsu@quantatw.com>
+LORE: https://lore.kernel.org/lkml/20241127073409.147714-3-jason-hsu@quantatw.com/
 ---
- arch/arm/boot/dts/aspeed/Makefile             |    1 +
- .../aspeed/aspeed-bmc-facebook-ventura.dts    | 1363 +++++++++++++++++
- 2 files changed, 1364 insertions(+)
+ arch/arm/boot/dts/aspeed/Makefile             |   1 +
+ .../aspeed/aspeed-bmc-facebook-ventura.dts    | 877 ++++++++++++++++++
+ 2 files changed, 878 insertions(+)
  create mode 100644 arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
 
 diff --git a/arch/arm/boot/dts/aspeed/Makefile b/arch/arm/boot/dts/aspeed/Makefile
-index 75559ea6024a..c1829d9af2e8 100644
+index 2e5f4833a073..e07666d902fb 100644
 --- a/arch/arm/boot/dts/aspeed/Makefile
 +++ b/arch/arm/boot/dts/aspeed/Makefile
 @@ -28,6 +28,7 @@ dtb-$(CONFIG_ARCH_ASPEED) += \
@@ -25,10 +26,10 @@ index 75559ea6024a..c1829d9af2e8 100644
  	aspeed-bmc-facebook-wedge400.dtb \
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
 new file mode 100644
-index 000000000000..453b23d603bb
+index 000000000000..8bbb7e88bc3c
 --- /dev/null
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
-@@ -0,0 +1,1363 @@
+@@ -0,0 +1,877 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +// Copyright (c) 2023 Facebook Inc.
 +/dts-v1/;
@@ -114,492 +115,6 @@ index 000000000000..453b23d603bb
 +			default-state = "off";
 +			gpios = <&gpio0 ASPEED_GPIO(P, 4) GPIO_ACTIVE_HIGH>;
 +		};
-+
-+		led-4 {
-+			label = "compute1_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g5_gpio 0 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-5 {
-+			label = "compute1_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 15 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-6 {
-+			label = "compute1_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 14 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-7 {
-+			label = "compute2_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 11 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-8 {
-+			label = "compute2_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 10 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-9 {
-+			label = "compute2_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 9 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-10 {
-+			label = "compute3_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 8 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-11 {
-+			label = "compute3_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 7 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-12 {
-+			label = "compute3_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 6 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-13 {
-+			label = "compute4_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 1 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-14 {
-+			label = "compute4_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 0 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-15 {
-+			label = "compute4_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 15 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-16 {
-+			label = "compute5_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 14 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-17 {
-+			label = "compute5_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 13 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-18 {
-+			label = "compute5_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 12 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-19 {
-+			label = "compute6_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 7 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-20 {
-+			label = "compute6_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 6 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-21 {
-+			label = "compute6_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 5 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-22 {
-+			label = "compute7_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 4 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-23 {
-+			label = "compute7_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 3 GPIO_ACTIVE_LOW>; 
-+		};
-+
-+		led-24 {
-+			label = "compute7_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 2 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-25 {
-+			label = "compute8_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 13 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-26 {
-+			label = "compute8_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 12 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-27 {
-+			label = "compute8_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 11 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-28 {
-+			label = "nvs1_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 10 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-29 {
-+			label = "nvs1_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 9 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-30 {
-+			label = "nvs1_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 8 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-31 {
-+			label = "nvs2_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 3 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-32 {
-+			label = "nvs2_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 2 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-33 {
-+			label = "nvs2_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 1 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-34 {
-+			label = "nvs3_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 0 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-35 {
-+			label = "nvs3_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 15 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-36 {
-+			label = "nvs3_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g4_gpio 14 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-37 {
-+			label = "nvs4_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 9 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-38 {
-+			label = "nvs4_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 8 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-39 {
-+			label = "nvs4_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 7 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-40 {
-+			label = "nvs5_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 6 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-41 {
-+			label = "nvs5_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 5 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-42 {
-+			label = "nvs5_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 4 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-43 {
-+			label = "nvs6_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 15 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-44 {
-+			label = "nvs6_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 14 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-45 {
-+			label = "nvs6_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 13 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-46 {
-+			label = "nvs7_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 12 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-47 {
-+			label = "nvs7_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 11 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-48 {
-+			label = "nvs7_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g3_gpio 10 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-49 {
-+			label = "nvs8_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 5 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-50 {
-+			label = "nvs8_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 4 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-51 {
-+			label = "nvs8_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 3 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-52 {
-+			label = "nvs9_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 2 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-53 {
-+			label = "nvs9_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 1 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-54 {
-+			label = "nvs9_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 0 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-55 {
-+			label = "compute9_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 11 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-56 {
-+			label = "compute9_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 10 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-57 {
-+			label = "compute9_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 9 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-58 {
-+			label = "compute10_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 8 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-59 {
-+			label = "compute10_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 7 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-60 {
-+			label = "compute10_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 6 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-61 {
-+			label = "compute11_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 1 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-62 {
-+			label = "compute11_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 0 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-63 {
-+			label = "compute11_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 15 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-64 {
-+			label = "compute12_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 14 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-65 {
-+			label = "compute12_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 13 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-66 {
-+			label = "compute12_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g6_gpio 12 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-67 {
-+			label = "compute13_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 7 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-68 {
-+			label = "compute13_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 6 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-69 {
-+			label = "compute13_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 5 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-70 {
-+			label = "compute14_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 4 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-71 {
-+			label = "compute14_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 3 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-72 {
-+			label = "compute14_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 2 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-73 {
-+			label = "compute15_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 13 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-74 {
-+			label = "compute15_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 12 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-75 {
-+			label = "compute15_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 11 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-76 {
-+			label = "compute16_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 10 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-77 {
-+			label = "compute16_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 9 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-78 {
-+			label = "compute16_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g2_gpio 8 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-79 {
-+			label = "compute17_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 5 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-80 {
-+			label = "compute17_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 4 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-81 {
-+			label = "compute17_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 3 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-82 {
-+			label = "compute18_led_switch";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 2 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-83 {
-+			label = "compute18_led_blue";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 1 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		led-84 {
-+			label = "compute18_led_amber";
-+			default-state = "off";
-+			gpios = <&tray_leds_g1_gpio 0 GPIO_ACTIVE_LOW>;
-+		};		
 +	};
 +
 +	memory@80000000 {
@@ -923,7 +438,7 @@ index 000000000000..453b23d603bb
 +			#size-cells = <0>;
 +			reg = <3>;
 +
-+            // Fan Board 0 FRU
++			// Fan Board 0 FRU
 +			eeprom@56 {
 +				compatible = "atmel,24c128";
 +				reg = <0x56>;
@@ -948,7 +463,7 @@ index 000000000000..453b23d603bb
 +			#size-cells = <0>;
 +			reg = <4>;
 +
-+            // Fan Board 1 FRU
++			// Fan Board 1 FRU
 +			eeprom@56 {
 +				compatible = "atmel,24c128";
 +				reg = <0x56>;
@@ -993,7 +508,7 @@ index 000000000000..453b23d603bb
 +			#address-cells = <1>;
 +			#size-cells = <0>;
 +			reg = <6>;
-+            // REAR-IO Board FRU
++			// REAR-IO Board FRU
 +			eeprom@56 {
 +				compatible = "atmel,24c128";
 +				reg = <0x56>;
@@ -1133,42 +648,42 @@ index 000000000000..453b23d603bb
 +&i2c15 {
 +	status = "okay";
 +
-+	tray_leds_g1_gpio: gpio@20 {
++	gpio@20 {
 +		compatible = "nxp,pca9555";
 +		reg = <0x20>;
 +		gpio-controller;
 +		#gpio-cells = <2>;
 +	};
 +
-+	tray_leds_g2_gpio: gpio@21 {
++	gpio@21 {
 +		compatible = "nxp,pca9555";
 +		reg = <0x21>;
 +		gpio-controller;
 +		#gpio-cells = <2>;
 +	};
 +
-+	tray_leds_g3_gpio: gpio@22 {
++	gpio@22 {
 +		compatible = "nxp,pca9555";
 +		reg = <0x22>;
 +		gpio-controller;
 +		#gpio-cells = <2>;
 +	};
 +
-+	tray_leds_g4_gpio: gpio@24 {
++	gpio@24 {
 +		compatible = "nxp,pca9555";
 +		reg = <0x24>;
 +		gpio-controller;
 +		#gpio-cells = <2>;
 +	};
 +
-+	tray_leds_g5_gpio: gpio@25 {
++	gpio@25 {
 +		compatible = "nxp,pca9555";
 +		reg = <0x25>;
 +		gpio-controller;
 +		#gpio-cells = <2>;
 +	};
 +
-+	tray_leds_g6_gpio: gpio@26 {
++	gpio@26 {
 +		compatible = "nxp,pca9555";
 +		reg = <0x26>;
 +		gpio-controller;
@@ -1290,96 +805,96 @@ index 000000000000..453b23d603bb
 +	"PRSNT_COMPUTE_TRAY9_N","",
 +	"PRSNT_COMPUTE_TRAY10_N","",
 +	"SMALL_LEAK_COMPUTE_TRAY1_N","",
-+    /*G0 - G7*/
-+    "SMALL_LEAK_COMPUTE_TRAY2_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY3_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY4_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY5_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY6_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY7_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY8_N","",
-+    "SMALL_LEAK_NVS_TRAY1_N","",
-+    /*H0 - H7*/
-+    "SMALL_LEAK_NVS_TRAY2_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY11_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY12_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY13_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY14_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY15_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY16_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY17_N","",
-+    /*I0 - I7*/
-+    "SMALL_LEAK_COMPUTE_TRAY18_N","",
-+    "SMALL_LEAK_NVS_TRAY3_N","",
-+    "SMALL_LEAK_NVS_TRAY4_N","",
-+    "SMALL_LEAK_NVS_TRAY5_N","",
-+    "SMALL_LEAK_NVS_TRAY6_N","",
-+    "SMALL_LEAK_NVS_TRAY7_N","",
-+    "SMALL_LEAK_NVS_TRAY8_N","",
-+    "SMALL_LEAK_NVS_TRAY9_N","",
-+    /*J0 - J7*/
-+    "SMALL_LEAK_COMPUTE_TRAY9_N","",
-+    "SMALL_LEAK_COMPUTE_TRAY10_N","",
-+    "PWRGD_COMPUTE_TRAY1_N","",
-+    "PWRGD_COMPUTE_TRAY2_N","",
-+    "PWRGD_COMPUTE_TRAY3_N","",
-+    "PWRGD_COMPUTE_TRAY4_N","",
-+    "PWRGD_COMPUTE_TRAY5_N","",
-+    "PWRGD_COMPUTE_TRAY6_N","",
-+    /*K0 - K7*/
-+    "PWRGD_COMPUTE_TRAY7_N","",
-+    "PWRGD_COMPUTE_TRAY8_N","",
-+    "PWRGD_NVS_TRAY1_PWROK_N","",
-+    "PWRGD_NVS_TRAY2_PWROK_N","",
-+    "PWRGD_COMPUTE_TRAY11_N","",
-+    "PWRGD_COMPUTE_TRAY12_N","",
-+    "PWRGD_COMPUTE_TRAY13_N","",
-+    "PWRGD_COMPUTE_TRAY14_N","",
-+    /*L0 - L7*/
-+    "PWRGD_COMPUTE_TRAY15_N","",
-+    "PWRGD_COMPUTE_TRAY16_N","",
-+    "PWRGD_COMPUTE_TRAY17_N","",
-+    "PWRGD_COMPUTE_TRAY18_N","",
-+    "PWRGD_NVS_TRAY3_PWROK_N","",
-+    "PWRGD_NVS_TRAY4_PWROK_N","",
-+    "PWRGD_NVS_TRAY5_PWROK_N","",
-+    "PWRGD_NVS_TRAY6_PWROK_N","",
-+    /*M0 - M7*/
-+    "PWRGD_NVS_TRAY7_PWROK_N","",
-+    "PWRGD_NVS_TRAY8_PWROK_N","",
-+    "PWRGD_NVS_TRAY9_PWROK_N","",
-+    "PWRGD_COMPUTE_TRAY9_N","",
-+    "PWRGD_COMPUTE_TRAY10_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY1_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY2_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY3_N","",
-+    /*N0 - N7*/
-+    "LEAK_DETECT_COMPUTE_TRAY4_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY5_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY6_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY7_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY8_N","",
-+    "LEAK_DETECT_NVS_TRAY1_N","",
-+    "LEAK_DETECT_NVS_TRAY2_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY11_N","",
-+    /*O0 - O7*/
-+    "LEAK_DETECT_COMPUTE_TRAY12_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY13_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY14_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY15_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY16_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY17_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY18_N","",
-+    "LEAK_DETECT_NVS_TRAY3_N","",
-+    /*P0 - P7*/
-+    "LEAK_DETECT_NVS_TRAY4_N","",
-+    "LEAK_DETECT_NVS_TRAY5_N","",
-+    "LEAK_DETECT_NVS_TRAY6_N","",
-+    "LEAK_DETECT_NVS_TRAY7_N","",
-+    "LEAK_DETECT_NVS_TRAY8_N","",
-+    "LEAK_DETECT_NVS_TRAY9_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY9_N","",
-+    "LEAK_DETECT_COMPUTE_TRAY10_N","";
++	/*G0 - G7*/
++	"SMALL_LEAK_COMPUTE_TRAY2_N","",
++	"SMALL_LEAK_COMPUTE_TRAY3_N","",
++	"SMALL_LEAK_COMPUTE_TRAY4_N","",
++	"SMALL_LEAK_COMPUTE_TRAY5_N","",
++	"SMALL_LEAK_COMPUTE_TRAY6_N","",
++	"SMALL_LEAK_COMPUTE_TRAY7_N","",
++	"SMALL_LEAK_COMPUTE_TRAY8_N","",
++	"SMALL_LEAK_NVS_TRAY1_N","",
++	/*H0 - H7*/
++	"SMALL_LEAK_NVS_TRAY2_N","",
++	"SMALL_LEAK_COMPUTE_TRAY11_N","",
++	"SMALL_LEAK_COMPUTE_TRAY12_N","",
++	"SMALL_LEAK_COMPUTE_TRAY13_N","",
++	"SMALL_LEAK_COMPUTE_TRAY14_N","",
++	"SMALL_LEAK_COMPUTE_TRAY15_N","",
++	"SMALL_LEAK_COMPUTE_TRAY16_N","",
++	"SMALL_LEAK_COMPUTE_TRAY17_N","",
++	/*I0 - I7*/
++	"SMALL_LEAK_COMPUTE_TRAY18_N","",
++	"SMALL_LEAK_NVS_TRAY3_N","",
++	"SMALL_LEAK_NVS_TRAY4_N","",
++	"SMALL_LEAK_NVS_TRAY5_N","",
++	"SMALL_LEAK_NVS_TRAY6_N","",
++	"SMALL_LEAK_NVS_TRAY7_N","",
++	"SMALL_LEAK_NVS_TRAY8_N","",
++	"SMALL_LEAK_NVS_TRAY9_N","",
++	/*J0 - J7*/
++	"SMALL_LEAK_COMPUTE_TRAY9_N","",
++	"SMALL_LEAK_COMPUTE_TRAY10_N","",
++	"PWRGD_COMPUTE_TRAY1_N","",
++	"PWRGD_COMPUTE_TRAY2_N","",
++	"PWRGD_COMPUTE_TRAY3_N","",
++	"PWRGD_COMPUTE_TRAY4_N","",
++	"PWRGD_COMPUTE_TRAY5_N","",
++	"PWRGD_COMPUTE_TRAY6_N","",
++	/*K0 - K7*/
++	"PWRGD_COMPUTE_TRAY7_N","",
++	"PWRGD_COMPUTE_TRAY8_N","",
++	"PWRGD_NVS_TRAY1_PWROK_N","",
++	"PWRGD_NVS_TRAY2_PWROK_N","",
++	"PWRGD_COMPUTE_TRAY11_N","",
++	"PWRGD_COMPUTE_TRAY12_N","",
++	"PWRGD_COMPUTE_TRAY13_N","",
++	"PWRGD_COMPUTE_TRAY14_N","",
++	/*L0 - L7*/
++	"PWRGD_COMPUTE_TRAY15_N","",
++	"PWRGD_COMPUTE_TRAY16_N","",
++	"PWRGD_COMPUTE_TRAY17_N","",
++	"PWRGD_COMPUTE_TRAY18_N","",
++	"PWRGD_NVS_TRAY3_PWROK_N","",
++	"PWRGD_NVS_TRAY4_PWROK_N","",
++	"PWRGD_NVS_TRAY5_PWROK_N","",
++	"PWRGD_NVS_TRAY6_PWROK_N","",
++	/*M0 - M7*/
++	"PWRGD_NVS_TRAY7_PWROK_N","",
++	"PWRGD_NVS_TRAY8_PWROK_N","",
++	"PWRGD_NVS_TRAY9_PWROK_N","",
++	"PWRGD_COMPUTE_TRAY9_N","",
++	"PWRGD_COMPUTE_TRAY10_N","",
++	"LEAK_DETECT_COMPUTE_TRAY1_N","",
++	"LEAK_DETECT_COMPUTE_TRAY2_N","",
++	"LEAK_DETECT_COMPUTE_TRAY3_N","",
++	/*N0 - N7*/
++	"LEAK_DETECT_COMPUTE_TRAY4_N","",
++	"LEAK_DETECT_COMPUTE_TRAY5_N","",
++	"LEAK_DETECT_COMPUTE_TRAY6_N","",
++	"LEAK_DETECT_COMPUTE_TRAY7_N","",
++	"LEAK_DETECT_COMPUTE_TRAY8_N","",
++	"LEAK_DETECT_NVS_TRAY1_N","",
++	"LEAK_DETECT_NVS_TRAY2_N","",
++	"LEAK_DETECT_COMPUTE_TRAY11_N","",
++	/*O0 - O7*/
++	"LEAK_DETECT_COMPUTE_TRAY12_N","",
++	"LEAK_DETECT_COMPUTE_TRAY13_N","",
++	"LEAK_DETECT_COMPUTE_TRAY14_N","",
++	"LEAK_DETECT_COMPUTE_TRAY15_N","",
++	"LEAK_DETECT_COMPUTE_TRAY16_N","",
++	"LEAK_DETECT_COMPUTE_TRAY17_N","",
++	"LEAK_DETECT_COMPUTE_TRAY18_N","",
++	"LEAK_DETECT_NVS_TRAY3_N","",
++	/*P0 - P7*/
++	"LEAK_DETECT_NVS_TRAY4_N","",
++	"LEAK_DETECT_NVS_TRAY5_N","",
++	"LEAK_DETECT_NVS_TRAY6_N","",
++	"LEAK_DETECT_NVS_TRAY7_N","",
++	"LEAK_DETECT_NVS_TRAY8_N","",
++	"LEAK_DETECT_NVS_TRAY9_N","",
++	"LEAK_DETECT_COMPUTE_TRAY9_N","",
++	"LEAK_DETECT_COMPUTE_TRAY10_N","";
 +};
 +
 +&wdt1 {

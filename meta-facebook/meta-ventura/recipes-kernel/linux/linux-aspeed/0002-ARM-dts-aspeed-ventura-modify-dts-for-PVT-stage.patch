@@ -1,0 +1,694 @@
+From dfc69a2f8b16c426fe9febd1773c5e6e1844b77e Mon Sep 17 00:00:00 2001
+From: Yang Chen <yang.chen@quantatw.com>
+Date: Fri, 7 Feb 2025 15:23:13 +0800
+Subject: [PATCH 2/2] ARM: dts: aspeed: ventura: modify dts for PVT stage
+
+Modify the DTS of ventura for PVT stage as follow items:
+1. Add gpio-led for each tray led control.
+2. Remove the power monitor IC defined in DTS because multiple sources
+   of the RMC board have the same i2c address.
+3. Add 2nd HSC xdp710.
+
+Signed-off-by: Yang Chen <yang.chen@quantatw.com>
+---
+ .../aspeed/aspeed-bmc-facebook-ventura.dts    | 592 +++++++++++++++++-
+ 1 file changed, 559 insertions(+), 33 deletions(-)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
+index 8bbb7e88bc3c..c9887839ac3b 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
+@@ -83,6 +83,492 @@ led-3 {
+ 			default-state = "off";
+ 			gpios = <&gpio0 ASPEED_GPIO(P, 4) GPIO_ACTIVE_HIGH>;
+ 		};
++
++		led-4 {
++			label = "compute1_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g5_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-5 {
++			label = "compute1_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 15 GPIO_ACTIVE_LOW>;
++		};
++
++		led-6 {
++			label = "compute1_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 14 GPIO_ACTIVE_LOW>;
++		};
++
++		led-7 {
++			label = "compute2_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 11 GPIO_ACTIVE_LOW>;
++		};
++
++		led-8 {
++			label = "compute2_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 10 GPIO_ACTIVE_LOW>;
++		};
++
++		led-9 {
++			label = "compute2_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 9 GPIO_ACTIVE_LOW>;
++		};
++
++		led-10 {
++			label = "compute3_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 8 GPIO_ACTIVE_LOW>;
++		};
++
++		led-11 {
++			label = "compute3_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 7 GPIO_ACTIVE_LOW>;
++		};
++
++		led-12 {
++			label = "compute3_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 6 GPIO_ACTIVE_LOW>;
++		};
++
++		led-13 {
++			label = "compute4_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-14 {
++			label = "compute4_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-15 {
++			label = "compute4_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 15 GPIO_ACTIVE_LOW>;
++		};
++
++		led-16 {
++			label = "compute5_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 14 GPIO_ACTIVE_LOW>;
++		};
++
++		led-17 {
++			label = "compute5_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 13 GPIO_ACTIVE_LOW>;
++		};
++
++		led-18 {
++			label = "compute5_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 12 GPIO_ACTIVE_LOW>;
++		};
++
++		led-19 {
++			label = "compute6_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 7 GPIO_ACTIVE_LOW>;
++		};
++
++		led-20 {
++			label = "compute6_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 6 GPIO_ACTIVE_LOW>;
++		};
++
++		led-21 {
++			label = "compute6_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led-22 {
++			label = "compute7_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-23 {
++			label = "compute7_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 3 GPIO_ACTIVE_LOW>; 
++		};
++
++		led-24 {
++			label = "compute7_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 2 GPIO_ACTIVE_LOW>;
++		};
++
++		led-25 {
++			label = "compute8_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 13 GPIO_ACTIVE_LOW>;
++		};
++
++		led-26 {
++			label = "compute8_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 12 GPIO_ACTIVE_LOW>;
++		};
++
++		led-27 {
++			label = "compute8_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 11 GPIO_ACTIVE_LOW>;
++		};
++
++		led-28 {
++			label = "nvs1_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 10 GPIO_ACTIVE_LOW>;
++		};
++
++		led-29 {
++			label = "nvs1_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 9 GPIO_ACTIVE_LOW>;
++		};
++
++		led-30 {
++			label = "nvs1_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 8 GPIO_ACTIVE_LOW>;
++		};
++
++		led-31 {
++			label = "nvs2_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 3 GPIO_ACTIVE_LOW>;
++		};
++
++		led-32 {
++			label = "nvs2_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 2 GPIO_ACTIVE_LOW>;
++		};
++
++		led-33 {
++			label = "nvs2_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-34 {
++			label = "nvs3_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-35 {
++			label = "nvs3_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 15 GPIO_ACTIVE_LOW>;
++		};
++
++		led-36 {
++			label = "nvs3_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g4_gpio 14 GPIO_ACTIVE_LOW>;
++		};
++
++		led-37 {
++			label = "nvs4_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 9 GPIO_ACTIVE_LOW>;
++		};
++
++		led-38 {
++			label = "nvs4_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 8 GPIO_ACTIVE_LOW>;
++		};
++
++		led-39 {
++			label = "nvs4_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 7 GPIO_ACTIVE_LOW>;
++		};
++
++		led-40 {
++			label = "nvs5_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 6 GPIO_ACTIVE_LOW>;
++		};
++
++		led-41 {
++			label = "nvs5_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led-42 {
++			label = "nvs5_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-43 {
++			label = "nvs6_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 15 GPIO_ACTIVE_LOW>;
++		};
++
++		led-44 {
++			label = "nvs6_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 14 GPIO_ACTIVE_LOW>;
++		};
++
++		led-45 {
++			label = "nvs6_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 13 GPIO_ACTIVE_LOW>;
++		};
++
++		led-46 {
++			label = "nvs7_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 12 GPIO_ACTIVE_LOW>;
++		};
++
++		led-47 {
++			label = "nvs7_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 11 GPIO_ACTIVE_LOW>;
++		};
++
++		led-48 {
++			label = "nvs7_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g3_gpio 10 GPIO_ACTIVE_LOW>;
++		};
++
++		led-49 {
++			label = "nvs8_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led-50 {
++			label = "nvs8_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-51 {
++			label = "nvs8_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 3 GPIO_ACTIVE_LOW>;
++		};
++
++		led-52 {
++			label = "nvs9_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 2 GPIO_ACTIVE_LOW>;
++		};
++
++		led-53 {
++			label = "nvs9_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-54 {
++			label = "nvs9_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-55 {
++			label = "compute9_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 11 GPIO_ACTIVE_LOW>;
++		};
++
++		led-56 {
++			label = "compute9_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 10 GPIO_ACTIVE_LOW>;
++		};
++
++		led-57 {
++			label = "compute9_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 9 GPIO_ACTIVE_LOW>;
++		};
++
++		led-58 {
++			label = "compute10_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 8 GPIO_ACTIVE_LOW>;
++		};
++
++		led-59 {
++			label = "compute10_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 7 GPIO_ACTIVE_LOW>;
++		};
++
++		led-60 {
++			label = "compute10_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 6 GPIO_ACTIVE_LOW>;
++		};
++
++		led-61 {
++			label = "compute11_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-62 {
++			label = "compute11_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-63 {
++			label = "compute11_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 15 GPIO_ACTIVE_LOW>;
++		};
++
++		led-64 {
++			label = "compute12_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 14 GPIO_ACTIVE_LOW>;
++		};
++
++		led-65 {
++			label = "compute12_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 13 GPIO_ACTIVE_LOW>;
++		};
++
++		led-66 {
++			label = "compute12_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g6_gpio 12 GPIO_ACTIVE_LOW>;
++		};
++
++		led-67 {
++			label = "compute13_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 7 GPIO_ACTIVE_LOW>;
++		};
++
++		led-68 {
++			label = "compute13_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 6 GPIO_ACTIVE_LOW>;
++		};
++
++		led-69 {
++			label = "compute13_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led-70 {
++			label = "compute14_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-71 {
++			label = "compute14_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 3 GPIO_ACTIVE_LOW>;
++		};
++
++		led-72 {
++			label = "compute14_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 2 GPIO_ACTIVE_LOW>;
++		};
++
++		led-73 {
++			label = "compute15_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 13 GPIO_ACTIVE_LOW>;
++		};
++
++		led-74 {
++			label = "compute15_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 12 GPIO_ACTIVE_LOW>;
++		};
++
++		led-75 {
++			label = "compute15_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 11 GPIO_ACTIVE_LOW>;
++		};
++
++		led-76 {
++			label = "compute16_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 10 GPIO_ACTIVE_LOW>;
++		};
++
++		led-77 {
++			label = "compute16_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 9 GPIO_ACTIVE_LOW>;
++		};
++
++		led-78 {
++			label = "compute16_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g2_gpio 8 GPIO_ACTIVE_LOW>;
++		};
++
++		led-79 {
++			label = "compute17_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led-80 {
++			label = "compute17_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-81 {
++			label = "compute17_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 3 GPIO_ACTIVE_LOW>;
++		};
++
++		led-82 {
++			label = "compute18_led_switch";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 2 GPIO_ACTIVE_LOW>;
++		};
++
++		led-83 {
++			label = "compute18_led_blue";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-84 {
++			label = "compute18_led_amber";
++			default-state = "off";
++			gpios = <&tray_leds_g1_gpio 0 GPIO_ACTIVE_LOW>;
++		};
+ 	};
+ 
+ 	memory@80000000 {
+@@ -424,6 +910,11 @@ adc@1f {
+ 				reg = <0x1f>;
+ 				ti,mode = /bits/ 8 <1>;
+ 			};
++
++			adc@35 {
++				compatible = "maxim,max11617";
++				reg = <0x35>;
++			};
+ 		};
+ 
+ 		i2c3mux0ch4: i2c@4 {
+@@ -449,6 +940,11 @@ adc@1f {
+ 				reg = <0x1f>;
+ 				ti,mode = /bits/ 8 <1>;
+ 			};
++
++			adc@35 {
++				compatible = "maxim,max11617";
++				reg = <0x35>;
++			};
+ 		};
+ 
+ 		i2c3mux0ch5: i2c@5 {
+@@ -470,6 +966,60 @@ channel@5 {
+ 						sensor-type = "TACH";
+ 				};
+ 			};
++
++			hwmon: hwmon@23 {
++				compatible = "nuvoton,nct7363";
++				reg = <0x23>;
++				#pwm-cells = <2>;
++
++				//fan 0 IL
++				fan-0 {
++					pwms = <&hwmon 0 20000>;
++					tach-ch = /bits/ 8 <0x09>;
++				};
++
++				//fan 0 OL
++				fan-1 {
++					pwms = <&hwmon 0 20000>;
++					tach-ch = /bits/ 8 <0x0B>;
++				};
++
++				//fan 1 IL
++				fan-2 {
++					pwms = <&hwmon 4 20000>;
++					tach-ch = /bits/ 8 <0x0A>;
++				};
++
++				//fan 1 OL
++				fan-3 {
++					pwms = <&hwmon 4 20000>;
++					tach-ch = /bits/ 8 <0x0D>;
++				};
++
++				//fan 2 IL
++				fan-4 {
++					pwms = <&hwmon 6 20000>;
++					tach-ch = /bits/ 8 <0x0F>;
++				};
++
++				//fan 2 OL
++				fan-5 {
++					pwms = <&hwmon 6 20000>;
++					tach-ch = /bits/ 8 <0x01>;
++				};
++
++				//fan 3 IL
++				fan-6 {
++					pwms = <&hwmon 10 20000>;
++					tach-ch = /bits/ 8 <0x00>;
++				};
++
++				//fan 3 OL
++				fan-7 {
++					pwms = <&hwmon 10 20000>;
++					tach-ch = /bits/ 8 <0x03>;
++				};
++			};
+ 		};
+ 
+ 		i2c3mux0ch6: i2c@6 {
+@@ -569,27 +1119,9 @@ eeprom@56 {
+ &i2c10 {
+ 	status = "okay";
+ 
+-	adc@35 {
+-		compatible = "maxim,max11617";
+-		reg = <0x35>;
+-	};
+-
+-	power-monitor@40 {
+-		compatible = "ti,ina230";
+-		reg = <0x40>;
+-		shunt-resistor = <1000>;
+-	};
+-
+-	power-sensor@41 {
+-		compatible = "ti,ina238";
+-		reg = <0x41>;
+-		shunt-resistor = <20000>;	/* 0.02 R */
+-	};
+-
+-	power-sensor@43 {
+-		compatible = "ti,ina238";
+-		reg = <0x43>;
+-		shunt-resistor = <20000>;	/* 0.02 R */
++	power-monitor@14 {
++		compatible = "infineon,xdp710";
++		reg = <0x14>;
+ 	};
+ 
+ 	power-monitor@44 {
+@@ -597,12 +1129,6 @@ power-monitor@44 {
+ 		reg = <0x44>;
+ 	};
+ 
+-	power-monitor@45 {
+-		compatible = "ti,ina230";
+-		reg = <0x45>;
+-		shunt-resistor = <1000>;
+-	};
+-
+ 	power-monitor@69 {
+ 		compatible = "pmbus";
+ 		reg = <0x69>;
+@@ -616,42 +1142,42 @@ &i2c14 {
+ &i2c15 {
+ 	status = "okay";
+ 
+-	gpio@20 {
++	tray_leds_g1_gpio: gpio@20 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x20>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+ 	};
+ 
+-	gpio@21 {
++	tray_leds_g2_gpio: gpio@21 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x21>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+ 	};
+ 
+-	gpio@22 {
++	tray_leds_g3_gpio: gpio@22 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x22>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+ 	};
+ 
+-	gpio@24 {
++	tray_leds_g4_gpio: gpio@24 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x24>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+ 	};
+ 
+-	gpio@25 {
++	tray_leds_g5_gpio: gpio@25 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x25>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+ 	};
+ 
+-	gpio@26 {
++	tray_leds_g6_gpio: gpio@26 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x26>;
+ 		gpio-controller;
+-- 
+2.34.1
+
