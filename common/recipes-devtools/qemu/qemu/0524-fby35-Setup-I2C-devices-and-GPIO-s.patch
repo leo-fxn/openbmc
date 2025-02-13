@@ -1,20 +1,20 @@
-From 7b9292ff4386c8b00ce5befd0ac671a851477d11 Mon Sep 17 00:00:00 2001
+From c2405e21d83e206815a0f043f84049708943cc5a Mon Sep 17 00:00:00 2001
 From: Peter Delevoryas <peter@pjd.dev>
 Date: Tue, 23 Aug 2022 23:24:36 -0700
 Subject: [PATCH 524/532] fby35: Setup I2C devices and GPIO's
 
 Signed-off-by: Peter Delevoryas <peter@pjd.dev>
 ---
- hw/arm/aspeed.c | 46 ++----------------------
+ hw/arm/aspeed.c | 29 +++------------
  hw/arm/fby35.c  | 95 +++++++++++++++++++++++++++++++++++++++++++++++++
  hw/arm/fby35.h  |  5 +++
- 3 files changed, 103 insertions(+), 43 deletions(-)
+ 3 files changed, 104 insertions(+), 25 deletions(-)
 
 diff --git a/hw/arm/aspeed.c b/hw/arm/aspeed.c
-index aaf8128e15..975cd02fa7 100644
+index f18d6c7f14..78ca428491 100644
 --- a/hw/arm/aspeed.c
 +++ b/hw/arm/aspeed.c
-@@ -1032,35 +1032,13 @@ static void bletchley_bmc_i2c_init(AspeedMachineState *bmc)
+@@ -1042,35 +1042,13 @@ static void bletchley_bmc_i2c_init(AspeedMachineState *bmc)
  static void fby35_i2c_init(AspeedMachineState *bmc)
  {
      AspeedSoCState *soc = bmc->soc;
@@ -52,37 +52,25 @@ index aaf8128e15..975cd02fa7 100644
  }
  
  static void fbttn_i2c_init(AspeedMachineState *bmc)
-@@ -1608,27 +1586,9 @@ static void aspeed_machine_bletchley_class_init(ObjectClass *oc, void *data)
- static void fby35_reset(MachineState *state, ShutdownCause reason)
+@@ -1618,7 +1596,6 @@ static void aspeed_machine_bletchley_class_init(ObjectClass *oc, void *data)
+ static void fby35_reset(MachineState *state, ResetType type)
  {
      AspeedMachineState *bmc = ASPEED_MACHINE(state);
 -    AspeedGPIOState *gpio = &bmc->soc->gpio;
  
-     qemu_devices_reset(reason);
--
--    /* Board ID: 7 (Class-1, 4 slots) */
--    object_property_set_bool(OBJECT(gpio), "gpioV4", true, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioV5", true, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioV6", true, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioV7", false, &error_fatal);
--
--    /* Slot presence pins, inverse polarity. (False means present) */
--    object_property_set_bool(OBJECT(gpio), "gpioH4", false, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioH5", true, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioH6", true, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioH7", true, &error_fatal);
--
--    /* Slot 12v power pins, normal polarity. (True means powered-on) */
--    object_property_set_bool(OBJECT(gpio), "gpioB2", true, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioB3", false, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioB4", false, &error_fatal);
--    object_property_set_bool(OBJECT(gpio), "gpioB5", false, &error_fatal);
+     qemu_devices_reset(type);
+ 
+@@ -1639,6 +1616,8 @@ static void fby35_reset(MachineState *state, ResetType type)
+     object_property_set_bool(OBJECT(gpio), "gpioB3", false, &error_fatal);
+     object_property_set_bool(OBJECT(gpio), "gpioB4", false, &error_fatal);
+     object_property_set_bool(OBJECT(gpio), "gpioB5", false, &error_fatal);
++
 +    fby35_bmc_reset_gpios(bmc->soc);
  }
  
  static void aspeed_machine_fby35_class_init(ObjectClass *oc, void *data)
 diff --git a/hw/arm/fby35.c b/hw/arm/fby35.c
-index 490f5d6e23..6acf5088be 100644
+index 490f5d6e23..0066030f62 100644
 --- a/hw/arm/fby35.c
 +++ b/hw/arm/fby35.c
 @@ -9,6 +9,7 @@
@@ -218,11 +206,11 @@ index 490f5d6e23..6acf5088be 100644
 +    object_property_set_bool(OBJECT(gpio), "gpioB5", false, &error_fatal);
 +}
 +
-+static void fby35_reset(MachineState *machine, ShutdownCause reason)
++static void fby35_reset(MachineState *machine, ResetType type)
 +{
 +    Fby35State *s = FBY35(machine);
 +
-+    qemu_devices_reset(reason);
++    qemu_devices_reset(type);
 +    fby35_bmc_reset_gpios(ASPEED_SOC(&s->bmc));
 +}
  

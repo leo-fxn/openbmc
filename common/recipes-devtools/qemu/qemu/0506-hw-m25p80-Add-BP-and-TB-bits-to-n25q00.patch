@@ -1,4 +1,4 @@
-From f839fb003350ce55a7c17b17b5e5f2819d0b8afc Mon Sep 17 00:00:00 2001
+From 70f3e75dcd2116f3fcd08bac0d93315447e0ea56 Mon Sep 17 00:00:00 2001
 From: Peter Delevoryas <pdel@fb.com>
 Date: Tue, 14 Jun 2022 11:32:13 -0700
 Subject: [PATCH 506/532] hw: m25p80: Add BP and TB bits to n25q00
@@ -12,10 +12,10 @@ Signed-off-by: Peter Delevoryas <pdel@fb.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/hw/block/m25p80.c b/hw/block/m25p80.c
-index 0b94af3653..fd8455c899 100644
+index e2e84f8b5f..88650d9219 100644
 --- a/hw/block/m25p80.c
 +++ b/hw/block/m25p80.c
-@@ -270,7 +270,8 @@ static const FlashPartInfo known_devices[] = {
+@@ -273,7 +273,8 @@ static const FlashPartInfo known_devices[] = {
      { INFO_STACKED("mt35xu02gbba", 0x2c5b1c, 0x104100, 128 << 10, 2048,
                     ER_4K | ER_32K, 4),
                     .sfdp_read = m25p80_sfdp_mt35xu02g },

@@ -10,3 +10,7 @@ BBMASK:append:openbmc-fb-lf = " acd_0.2/linux-aspeed_5\.%\.bbappend"
 # QEMU, which is used for ptest, doesn't have the meta-aspeed either.
 BBMASK:append:qemuall = " linux/linux-aspeed_%.bbappend"
 BBMASK:append:qemuall = " acd_0.2/linux-aspeed_5\.%\.bbappend"
+
+# Master eliminated the virtual/${TARGET_PREFIX} variables, so we needed to
+# adjust some recipes to use `${VIRTUAL_CROSS_CC}` and populate it here.
+VIRTUAL_CROSS_CC ?= "virtual/cross-cc"

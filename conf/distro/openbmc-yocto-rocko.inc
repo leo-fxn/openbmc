@@ -12,3 +12,7 @@ SPDXLICENSEMAP[LGPL-2.1-or-later] = "LGPL-2.1"
 
 # This variable is removed in master but we need it in Rocko.
 BB_DANGLINGAPPENDS_WARNONLY = "1"
+
+# Master eliminated the virtual/${TARGET_PREFIX} variables, so we needed to
+# adjust some recipes to use `${VIRTUAL_CROSS_CC}` and populate it here.
+VIRTUAL_CROSS_CC ?= "virtual/${TARGET_PREFIX}gcc"

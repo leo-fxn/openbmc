@@ -1,4 +1,4 @@
-From fe85b95ce0dc8ffa7274c79167a778afe8c2abb5 Mon Sep 17 00:00:00 2001
+From e88d964de8b3ab7bbbf88a576f00795dcd70c6d2 Mon Sep 17 00:00:00 2001
 From: Tao Ren <taoren@meta.com>
 Date: Mon, 10 Jul 2023 16:47:00 +0700
 Subject: [PATCH 532/532] aspeed: add janga bmc
@@ -11,7 +11,7 @@ Signed-off-by: Tao Ren <taoren@meta.com>
  3 files changed, 74 insertions(+)
 
 diff --git a/hw/arm/aspeed.c b/hw/arm/aspeed.c
-index ae9360e78e..b609c2bb5a 100644
+index 068d75f204..0daa0dc09f 100644
 --- a/hw/arm/aspeed.c
 +++ b/hw/arm/aspeed.c
 @@ -202,6 +202,10 @@ struct AspeedMachineState {
@@ -25,7 +25,7 @@ index ae9360e78e..b609c2bb5a 100644
  /* Bletchley hardware value */
  /* TODO: Leave same as EVB for now. */
  #define BLETCHLEY_BMC_HW_STRAP1 AST2600_EVB_HW_STRAP1
-@@ -993,6 +997,30 @@ static void montblanc_bmc_i2c_init(AspeedMachineState *bmc)
+@@ -1003,6 +1007,30 @@ static void montblanc_bmc_i2c_init(AspeedMachineState *bmc)
      create_pca9552(soc, 4, 0x27);
  }
  
@@ -56,7 +56,7 @@ index ae9360e78e..b609c2bb5a 100644
  
  static void wedge100_i2c_init(AspeedMachineState *bmc)
  {
-@@ -1610,6 +1638,27 @@ static void aspeed_machine_montblanc_class_init(ObjectClass *oc, void *data)
+@@ -1620,6 +1648,27 @@ static void aspeed_machine_montblanc_class_init(ObjectClass *oc, void *data)
      aspeed_machine_class_init_cpus_defaults(mc);
  };
  
@@ -84,7 +84,7 @@ index ae9360e78e..b609c2bb5a 100644
  #define BLETCHLEY_BMC_RAM_SIZE ASPEED_RAM_SIZE(2 * GiB)
  
  static void aspeed_machine_bletchley_class_init(ObjectClass *oc, void *data)
-@@ -1869,6 +1918,10 @@ static const TypeInfo aspeed_machine_types[] = {
+@@ -1910,6 +1959,10 @@ static const TypeInfo aspeed_machine_types[] = {
          .name          = MACHINE_TYPE_NAME("montblanc-bmc"),
          .parent        = TYPE_ASPEED_MACHINE,
          .class_init    = aspeed_machine_montblanc_class_init,

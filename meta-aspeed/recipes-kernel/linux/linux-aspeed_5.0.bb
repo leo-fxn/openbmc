@@ -15,7 +15,7 @@ require recipes-kernel/linux/linux-yocto.inc
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814"
 
-do_kernel_configme[depends] += "virtual/${TARGET_PREFIX}gcc:do_populate_sysroot"
+do_kernel_configme[depends] += "${VIRTUAL_CROSS_CC}:do_populate_sysroot"
 KCONFIG_MODE="--alldefconfig"
 
 S = "${WORKDIR}/git"

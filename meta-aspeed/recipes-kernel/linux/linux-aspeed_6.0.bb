@@ -93,7 +93,7 @@ SRC_URI += "file://patches/0111-drivers-jtag-Add-JTAG-core-driver.patch \
 #
 SRC_URI += "file://patches/0141-spi-add-user-mode-aspeed-spi-driver.patch"
 
-do_kernel_configme[depends] += "virtual/${TARGET_PREFIX}gcc:do_populate_sysroot"
+do_kernel_configme[depends] += "${VIRTUAL_CROSS_CC}:do_populate_sysroot"
 KCONFIG_MODE="--alldefconfig"
 
 S = "${WORKDIR}/git"

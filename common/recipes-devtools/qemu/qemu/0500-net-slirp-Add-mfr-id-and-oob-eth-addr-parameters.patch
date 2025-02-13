@@ -1,4 +1,4 @@
-From 8992124a97e20b0f81d9fddec82a800d84975ac3 Mon Sep 17 00:00:00 2001
+From 4457d4a686e63cdfa2bf8ec97ead995b5b1a7021 Mon Sep 17 00:00:00 2001
 From: Peter Delevoryas <peter@pjd.dev>
 Date: Thu, 5 Jan 2023 01:13:45 -0800
 Subject: [PATCH 500/532] net/slirp: Add mfr-id and oob-eth-addr parameters
@@ -79,7 +79,7 @@ index eb9a456ed4..91a1e9b566 100644
      while (slirp_configs) {
          config = slirp_configs;
 diff --git a/qapi/net.json b/qapi/net.json
-index 87fc0d0b28..231bbc4fed 100644
+index 2739a2f423..18cff7f0c3 100644
 --- a/qapi/net.json
 +++ b/qapi/net.json
 @@ -173,6 +173,11 @@
