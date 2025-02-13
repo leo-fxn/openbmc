@@ -1,0 +1,69 @@
+swagger: '2.0'
+info:
+  description: Swagger doc for /api/sys/mb/fruid
+  title: Swagger doc for /api/sys/mb/fruid
+  version: 1.0.0
+paths:
+  /api/sys/mb/fruid:
+    get:
+      produces:
+      - application/json
+      responses:
+        200:
+          description: ok
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              Information:
+                type: object
+                additionalProperties: false
+                properties:
+                  Version:
+                    type: string
+                  Product Name:
+                    type: string
+                  Product Part Number:
+                    type: string
+                  System Assembly Part Number:
+                    type: string
+                  Meta PCBA Part Number:
+                    type: string
+                  Meta PCB Part Number:
+                    type: string
+                  ODM/JDM PCBA Part Number:
+                    type: string
+                  ODM/JDM PCBA Serial Number:
+                    type: string
+                  Product Production State:
+                    type: string
+                  Product Version:
+                    type: string
+                  Product Sub-Version:
+                    type: string
+                  Product Serial Number:
+                    type: string
+                  System Manufacturer:
+                    type: string
+                  System Manufacturing Date:
+                    type: string
+                  PCB Manufacturer:
+                    type: string
+                  Assembled At:
+                    type: string
+                  EEPROM location on Fabric:
+                    type: string
+                  Switch ASIC MAC Base:
+                    type: string
+                  Switch ASIC MAC Address Size:
+                    type: string
+                  CRC16:
+                    type: string
+              Actions:
+                type: array
+                items:
+                  type: string
+              Resources:
+                type: array
+                items:
+                  type: string
