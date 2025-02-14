@@ -1,4 +1,4 @@
-From d0891fba59b08a8e46d42b49316afdf559e58f1a Mon Sep 17 00:00:00 2001
+From 3c2cef3157838bd2b4dd2fbb46897d2fe36f4e57 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/16] platform-mc: Add OEM Meta event handler
@@ -55,19 +55,19 @@ Change-Id: I722d8e09e7aea8dfa533e921d41beb505b59fb95
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 ---
  meson.build                             |   1 +
- oem/meta/platform-mc/event_oem_meta.cpp | 820 ++++++++++++++++++++++++
+ oem/meta/platform-mc/event_oem_meta.cpp | 915 ++++++++++++++++++++++++
  oem/meta/platform-mc/event_oem_meta.hpp |  21 +
- platform-mc/event_manager.cpp           |  36 ++
+ platform-mc/event_manager.cpp           |  36 +
  platform-mc/event_manager.hpp           |  15 +-
  platform-mc/manager.hpp                 |  27 +-
  platform-mc/test/meson.build            |   2 +
  pldmd/pldmd.cpp                         |  10 +-
- 8 files changed, 925 insertions(+), 7 deletions(-)
+ 8 files changed, 1020 insertions(+), 7 deletions(-)
  create mode 100644 oem/meta/platform-mc/event_oem_meta.cpp
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
 diff --git a/meson.build b/meson.build
-index 543f953..6de09f2 100644
+index 4fdc38b..f4efb1f 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -263,6 +263,7 @@ executable(
@@ -80,10 +80,10 @@ index 543f953..6de09f2 100644
      install: true,
 diff --git a/oem/meta/platform-mc/event_oem_meta.cpp b/oem/meta/platform-mc/event_oem_meta.cpp
 new file mode 100644
-index 0000000..9a6effd
+index 0000000..df0f3c0
 --- /dev/null
 +++ b/oem/meta/platform-mc/event_oem_meta.cpp
-@@ -0,0 +1,820 @@
+@@ -0,0 +1,915 @@
 +#include "event_oem_meta.hpp"
 +
 +#include "common/utils.hpp"
@@ -306,21 +306,21 @@ index 0000000..9a6effd
 +         "L3",
 +         "L3",
 +         "MP5",
-+         "PB",
 +         "PCS_GMI",
 +         "PCS_GMI",
 +         "KPX_GMI",
 +         "KPX_GMI",
-+         "UMC/PB/RAZ",
-+         "UMC/PCIE/RAZ",
++         "MPDMA",
++         "UMC",
++         "UMC",
 +         "CS/RAZ",
 +         "CS/RAZ",
-+         "NBIO/SHUB/RAZ",
-+         "PCIE/SATA/RAZ",
-+         "PCIE/NBIF/RAZ",
++         "PCIE",
++         "SATA/USB/PCIE",
++         "NBIF",
 +         "PIE/PSP/KPX_WALF/NBIF/USB/RAZ",
-+         "SMU/MPDMA/RAZ",
-+         "PCS_XGMI/RAZ",
++         "SMU/SHUB",
++         "PIE/PSP/PCS_XGMI",
 +         "KPX_SERDES/RAZ"});
 +
 +    static constexpr auto memoryError = std::to_array(
@@ -342,6 +342,10 @@ index 0000000..9a6effd
 +         "System HTTP boot fail", "BIOS fails to get the certificate from BMC",
 +         "Password cleared by jumper", "DXE FV check failure",
 +         "AMD ABL failure", "Reserved"});
++
++    static constexpr auto cxlError = std::to_array(
++        {"CXL_ELOG_IO", "CXL_ELOG_CACHE_MEM", "CXL_ELOG_COMPONENT_EVENT",
++         "Reserved"});
 +
 +    static constexpr auto pcieEvent = std::to_array(
 +        {"PCIe DPC Event", "PCIe LER Event",
@@ -390,10 +394,101 @@ index 0000000..9a6effd
 +    {
 +        case RecordType::SYSTEM_EVENT_RECORD:
 +        {
-+            // Currently, we only have one standard SEL needed to support on
-+            // YV4.
 +            errorLog = "Standard (0x02), ";
-+            if (eventData[9] == 0x2B)
++            // CXL SEL
++            if (eventData[8] == 0xC1)
++            {
++                errorLog += "CXL Error(0xC1), ";
++                if (eventData[9] == 0x1)
++                {
++                    errorLog += ", Protocol Error(0x1), ";
++                }
++                else
++                {
++                    errorLog += ", Component Error(0x2), ";
++                }
++
++                errorLog += "Severity: ";
++                errorLog +=
++                    (eventData[11] & 0x01) ? "Uncorrectable" : "Correctable";
++                errorLog += ", Detected By: ";
++                errorLog += (eventData[11] & 0x02)
++                                ? "CXL 1.1 Host Downstream Port"
++                                : "CXL 1.1 Device";
++
++                uint8_t errorType = (eventData[11] >> 2) & 0x03;
++
++                errorLog +=
++                    ", Error Type: " + std::string(cxlError[errorType]) +
++                    ", Bus " + to_hex_string(eventData[12]) + "/Dev " +
++                    to_hex_string(eventData[13] >> 3) + "/Fun " +
++                    to_hex_string(eventData[13] & 0x7);
++            }
++            // CXL SEL 2.0, used only for device type = root port
++            else if (eventData[8] == 0xC2)
++            {
++                errorLog += "CXL Error(0xC2), ";
++                if (eventData[9] == 0x1)
++                {
++                    errorLog += ", Protocol Error(0x1), ";
++                }
++                else
++                {
++                    errorLog += ", Component Error(0x2), ";
++                }
++
++                errorLog += "Severity: ";
++                errorLog +=
++                    (eventData[11] & 0x01) ? "Uncorrectable" : "Correctable";
++                // root port only
++                errorLog += ", Detected By: CXL Root Port";
++
++                uint8_t errorType = (eventData[11] >> 2) & 0x03;
++
++                errorLog +=
++                    ", Error Type: " + std::string(cxlError[errorType]) +
++                    ", Bus " + to_hex_string(eventData[12]) + "/Dev " +
++                    to_hex_string(eventData[13] >> 3) + "/Fun " +
++                    to_hex_string(eventData[13] & 0x7);
++            }
++            // Processer ERROR
++            else if (eventData[8] == 0x07)
++            {
++                if (eventData[9] == 0x40)
++                {
++                    errorLog += "MACHINE_CHK_ERR (" +
++                                to_hex_string(eventData[9]) + "), ";
++                    errorLog += "Event Data: (" + to_hex_string(eventData[11]) +
++                                to_hex_string(eventData[12]) +
++                                to_hex_string(eventData[13]) + ") ";
++
++                    uint8_t severity = eventData[11] & 0x0F;
++                    switch(severity)
++                    {
++                        case 0x0B:
++                            errorLog += "Uncorrected System Fatal Error, ";
++                            break;
++                        case 0x0C:
++                            errorLog += "Correctable System Error, ";
++                            break;
++                        default:
++                            errorLog += "Unknown Error, ";
++                            break;
++                    }
++
++                    if (eventData[12] == 0x1D)
++                    {
++                        errorLog += "Bank Number " +
++                                    std::to_string(eventData[12]) +
++                                    " (SMU/MPDMA), ";
++                    }
++
++                    errorLog += "CPU " + std::to_string(eventData[13] >> 5) +
++                                ", CCD " + std::to_string(eventData[13] & 0x1F);
++                }
++            }
++            // POST ERROR
++            else if (eventData[9] == 0x2B)
 +            {
 +                errorLog += "POST_ERROR:";
 +                if ((eventData[11] & 0x0F) == 0x0)
@@ -1130,7 +1225,7 @@ index e8ea6b7..64c2701 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index e663aa1..934339c 100644
+index ac78c48..4c90fde 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -290,7 +290,8 @@ int main(int argc, char** argv)
@@ -1158,5 +1253,5 @@ index e663aa1..934339c 100644
  
      auto platformHandler = std::make_unique<platform::Handler>(
 -- 
-2.44.2
+2.25.1
 
