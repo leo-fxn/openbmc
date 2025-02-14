@@ -191,6 +191,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "RPU_Coolant_Outlet_Temp_C"
         },
@@ -199,6 +200,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "RPU_Coolant_Inlet_Temp_C"
         },
@@ -248,6 +250,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "RPU_Air_Inlet_Temp_C"
         },
@@ -502,6 +505,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "HEX_Air_Outlet1_Temp_C"
         },
@@ -510,6 +514,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "HEX_Air_Outlet2_Temp_C"
         },
@@ -518,6 +523,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "HEX_Air_Inlet1_Temp_C"
         },
@@ -526,6 +532,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "HEX_Air_Inlet2_Temp_C"
         },
@@ -534,6 +541,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "HEX_Water_Inlet_Temp_C"
         },
@@ -845,6 +853,7 @@
             "length": 1,
             "format": "FLOAT",
             "precision": 0,
+            "sign": true,
             "scale": 0.1,
             "name": "Auto_Tune_Coolant_Outlet_Temperature_Target_Set"
         },
@@ -974,66 +983,77 @@
             "begin": 40960,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_BB_Tmp75_Temp_C"
         },
         {
             "begin": 40961,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "PRU_BPB_Outlet_Temp_C"
         },
         {
             "begin": 40962,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pdb_Hdc1080DMBr_Temp_C"
         },
         {
             "begin": 40963,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pump1_Hdc1080DMBr_Temp_C"
         },
         {
             "begin": 40964,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pump2_Hdc1080DMBr_Temp_C"
         },
         {
             "begin": 40965,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pump3_Hdc1080DMBr_Temp_C"
         },
         {
             "begin": 40966,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_BB_HSC_P48V_Temp_C"
         },
         {
             "begin": 40967,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_BPB_HSC_P48V_Temp_C"
         },
         {
             "begin": 40968,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pump1_HSC_P48V_Temp_C"
         },
         {
             "begin": 40969,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pump2_HSC_P48V_Temp_C"
         },
         {
             "begin": 40970,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "RPU_Pump3_HSC_P48V_Temp_C"
         },
         {
@@ -1428,168 +1448,196 @@
             "begin": 41216,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Inlet3_Temp_C"
         },
         {
             "begin": 41217,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Inlet4_Temp_C"
         },
         {
             "begin": 41218,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet3_Temp_C"
         },
         {
             "begin": 41219,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet4_Temp_C"
         },
         {
             "begin": 41220,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet5_Temp_C"
         },
         {
             "begin": 41221,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet6_Temp_C"
         },
         {
             "begin": 41222,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet7_Temp_C"
         },
         {
             "begin": 41223,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet8_Temp_C"
         },
         {
             "begin": 41224,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet9_Temp_C"
         },
         {
             "begin": 41225,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet10_Temp_C"
         },
         {
             "begin": 41226,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet11_Temp_C"
         },
         {
             "begin": 41227,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet12_Temp_C"
         },
         {
             "begin": 41228,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet13_Temp_C"
         },
         {
             "begin": 41229,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Air_Outlet14_Temp_C"
         },
         {
             "begin": 41230,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan1_HSC_Temp_C"
         },
         {
             "begin": 41231,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan2_HSC_Temp_C"
         },
         {
             "begin": 41232,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan3_HSC_Temp_C"
         },
         {
             "begin": 41233,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan4_HSC_Temp_C"
         },
         {
             "begin": 41234,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan5_HSC_Temp_C"
         },
         {
             "begin": 41235,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan6_HSC_Temp_C"
         },
         {
             "begin": 41236,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan7_HSC_Temp_C"
         },
         {
             "begin": 41237,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan8_HSC_Temp_C"
         },
         {
             "begin": 41238,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan9_HSC_Temp_C"
         },
         {
             "begin": 41239,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan10_HSC_Temp_C"
         },
         {
             "begin": 41240,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan11_HSC_Temp_C"
         },
         {
             "begin": 41241,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan12_HSC_Temp_C"
         },
         {
             "begin": 41242,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan13_HSC_Temp_C"
         },
         {
             "begin": 41243,
             "length": 1,
             "format": "INTEGER",
+            "sign": true,
             "name": "HEX_Fan14_HSC_Temp_C"
         },
         {
