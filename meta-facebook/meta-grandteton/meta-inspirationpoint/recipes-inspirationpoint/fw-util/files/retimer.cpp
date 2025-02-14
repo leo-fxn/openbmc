@@ -25,24 +25,30 @@ class RetimerComponent : public Component {
       int ret = -1, lock = -1;
       const std::string& comp = this->component();
       const std::string& fru  = this->fru();
+      do {
+        syslog(LOG_CRIT, "%s %s upgrade initiated", fru.c_str(), comp.c_str());
+        if(gpio_get_value_by_shadow(RST_PESET) != GPIO_VALUE_HIGH) {
+          break;
+        }
 
-      if(gpio_get_value_by_shadow(RST_PESET) != GPIO_VALUE_HIGH) {
-         return FW_STATUS_FAILURE;
-      }
+        if ((lock = mb_retimer_lock()) < 0) {
+          syslog(LOG_WARNING, "%s: mb_retimer_lock failed", __func__);
+          break;
+        }
 
-      if ((lock = mb_retimer_lock()) < 0) {
-        syslog(LOG_WARNING, "%s: mb_retimer_lock failed", __func__);
-        return FW_STATUS_FAILURE;
-      }
-      ret = AriestFwUpdate(_bus, addr, image.c_str());
-      mb_retimer_unlock(lock);
+        ret = AriestFwUpdate(_bus, addr, image.c_str());
+        mb_retimer_unlock(lock);
+        if(ret) {
+          break;
+        }
 
-      if (ret) {
-        syslog(LOG_CRIT, "%s component %s: upgrade failed", fru.c_str(), comp.c_str());
-        return FW_STATUS_FAILURE;
-      }
-      std::cout << "To active the upgrade of Retimer, please perform 'power-util mb cycle'" << std::endl;
-      return FW_STATUS_SUCCESS;
+        syslog(LOG_CRIT, "%s %s upgrade successfully, Version: %s", fru.c_str(), comp.c_str(), image.c_str());
+        std::cout << "To active the upgrade of Retimer, please perform 'power-util mb cycle'" << std::endl;
+        return FW_STATUS_SUCCESS;
+      } while(0);
+
+      syslog(LOG_CRIT, "%s component %s: upgrade failed", fru.c_str(), comp.c_str());
+      return FW_STATUS_FAILURE;
     }
 
     int get_version(json& j) {
