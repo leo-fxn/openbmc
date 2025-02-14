@@ -77,9 +77,9 @@ int VrComponent::get_version(json& j) {
       j["VERSION"][vr.second]["rmng_w"] = tmp_str;
     } catch (string& err) {
       if (err.find("empty") != string::npos) {
-        j["VERSION"] = "not_present";
+        j["VERSION"][vr.second]["version"] = "not_present";
       } else {
-        j["VERSION"] = "error_returned";
+        j["VERSION"][vr.second]["version"] = "error_returned";
       }
     }
   }

@@ -267,9 +267,9 @@ void VrComponent::get_version_gpv2(json& j)
       j["VERSION"][vr.second]["version"] = std::string(ver_str);
     } catch (const string& err) {
       if ( err.find("empty") != string::npos )
-        j["VERSION"] = "not_present";
+        j["VERSION"][vr.second]["version"] = "not_present";
       else
-        j["VERSION"] = "error_returned";
+        j["VERSION"][vr.second]["version"] = "error_returned";
       return;
     }
   }
@@ -285,7 +285,7 @@ void VrComponent::get_version_server(json& j)
     {FW_PVCCSA_VR,  "PVCCSA"},
     {FW_DDRAB_VR,   "DDRAB"},
     {FW_DDRDE_VR,   "DDRDE"},
-    {FW_PVNNPCH_VR, "PVNNPCH"},
+      {FW_PVNNPCH_VR, "PVNNPCH"},
     {FW_P1V05_VR,   "P1V05"}
   };
 
@@ -299,10 +299,10 @@ void VrComponent::get_version_server(json& j)
       snprintf(ver_str, sizeof(ver_str), "0x%02x%02x, 0x%02x%02x", buf[0], buf[1], buf[2], buf[3]);
       j["VERSION"][vr.second]["version"] = std::string(ver_str);
     } catch (const string& err) {
-      if ( err.find("empty") != string::npos )
-        j["VERSION"] = "not_present";
+      if (err.find("empty") != string::npos)
+        j["VERSION"][vr.second]["version"] = "not_present";
       else
-        j["VERSION"] = "error_returned";
+        j["VERSION"][vr.second]["version"] = "error_returned";
       return;
     }
   }
@@ -333,9 +333,9 @@ void VrComponent::get_version_server_nd(json& j)
       j["VERSION"][vr.second]["rmng_w"] = std::string(rmng_w_str);
     } catch (const string& err) {
       if ( err.find("empty") != string::npos )
-        j["VERSION"] = "not_present";
+        j["VERSION"][vr.second]["version"] = "not_present";
       else
-        j["VERSION"] = "error_returned";
+        j["VERSION"][vr.second]["version"] = "error_returned";
       return;
     }
   }
