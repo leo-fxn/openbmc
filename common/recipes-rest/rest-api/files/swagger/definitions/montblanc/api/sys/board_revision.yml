@@ -1,0 +1,24 @@
+swagger: '2.0'
+info:
+  description: Swagger doc for /api/sys/board_revision
+  title: Swagger doc for /api/sys/board_revision
+  version: 1.0.0
+paths:
+  /api/sys/board_revision:
+    get:
+      produces:
+      - application/json
+      responses:
+        200:
+          description: ok
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              status:
+                type: string
+              is_respin:
+                type: string
+                format: nullable
+              human_readable:
+                type: string
