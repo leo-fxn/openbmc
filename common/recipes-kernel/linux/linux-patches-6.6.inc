@@ -144,6 +144,7 @@ SRC_URI:append = " \
     file://0309-Add-SQ52205-driver.patch \
     file://0310-hwmon-Add-net_brcm-driver.patch \
     file://0311-Kernel6v5-Support-apml-driver.patch \
+    file://0312-Add-support-for-SY24655-in-INA2XX-driver.patch \
 "
 
 #
