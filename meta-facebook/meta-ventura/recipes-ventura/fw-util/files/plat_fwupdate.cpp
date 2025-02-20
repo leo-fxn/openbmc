@@ -32,6 +32,15 @@ enum {
   CFM_IMAGE_2,
 };
 
+std::optional<std::string> getEnvVar(const std::string& key) {
+    const char* value = std::getenv(key.c_str());
+    if (value) {
+        return std::string(value);
+    } else {
+        return std::nullopt;
+    }
+}
+
 class CpldComponent : public Component {
   private:
     uint8_t pld_type;
@@ -130,11 +139,34 @@ private:
   bool is_high_active;
 };
 
-static altera_max10_attr_t scm_cpld_attr = {
-  7, 0x31, CFM_IMAGE_1, CFM0_10M16_START_ADDR, CFM0_10M16_END_ADDR,
-  ON_CHIP_FLASH_IP_CSR_BASE, ON_CHIP_FLASH_IP_DATA_REG, DUAL_BOOT_IP_BASE,
-  I2C_BIG_ENDIAN
+class CpldComponentConfig
+{
+public:
+  CpldComponentConfig()
+  {
+    // SCM CPLD
+    static altera_max10_attr_t scm_cpld_attr = {
+      7, 0x31, CFM_IMAGE_1, CFM0_10M16_START_ADDR, CFM0_10M16_END_ADDR,
+      ON_CHIP_FLASH_IP_CSR_BASE, ON_CHIP_FLASH_IP_DATA_REG, DUAL_BOOT_IP_BASE,
+      I2C_LITTLE_ENDIAN
+    };
+    auto altera_endian_env = getEnvVar("ALTERA_I2C_VAL_ENDIAN");
+    if (altera_endian_env)
+    {
+
+    std::string endian_lowercase = *altera_endian_env;
+    std::transform(endian_lowercase.begin(), endian_lowercase.end(), endian_lowercase.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+
+
+      if (endian_lowercase == "big")
+      {
+        scm_cpld_attr.i2c_val_endian = I2C_BIG_ENDIAN;
+      }
+    }
+    static GpioControlCpld scm_cpld("scm", "cpld", MAX10_10M16, &scm_cpld_attr, "USBDBG_IPMI_EN_L", true);
+  }
 };
 
 //CPLD Component
-GpioControlCpld scm_cpld("scm", "cpld", MAX10_10M16, &scm_cpld_attr, "USBDBG_IPMI_EN_L", true);
+CpldComponentConfig _cpld_comp_conf;

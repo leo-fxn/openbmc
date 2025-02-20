@@ -27,6 +27,7 @@ LOCAL_URI += " \
 
 DEPENDS += " \
     libfpga \
-    libgpiod \ 
+    libgpiod \
+    hw-rev-check \
     "
 CXXFLAGS += " -DCONFIG_TPM2"

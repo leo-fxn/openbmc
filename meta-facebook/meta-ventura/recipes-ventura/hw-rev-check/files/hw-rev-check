@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Delay 30 seconds to wait entity manager fully populate the system configs.
+# Needs to enhance this in future.
+sleep 30
+
+INVENTORY_OUTPUT="$(mfg-tool inventory 2>/dev/null)"
+
+SCM_HW_REV="$(echo "${INVENTORY_OUTPUT}" | jq -r '."system/board/Ventura_SCM"."Decorator.Revision"."Version"')"
+
+kv set scm_hw_rev "${SCM_HW_REV}"
