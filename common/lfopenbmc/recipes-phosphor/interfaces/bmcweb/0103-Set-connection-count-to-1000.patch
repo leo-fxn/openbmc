@@ -1,0 +1,32 @@
+commit 064d61b9779caa18b81dda537ec55b04858ed021
+Author: Pete O_o <pmb@meta.com>
+Date:   Wed Feb 19 19:55:56 2025 -0800
+
+    [bmcweb] Up the max connections from 200 to 1000
+    Summary:
+    
+    biggerboat
+    
+    Test Plan: it builds
+    
+    Reviewers:
+    
+    Subscribers:
+    
+    Tasks: T215749840
+    
+    Tags:
+
+diff --git a/http/http_connection.hpp b/http/http_connection.hpp
+index 23c1106..b24bf16 100644
+--- a/http/http_connection.hpp
++++ b/http/http_connection.hpp
+@@ -205,7 +205,7 @@ class Connection :
+     {
+         BMCWEB_LOG_DEBUG("{} Connection started, total {}", logPtr(this),
+                          connectionCount);
+-        if (connectionCount >= 200)
++        if (connectionCount >= 1000)
+         {
+             BMCWEB_LOG_CRITICAL("{} Max connection count exceeded.",
+                                 logPtr(this));
