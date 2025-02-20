@@ -53,9 +53,9 @@ BAD_RECOMMENDATIONS += " \
 # to native systemd services.
 SYSTEMD_DEFAULT_TARGET = "graphical.target"
 
-# systemd uses systemd-networkd, so make minor tweaks to use it instead of
+# systemd uses systemd-networkd-conf, so make minor tweaks to use it instead of
 # 'init-ifupdown'.
-IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-networkd', '', d)}"
+IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-networkd-conf', '', d)}"
 IMAGE_INSTALL:remove = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'init-ifupdown', '', d)}"
 SYSVINIT_SCRIPTS:remove = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'init-ifupdown', '', d)}"
 
