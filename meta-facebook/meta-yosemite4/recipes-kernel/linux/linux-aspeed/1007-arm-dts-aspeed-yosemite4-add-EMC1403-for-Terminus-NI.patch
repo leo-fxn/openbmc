@@ -1,7 +1,7 @@
-From d2d6e05bc72ff7ac1aa2fccbc07b800bd7de6b86 Mon Sep 17 00:00:00 2001
+From abf4f8206cbaf1e0e6e5d9fe247bb4e1b7dd432f Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Fri, 1 Nov 2024 14:06:29 +0800
-Subject: [PATCH 1007/1012] arm: dts: aspeed: yosemite4: add EMC1403 for Terminus
+Subject: [PATCH 1007/1013] arm: dts: aspeed: yosemite4: add EMC1403 for Terminus
  NICs.
 
 Add EMC1403 for the temperature sensor on Terminus NICs.
@@ -11,7 +11,7 @@ Add EMC1403 for the temperature sensor on Terminus NICs.
  1 file changed, 20 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index e37e8bfd94ce..33b13bdf6c52 100644
+index 4169ec2689d7..79dff8fc6dbe 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -1504,6 +1504,11 @@ temperature-sensor@1f {

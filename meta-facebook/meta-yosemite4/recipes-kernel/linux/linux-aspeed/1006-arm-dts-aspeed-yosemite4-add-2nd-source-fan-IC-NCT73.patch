@@ -1,7 +1,7 @@
-From 28c7302b7c81f85406ba9a077202ccd14bf29191 Mon Sep 17 00:00:00 2001
+From 3cf70e2e2bc04b405a2f04c9f7e0a512d049455a Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Fri, 1 Nov 2024 13:42:42 +0800
-Subject: [PATCH 1006/1012] arm: dts: aspeed: yosemite4: add 2nd source fan IC
+Subject: [PATCH 1006/1013] arm: dts: aspeed: yosemite4: add 2nd source fan IC
  NCT7363 on Fan Boards
 
 Add 2nd source fan IC NCT7363 on Fan Boards.
@@ -11,7 +11,7 @@ Add 2nd source fan IC NCT7363 on Fan Boards.
  1 file changed, 144 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index 5c4ae16168d5..e37e8bfd94ce 100644
+index ffc57f7589b3..4169ec2689d7 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -1222,6 +1222,42 @@ channel@5 {

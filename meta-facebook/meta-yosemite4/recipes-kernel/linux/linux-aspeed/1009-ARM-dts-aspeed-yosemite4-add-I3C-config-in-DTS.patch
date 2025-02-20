@@ -1,22 +1,23 @@
-From 19b648dce36af79e186794b8d78c6889a6ccf5cd Mon Sep 17 00:00:00 2001
+From eaab476a7d1b22c61f3148faa6f78f78e58f17d5 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 6 May 2024 19:35:43 +0800
-Subject: [PATCH 1009/1012] ARM: dts: aspeed: yosemite4: add I3C config in DTS
+Subject: [PATCH 1009/1013] ARM: dts: aspeed: yosemite4: add I3C config in DTS
 
 Set I3C config in yosemite4 DTS.
 
 Test plan:
 Tested pass with aspeed I3C patches and I3C hub driver.
 
-Lore link: https://lore.kernel.org/all/20240506113701.1285315-1-Delphine_CC_Chiu@wiwynn.com/
+Lore link: https://lore.kernel.org/all/20250214011556.1891113-1-marshall_zhan@wiwynn.com/
 
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
+Signed-off-by: MarshallZhan-wiwynn <marshall_zhan@wiwynn.com>
 ---
  .../aspeed/aspeed-bmc-facebook-yosemite4.dts  | 86 +++++++++++++++++++
  1 file changed, 86 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index d43c70c6bbc0..e65268312c5e 100644
+index 259a341fb40f..e5d74c6eb041 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -1580,6 +1580,92 @@ eeprom@50 {
@@ -36,12 +37,12 @@ index d43c70c6bbc0..e65268312c5e 100644
 +	mctp-controller;
 +	hub@0x70 {
 +		reg = <0x70 0x3c0 0x00700000>;
-+		cp0-ldo-en = "enabled";
-+		cp1-ldo-en = "enabled";
++		cp0-ldo-en = "disabled";
++		cp1-ldo-en = "disabled";
 +		cp0-ldo-volt = "1.2V";
 +		cp1-ldo-volt = "1.2V";
-+		tp0145-ldo-en = "enabled";
-+		tp2367-ldo-en = "enabled";
++		tp0145-ldo-en = "disabled";
++		tp2367-ldo-en = "disabled";
 +		tp0145-ldo-volt = "1.2V";
 +		tp2367-ldo-volt = "1.2V";
 +		tp0145-pullup = "2k";
@@ -79,12 +80,12 @@ index d43c70c6bbc0..e65268312c5e 100644
 +	mctp-controller;
 +	hub@0x70 {
 +		reg = <0x70 0x3c0 0x00700000>;
-+		cp0-ldo-en = "enabled";
-+		cp1-ldo-en = "enabled";
++		cp0-ldo-en = "disabled";
++		cp1-ldo-en = "disabled";
 +		cp0-ldo-volt = "1.2V";
 +		cp1-ldo-volt = "1.2V";
-+		tp0145-ldo-en = "enabled";
-+		tp2367-ldo-en = "enabled";
++		tp0145-ldo-en = "disabled";
++		tp2367-ldo-en = "disabled";
 +		tp0145-ldo-volt = "1.2V";
 +		tp2367-ldo-volt = "1.2V";
 +		tp0145-pullup = "2k";

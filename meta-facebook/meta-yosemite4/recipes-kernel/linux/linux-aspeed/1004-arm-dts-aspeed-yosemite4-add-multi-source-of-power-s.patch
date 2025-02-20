@@ -1,7 +1,7 @@
-From 561d818e2da0dcb47b9bb9f18a74cc9ca831cc89 Mon Sep 17 00:00:00 2001
+From 27bd5d7ff060cc39378260c34803be73c1547258 Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Fri, 1 Nov 2024 13:24:13 +0800
-Subject: [PATCH 1004/1012] arm: dts: aspeed: yosemite4: add multi source of power
+Subject: [PATCH 1004/1013] arm: dts: aspeed: yosemite4: add multi source of power
  sensors on Spider Board
 
 Add INA233, RTQ6056, and SQ52205 for the power sensors on Spider Board.
@@ -12,7 +12,7 @@ upstream.
  1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index e2cc96134d0c..aa1a956b17f1 100644
+index 851d71224421..8024974006b8 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -1113,28 +1113,38 @@ adc@37 {

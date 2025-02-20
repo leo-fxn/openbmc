@@ -1,7 +1,7 @@
-From 978091eb20362cc601ca2b455d439862e3012ebd Mon Sep 17 00:00:00 2001
+From 9836a15a20473f78f14b76f2b76a77c86b931b6e Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Fri, 1 Nov 2024 13:32:56 +0800
-Subject: [PATCH 1005/1012] arm: dts: aspeed: yosemite4: set TACH config for
+Subject: [PATCH 1005/1013] arm: dts: aspeed: yosemite4: set TACH config for
  MAX31790 on Fan Boards
 
 Add the setting for max31790 to config PWM as TACH.
@@ -12,7 +12,7 @@ https://github.com/facebookexternal/openbmc.wiwynn/blob/main/common/recipes-kern
  1 file changed, 36 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index aa1a956b17f1..5c4ae16168d5 100644
+index 8024974006b8..ffc57f7589b3 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -1211,6 +1211,15 @@ adc@1f {

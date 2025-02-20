@@ -1,7 +1,7 @@
-From 4b71904b32f9c3aa48ac3ba29cc846977596d5fd Mon Sep 17 00:00:00 2001
+From 94b8cc1fea0624fc476ee52ed228de8f70c24d5a Mon Sep 17 00:00:00 2001
 From: Rush_Chen_Wiwynn <Rush_Chen@wiwynn.com>
 Date: Thu, 20 Jun 2024 15:07:00 +0800
-Subject: [PATCH 1008/1012] arm: dts: aspeed: yosemite4: Support MP5990 for all
+Subject: [PATCH 1008/1013] arm: dts: aspeed: yosemite4: Support MP5990 for all
  Sentinel Domes
 
 Support 2nd source HSC sensor MP5990 for all Sentinel Domes
@@ -11,7 +11,7 @@ Support 2nd source HSC sensor MP5990 for all Sentinel Domes
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index 33b13bdf6c52..d43c70c6bbc0 100644
+index 79dff8fc6dbe..259a341fb40f 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -210,7 +210,7 @@ gpio@24 {

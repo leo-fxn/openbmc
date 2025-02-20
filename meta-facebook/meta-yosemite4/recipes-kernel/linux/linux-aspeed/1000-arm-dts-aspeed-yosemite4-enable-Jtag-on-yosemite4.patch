@@ -1,7 +1,7 @@
-From 0a76d6c73057788c7482fe4c53837c094197ce2a Mon Sep 17 00:00:00 2001
+From d96731124637aa38fe325ff920fc4910c4a01a62 Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Fri, 1 Nov 2024 13:47:18 +0800
-Subject: [PATCH 1000/1012] arm: dts: aspeed: yosemite4: enable Jtag on yosemite4
+Subject: [PATCH 1000/1013] arm: dts: aspeed: yosemite4: enable Jtag on yosemite4
 
 Enable Jtag on yosemite4.
 - Haven't contributed because there is no jtag driver on upstream.
@@ -10,7 +10,7 @@ Enable Jtag on yosemite4.
  1 file changed, 4 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index ab4904cf2c0e..7937ca90cb05 100644
+index 29f224bccd63..c84df416e47b 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -1342,3 +1342,7 @@ &ehci1 {

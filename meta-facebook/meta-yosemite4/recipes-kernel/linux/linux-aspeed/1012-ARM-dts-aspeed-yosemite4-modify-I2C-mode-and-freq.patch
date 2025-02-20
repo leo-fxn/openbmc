@@ -1,14 +1,14 @@
-From d039a20c23dd90a001c159cf473972089c99842d Mon Sep 17 00:00:00 2001
+From 254d1d8a6df96db38677db70caaa62feaed8f2db Mon Sep 17 00:00:00 2001
 From: YikaiTsai-wiwynn <yikai_tsai@wiwynn.com>
 Date: Fri, 18 Oct 2024 15:22:55 +0800
-Subject: [PATCH 1012/1012] ARM: dts: aspeed: yosemite4: modify I2C mode and freq
+Subject: [PATCH 1012/1013] ARM: dts: aspeed: yosemite4: modify I2C mode and freq
 
 ---
  .../aspeed/aspeed-bmc-facebook-yosemite4.dts  | 55 +++++++++++--------
  1 file changed, 32 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index bea31d58002f..a782dc880944 100644
+index 7339d1343c62..eff5fdb771e0 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -327,8 +327,8 @@ flash@1 {

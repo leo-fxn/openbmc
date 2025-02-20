@@ -1,7 +1,7 @@
-From 4ca31df00fe0d1529db6f587fc38f8a7b33173de Mon Sep 17 00:00:00 2001
+From 94d679fe99cd4b9977796a0223f856d49f0a2466 Mon Sep 17 00:00:00 2001
 From: MarshallZhan-wiwynn <marshall_zhan@wiwynn.com>
 Date: Wed, 12 Feb 2025 16:13:31 +0800
-Subject: [PATCH] leds: support CAT9532 led controller
+Subject: [PATCH 1013/1013] leds: support CAT9532 led controller
 
 Summary:
 Description

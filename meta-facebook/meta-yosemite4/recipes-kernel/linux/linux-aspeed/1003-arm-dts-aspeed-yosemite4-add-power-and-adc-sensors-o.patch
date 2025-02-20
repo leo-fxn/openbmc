@@ -1,7 +1,7 @@
-From ec50f7b8358e87035cd3292b85b338a9d8a41124 Mon Sep 17 00:00:00 2001
+From 93fbd4d52742bd750b232a31604615db1833880d Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Fri, 1 Nov 2024 11:25:35 +0800
-Subject: [PATCH 1003/1012] arm: dts: aspeed: yosemite4: add power and adc sensors
+Subject: [PATCH 1003/1013] arm: dts: aspeed: yosemite4: add power and adc sensors
  on Medusa Board
 
 1. Add XDP710 for 2nd source 48V HSC devices.
@@ -18,7 +18,7 @@ Subject: [PATCH 1003/1012] arm: dts: aspeed: yosemite4: add power and adc sensor
  1 file changed, 42 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
-index 2cc18ea309f1..e2cc96134d0c 100644
+index 878bf52e1135..851d71224421 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yosemite4.dts
 @@ -864,11 +864,21 @@ power-sensor@10 {
