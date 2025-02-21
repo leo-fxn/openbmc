@@ -52,7 +52,7 @@ auto load() -> std::unordered_map<message_id_t, event_t>
         };
 
         // Iterate through all of the Message's defined in this registry.
-        for (const auto& m : j["Message"].items())
+        for (const auto& m : j["Messages"].items())
         {
             std::string message = m.key();
             const auto& value = m.value();
