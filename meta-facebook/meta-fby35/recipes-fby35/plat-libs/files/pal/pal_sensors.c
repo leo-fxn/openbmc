@@ -196,6 +196,69 @@ const uint8_t nicexp_sensor_list[] = {
   BMC_SENSOR_NICEXP_TEMP
 };
 
+const uint8_t bic_emr_sensor_list[] = {
+  //BIC - threshold sensors
+  BIC_SENSOR_INLET_TEMP,
+  BIC_SENSOR_OUTLET_TEMP,
+  BIC_SENSOR_FIO_TEMP,
+  BIC_SENSOR_PCH_TEMP,
+  BIC_SENSOR_CPU_TEMP,
+  BIC_SENSOR_CPU_THERM_MARGIN,
+  BIC_SENSOR_CPU_TJMAX,
+  BIC_SENSOR_DIMMA0_TEMP,
+  BIC_SENSOR_DIMMC0_TEMP,
+  BIC_SENSOR_DIMMD0_TEMP,
+  BIC_SENSOR_DIMME0_TEMP,
+  BIC_SENSOR_DIMMG0_TEMP,
+  BIC_SENSOR_DIMMH0_TEMP,
+  BIC_SENSOR_HSC_TEMP,
+  BIC_SENSOR_VCCIN_VR_TEMP,
+  BIC_SENSOR_FIVRA_VR_TEMP,
+  BIC_SENSOR_EHV_VR_TEMP,
+  BIC_SENSOR_VCCD_VR_TEMP,
+  BIC_SENSOR_FAON_VR_TEMP,
+
+  //BIC - voltage sensors
+  BIC_SENSOR_P12V_STBY_VOL,
+  BIC_SENSOR_P3V_BAT_VOL,
+  BIC_SENSOR_P3V3_STBY_VOL,
+  BIC_SENSOR_P1V8_STBY_VOL,
+  BIC_SENSOR_P1V05_PCH_STBY_VOL,
+  BIC_SENSOR_P5V_STBY_VOL,
+  BIC_SENSOR_P12V_DIMM_VOL,
+  BIC_SENSOR_P1V2_STBY_VOL,
+  BIC_SENSOR_P3V3_M2_VOL,
+  BIC_SENSOR_HSC_INPUT_VOL,
+  BIC_SENSOR_VCCIN_VR_VOL,
+  BIC_SENSOR_FIVRA_VR_VOL,
+  BIC_SENSOR_EHV_VR_VOL,
+  BIC_SENSOR_VCCD_VR_VOL,
+  BIC_SENSOR_FAON_VR_VOL,
+
+  //BIC - current sensors
+  BIC_SENSOR_HSC_OUTPUT_CUR,
+  BIC_SENSOR_VCCIN_VR_CUR,
+  BIC_SENSOR_FIVRA_VR_CUR,
+  BIC_SENSOR_EHV_VR_CUR,
+  BIC_SENSOR_VCCD_VR_CUR,
+  BIC_SENSOR_FAON_VR_CUR,
+
+  //BIC - power sensors
+  BIC_SENSOR_CPU_PWR,
+  BIC_SENSOR_HSC_INPUT_PWR,
+  BIC_SENSOR_VCCIN_VR_POUT,
+  BIC_SENSOR_FIVRA_VR_POUT,
+  BIC_SENSOR_EHV_VR_POUT,
+  BIC_SENSOR_VCCD_VR_POUT,
+  BIC_SENSOR_FAON_VR_POUT,
+  BIC_SENSOR_DIMMA_PMIC_Pout,
+  BIC_SENSOR_DIMMC_PMIC_Pout,
+  BIC_SENSOR_DIMMD_PMIC_Pout,
+  BIC_SENSOR_DIMME_PMIC_Pout,
+  BIC_SENSOR_DIMMG_PMIC_Pout,
+  BIC_SENSOR_DIMMH_PMIC_Pout,
+};
+
 const uint8_t bic_sensor_list[] = {
   //BIC - threshold sensors
   BIC_SENSOR_INLET_TEMP,
@@ -1428,6 +1491,7 @@ size_t bmc_sensor_cnt = sizeof(bmc_sensor_list)/sizeof(uint8_t);
 size_t nicexp_sensor_cnt = sizeof(nicexp_sensor_list)/sizeof(uint8_t);
 size_t nic_sensor_cnt = sizeof(nic_sensor_list)/sizeof(uint8_t);
 size_t bic_sensor_cnt = sizeof(bic_sensor_list)/sizeof(uint8_t);
+size_t bic_emr_sensor_cnt = sizeof(bic_emr_sensor_list)/sizeof(uint8_t);
 size_t bic_hd_sensor_cnt = sizeof(bic_hd_sensor_list)/sizeof(uint8_t);
 size_t bic_gl_sensor_cnt = sizeof(bic_gl_sensor_list)/sizeof(uint8_t);
 size_t bic_ji_sensor_cnt = sizeof(bic_ji_sensor_list)/sizeof(uint8_t);
@@ -1719,6 +1783,9 @@ done:
     } else if (server_type == SERVER_TYPE_JI) {
       memcpy(bic_dynamic_sensor_list[fru-1], bic_ji_sensor_list, bic_ji_sensor_cnt);
       current_cnt = bic_ji_sensor_cnt;
+    } else if (server_type == SERVER_TYPE_CL_EMR) {
+      memcpy(bic_dynamic_sensor_list[fru-1], bic_emr_sensor_list, bic_emr_sensor_cnt);
+      current_cnt = bic_emr_sensor_cnt;
     } else {
       memcpy(bic_dynamic_sensor_list[fru-1], bic_sensor_list, bic_sensor_cnt);
       current_cnt = bic_sensor_cnt;
@@ -4104,6 +4171,16 @@ _sdr_init(char *path, sensor_info_t *sinfo, uint8_t bmc_location, \
         case BIC_DPV2_SENSOR_DPV2_2_EFUSE_PWR:
           sdr->sensor_units1 = 0x00;
         break;
+      }
+    }
+
+    if (slot_type == SERVER_TYPE_CL_EMR) {
+      switch (snr_num) {
+        case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2A:
+        case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2B:
+        case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2C:
+          sdr->uc_thresh = 0xAA;
+	break;
       }
     }
     memcpy(&sinfo[snr_num].sdr, sdr, sizeof(sdr_full_t));
