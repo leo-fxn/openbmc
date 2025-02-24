@@ -15,5 +15,7 @@ SRC_URI += " \
     file://1012-ARM-dts-aspeed-yosemite4-modify-I2C-mode-and-freq.patch \
     file://1013-yosemite4-support-CAT9532-led-controller.patch \
     file://1014-adc128-filter-out-0x1ff.patch \
+    file://2000-ubifs-backports.patch \
+    file://2001-ubifs-backports.patch \
     file://yosemite4-local.cfg \
 "
