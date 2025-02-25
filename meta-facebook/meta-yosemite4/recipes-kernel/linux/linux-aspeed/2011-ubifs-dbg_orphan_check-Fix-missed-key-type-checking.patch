@@ -1,0 +1,42 @@
+From d7c8b48bd91056d1fad66c934037e49e079cef66 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:51 +0800
+Subject: [PATCH 2011/2014] ubifs: dbg_orphan_check: Fix missed key type
+ checking
+
+When selinux/encryption is enabled, xattr entry node is added into TNC
+before host inode when creating new file. So it is possible to find
+xattr entry without host inode from TNC. Orphan debug checking is called
+by ubifs_orphan_end_commit(), at that time, the commit semaphore is
+already unlock, so the new creation won't be blocked.
+
+Fixes: d7f0b70d30ff ("UBIFS: Add security.* XATTR support for the UBIFS")
+Fixes: d475a507457b ("ubifs: Add skeleton for fscrypto")
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/orphan.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ubifs/orphan.c b/fs/ubifs/orphan.c
+index 87c680e26ebc..38303d311dd9 100644
+--- a/fs/ubifs/orphan.c
++++ b/fs/ubifs/orphan.c
+@@ -922,8 +922,12 @@ static int dbg_orphan_check(struct ubifs_info *c, struct ubifs_zbranch *zbr,
+ 
+ 	inum = key_inum(c, &zbr->key);
+ 	if (inum != ci->last_ino) {
+-		/* Lowest node type is the inode node, so it comes first */
+-		if (key_type(c, &zbr->key) != UBIFS_INO_KEY)
++		/*
++		 * Lowest node type is the inode node or xattr entry(when
++		 * selinux/encryption is enabled), so it comes first
++		 */
++		if (key_type(c, &zbr->key) != UBIFS_INO_KEY &&
++		    key_type(c, &zbr->key) != UBIFS_XENT_KEY)
+ 			ubifs_err(c, "found orphan node ino %lu, type %d",
+ 				  (unsigned long)inum, key_type(c, &zbr->key));
+ 		ci->last_ino = inum;
+-- 
+2.44.2
+

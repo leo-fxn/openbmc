@@ -1,7 +1,7 @@
-From 7a676bb9e08ba8371d23aa4e7824e9b18cb85140 Mon Sep 17 00:00:00 2001
+From 2edc1161976c35be91cc848e886ad25a8bf8b39e Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Thu, 11 Apr 2024 11:40:14 +0800
-Subject: [PATCH 303/311] hwmon: max31790: revise the scale to write pwm
+Subject: [PATCH 303/331] hwmon: max31790: revise the scale to write pwm
 
 Since the value for PWMOUT Target Duty Cycle register is a 9 bit
 left-justified value that ranges from 0 to 511 and is contained in 2

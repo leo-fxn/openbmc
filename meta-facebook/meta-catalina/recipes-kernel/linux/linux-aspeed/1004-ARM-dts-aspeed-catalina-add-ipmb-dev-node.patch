@@ -1,0 +1,37 @@
+From cbd188e2d4b725c92b8461f39a4ca12b0fb2324f Mon Sep 17 00:00:00 2001
+From: Potin Lai <potin.lai.pt@gmail.com>
+Date: Fri, 2 Aug 2024 17:29:42 +0800
+Subject: [PATCH 1004/1015] ARM: dts: aspeed: catalina: add ipmb-dev node
+
+ipmb-dev node was removed due to compatible string not exist on upstream.
+Add back ipmb-dev node back in this patch.
+
+Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
+---
+ .../boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts   | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+index 4710910e820a..04b2ca24f488 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+@@ -777,6 +777,16 @@ rtc@6f {
+ 
+ &i2c7 {
+ 	status = "okay";
++	bus-frequency = <100000>;
++	multi-master;
++	aspeed,hw-timeout-ms = <1000>;
++
++	//USB Debug Connector
++	ipmb@10 {
++		compatible = "ipmb-dev";
++		reg = <(0x10 | I2C_OWN_SLAVE_ADDRESS)>;
++		i2c-protocol;
++	};
+ };
+ 
+ &i2c8 {
+-- 
+2.44.2
+

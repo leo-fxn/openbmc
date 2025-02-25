@@ -86,12 +86,11 @@ SRC_URI:append = " \
 # NCSI patches used by multiple OpenBMC platforms.
 #
 SRC_URI:append = " \
-    file://0180-net-ncsi-Add-NC-SI-1.2-Get-MC-MAC-Address-command.patch \
-    file://0181-meta-facebook-common-add-pcc-config.patch \
-    file://0182-drivers-watchdog-ast2600-support-bootstatus.patch \
-    file://0183-NCSI-Add-propety-no-channel-monitor-and-start-redo-p.patch \
-    file://0184-net-ncsi-specify-maximum-package-to-probe.patch \
-    file://0185-Revert-net-ncsi-change-from-ndo_set_mac_address-to-d.patch \
+    file://0180-meta-facebook-common-add-pcc-config.patch \
+    file://0181-drivers-watchdog-ast2600-support-bootstatus.patch \
+    file://0182-NCSI-Add-propety-no-channel-monitor-and-start-redo-p.patch \
+    file://0183-net-ncsi-specify-maximum-package-to-probe.patch \
+    file://0184-Revert-net-ncsi-change-from-ndo_set_mac_address-to-d.patch \
 "
 
 #
@@ -107,11 +106,10 @@ SRC_URI:append = " \
 #
 SRC_URI:append = " \
     file://0200-ARM-dts-aspeed-g6-Add-AST2600-I3Cs.patch \
-    file://0202-i3c-dw-Add-hot-join-support.patch \
-    file://0203-i3c-ast2600-Validate-AST2600-I3C-for-MCTP-over-I3C.patch \
-    file://0204-dt-bindings-i3c-hub-Add-Renesas-RG3MxxB12A1-I3C-HUB.patch \
-    file://0205-i3c-i3c-hub-Add-Renesas-RG3MxxB12A1-I3C-HUB-driver.patch \
-    file://0206-mctp-i3c-fix-MCTP-I3C-driver-multi-thread-issue.patch \
+    file://0201-i3c-ast2600-Validate-AST2600-I3C-for-MCTP-over-I3C.patch \
+    file://0202-dt-bindings-i3c-hub-Add-Renesas-RG3MxxB12A1-I3C-HUB.patch \
+    file://0203-i3c-i3c-hub-Add-Renesas-RG3MxxB12A1-I3C-HUB-driver.patch \
+    file://0204-mctp-i3c-fix-MCTP-I3C-driver-multi-thread-issue.patch \
 "
 
 #
@@ -144,7 +142,26 @@ SRC_URI:append = " \
     file://0309-Add-SQ52205-driver.patch \
     file://0310-hwmon-Add-net_brcm-driver.patch \
     file://0311-Kernel6v5-Support-apml-driver.patch \
-    file://0312-Add-support-for-SY24655-in-INA2XX-driver.patch \
+    file://0312-hwmon-ina2xx-Remove-use-of-i2c_match_id.patch \
+    file://0313-hwmon-ina2xx-Add-device-tree-support-to-pass-alert-p.patch \
+    file://0314-hwmon-ina2xx-Reorder-include-files-to-alphabetic-ord.patch \
+    file://0315-hwmon-ina2xx-Replace-platform-data-with-device-prope.patch \
+    file://0316-hwmon-ina2xx-Use-bit-operations.patch \
+    file://0317-hwmon-ina2xx-Mark-regmap_config-as-const.patch \
+    file://0318-hwmon-ina2xx-Use-local-regmap-pointer-if-used-more-t.patch \
+    file://0319-hwmon-ina2xx-Re-initialize-chip-using-regmap-functio.patch \
+    file://0320-hwmon-ina2xx-Fix-various-overflow-issues.patch \
+    file://0321-hwmon-ina2xx-Consolidate-chip-initialization-code.patch \
+    file://0322-hwmon-ina2xx-Set-alert-latch.patch \
+    file://0323-hwmon-ina2xx-Move-ina2xx_get_value.patch \
+    file://0324-hwmon-ina2xx-Convert-to-use-with_info-hwmon-API.patch \
+    file://0325-hwmon-ina2xx-Pass-register-to-alert-limit-write-func.patch \
+    file://0326-hwmon-ina2xx-Add-support-for-current-limits.patch \
+    file://0327-hwmon-ina2xx-Use-shunt-voltage-to-calculate-current.patch \
+    file://0328-hwmon-ina2xx-Add-support-for-has_alerts-configuratio.patch \
+    file://0329-hwmon-ina2xx-Add-support-for-INA260.patch \
+    file://0330-hwmon-ina226-Add-support-for-SY24655.patch \
+    file://0331-hwmon-ina2xx-switch-regmap-cache-to-flat.patch \
 "
 
 #

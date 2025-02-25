@@ -1,7 +1,7 @@
-From f83d73afda61ea9d4b4f148e92a7338ced51affc Mon Sep 17 00:00:00 2001
+From 9de62cdd1722afb16d8f336bb4fe3d8aec04c2cb Mon Sep 17 00:00:00 2001
 From: Tao Ren <taoren@fb.com>
 Date: Thu, 8 Apr 2021 15:23:48 -0700
-Subject: [PATCH 310/311] hwmon: Add net_brcm driver
+Subject: [PATCH 310/331] hwmon: Add net_brcm driver
 
 Summary:
 
@@ -30,10 +30,10 @@ Signature: 27585349:1617733366:5443ecb847967f7725c2d8d6416b357b37ac4f28
  create mode 100644 drivers/hwmon/net_brcm.c
 
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 0974398263e9..a57994dbe9cf 100644
+index a65900c5ce97..10a0f87d8e80 100644
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
-@@ -1640,6 +1640,16 @@ config SENSORS_NCT7904
+@@ -1643,6 +1643,16 @@ config SENSORS_NCT7904
  	  This driver can also be built as a module. If so, the module
  	  will be called nct7904.
  

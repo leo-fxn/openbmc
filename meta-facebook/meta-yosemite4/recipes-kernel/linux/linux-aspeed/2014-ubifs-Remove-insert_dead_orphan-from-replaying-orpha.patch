@@ -1,0 +1,98 @@
+From 818ab6c4bd43ede445a7b4a8bd9a524e599d0724 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:46 +0800
+Subject: [PATCH 2014/2014] ubifs: Remove insert_dead_orphan from replaying
+ orphan process
+
+UBIFS will do commit at the end of mounting process(rw mode), dead
+orphans(added by insert_dead_orphan in replaying orphan) are deleted
+by ubifs_orphan_end_commit(). The only reason why dead orphans are
+added into orphan list is that old orpans may be lost when powercut
+happens in ubifs_orphan_end_commit():
+ubifs_orphan_end_commit  // TNC(updated by orphans) is not written yet
+ if (c->cmt_orphans != 0)
+  commit_orphans
+   consolidate // traverse orphan list
+  write_orph_nodes // rewrite all orphans by ubifs_leb_change
+  // If dead orphans are not in list, they will be lost when powercut
+  // happens, then TNC won't be updated by old orphans in next mounting.
+Luckily, the condition 'c->cmt_orphans != 0' will never be true in
+mounting process, there can't be new orphans added into orphan list
+before mounting returned, but commit will be done at the end of mounting.
+
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/orphan.c | 49 -----------------------------------------------
+ 1 file changed, 49 deletions(-)
+
+diff --git a/fs/ubifs/orphan.c b/fs/ubifs/orphan.c
+index f1f939e192e4..fb957d963ba6 100644
+--- a/fs/ubifs/orphan.c
++++ b/fs/ubifs/orphan.c
+@@ -513,51 +513,6 @@ int ubifs_clear_orphans(struct ubifs_info *c)
+ 	return 0;
+ }
+ 
+-/**
+- * insert_dead_orphan - insert an orphan.
+- * @c: UBIFS file-system description object
+- * @inum: orphan inode number
+- *
+- * This function is a helper to the 'do_kill_orphans()' function. The orphan
+- * must be kept until the next commit, so it is added to the rb-tree and the
+- * deletion list.
+- */
+-static int insert_dead_orphan(struct ubifs_info *c, ino_t inum)
+-{
+-	struct ubifs_orphan *orphan, *o;
+-	struct rb_node **p, *parent = NULL;
+-
+-	orphan = kzalloc(sizeof(struct ubifs_orphan), GFP_KERNEL);
+-	if (!orphan)
+-		return -ENOMEM;
+-	orphan->inum = inum;
+-
+-	p = &c->orph_tree.rb_node;
+-	while (*p) {
+-		parent = *p;
+-		o = rb_entry(parent, struct ubifs_orphan, rb);
+-		if (inum < o->inum)
+-			p = &(*p)->rb_left;
+-		else if (inum > o->inum)
+-			p = &(*p)->rb_right;
+-		else {
+-			/* Already added - no problem */
+-			kfree(orphan);
+-			return 0;
+-		}
+-	}
+-	c->tot_orphans += 1;
+-	rb_link_node(&orphan->rb, parent, p);
+-	rb_insert_color(&orphan->rb, &c->orph_tree);
+-	list_add_tail(&orphan->list, &c->orph_list);
+-	orphan->del = 1;
+-	orphan->dnext = c->orph_dnext;
+-	c->orph_dnext = orphan;
+-	dbg_mnt("ino %lu, new %d, tot %d", (unsigned long)inum,
+-		c->new_orphans, c->tot_orphans);
+-	return 0;
+-}
+-
+ /**
+  * do_kill_orphans - remove orphan inodes from the index.
+  * @c: UBIFS file-system description object
+@@ -655,10 +610,6 @@ static int do_kill_orphans(struct ubifs_info *c, struct ubifs_scan_leb *sleb,
+ 				if (err)
+ 					goto out_ro;
+ 			}
+-
+-			err = insert_dead_orphan(c, inum);
+-			if (err)
+-				goto out_free;
+ 		}
+ 
+ 		*last_cmt_no = cmt_no;
+-- 
+2.44.2
+

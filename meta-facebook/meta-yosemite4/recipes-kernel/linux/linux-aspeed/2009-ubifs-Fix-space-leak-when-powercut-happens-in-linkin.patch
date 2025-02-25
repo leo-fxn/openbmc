@@ -1,0 +1,198 @@
+From 6a1fcde8778adf6c5611ce9146d34d4583016129 Mon Sep 17 00:00:00 2001
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Date: Wed, 10 Apr 2024 15:37:49 +0800
+Subject: [PATCH 2009/2014] ubifs: Fix space leak when powercut happens in
+ linking tmpfile
+
+There is a potential space leak problem when powercut happens in linking
+tmpfile, in which case, inode node (with nlink=0) and its' data nodes can
+be found from tnc (on flash), but there are no dentries related to the
+inode, so the file is invisible but takes free space. Detailed process is
+shown as:
+ ubifs_tmpfile
+  ubifs_jnl_update // Add bud A into log area
+   ubifs_add_orphan // Add inode into orphan list
+
+     P1             P2
+ ubifs_link
+  ubifs_delete_orphan // Delete inode from orphan list, then inode won't
+		      // be written into orphan area, there is no chance
+		      // to delete inode by replaying orphan.
+                commit // bud A won't be replayed in next mounting
+   >> powercut <<
+  ubifs_jnl_update // Link inode to dentry
+
+The root cause is that orphan entry deletion and journal writing(for link)
+are interrupted by commit, which makes the two operations are not atomic.
+Fix it by doing ubifs_delete_orphan under the protection of c->commit_sem
+within ubifs_jnl_update. This is also a preparation to support all creating
+new files by orphan inode.
+
+v1 is https://lore.kernel.org/linux-mtd/20200701093227.674945-1-chengzhihao1@huawei.com/
+
+Fixes: 32fe905c17f0 ("ubifs: Fix O_TMPFILE corner case in ubifs_link()")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=208405
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ fs/ubifs/dir.c     | 22 ++++++++--------------
+ fs/ubifs/journal.c |  6 +++++-
+ fs/ubifs/ubifs.h   |  2 +-
+ fs/ubifs/xattr.c   |  2 +-
+ 4 files changed, 15 insertions(+), 17 deletions(-)
+
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index b6f1074910b1..4f13f7ede25b 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -325,7 +325,7 @@ static int ubifs_create(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -479,7 +479,7 @@ static int ubifs_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+ 	mutex_unlock(&ui->ui_mutex);
+ 
+ 	lock_2_inodes(dir, inode);
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -760,17 +760,13 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 
+ 	lock_2_inodes(dir, inode);
+ 
+-	/* Handle O_TMPFILE corner case, it is allowed to link a O_TMPFILE. */
+-	if (inode->i_nlink == 0)
+-		ubifs_delete_orphan(c, inode->i_ino);
+-
+ 	inc_nlink(inode);
+ 	ihold(inode);
+ 	inode_set_ctime_current(inode);
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, inode->i_nlink == 1);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -784,8 +780,6 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	drop_nlink(inode);
+-	if (inode->i_nlink == 0)
+-		ubifs_add_orphan(c, inode->i_ino);
+ 	unlock_2_inodes(dir, inode);
+ 	ubifs_release_budget(c, &req);
+ 	iput(inode);
+@@ -844,7 +838,7 @@ static int ubifs_unlink(struct inode *dir, struct dentry *dentry)
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -947,7 +941,7 @@ static int ubifs_rmdir(struct inode *dir, struct dentry *dentry)
+ 	dir->i_size -= sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 1, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	unlock_2_inodes(dir, inode);
+@@ -1021,7 +1015,7 @@ static int ubifs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err) {
+ 		ubifs_err(c, "cannot create directory, error %d", err);
+ 		goto out_cancel;
+@@ -1112,7 +1106,7 @@ static int ubifs_mknod(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+@@ -1212,7 +1206,7 @@ static int ubifs_symlink(struct mnt_idmap *idmap, struct inode *dir,
+ 	dir->i_size += sz_change;
+ 	dir_ui->ui_size = dir->i_size;
+ 	dir->i_mtime = inode_set_ctime_to_ts(dir, inode_get_ctime(inode));
+-	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0);
++	err = ubifs_jnl_update(c, dir, &nm, inode, 0, 0, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	mutex_unlock(&dir_ui->ui_mutex);
+diff --git a/fs/ubifs/journal.c b/fs/ubifs/journal.c
+index ab287d47ecaf..e76f0cad2e18 100644
+--- a/fs/ubifs/journal.c
++++ b/fs/ubifs/journal.c
+@@ -643,6 +643,7 @@ static void set_dent_cookie(struct ubifs_info *c, struct ubifs_dent_node *dent)
+  * @inode: inode to update
+  * @deletion: indicates a directory entry deletion i.e unlink or rmdir
+  * @xent: non-zero if the directory entry is an extended attribute entry
++ * @delete_orphan: indicates an orphan entry deletion for @inode
+  *
+  * This function updates an inode by writing a directory entry (or extended
+  * attribute entry), the inode itself, and the parent directory inode (or the
+@@ -664,7 +665,7 @@ static void set_dent_cookie(struct ubifs_info *c, struct ubifs_dent_node *dent)
+  */
+ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 		     const struct fscrypt_name *nm, const struct inode *inode,
+-		     int deletion, int xent)
++		     int deletion, int xent, int delete_orphan)
+ {
+ 	int err, dlen, ilen, len, lnum, ino_offs, dent_offs, orphan_added = 0;
+ 	int aligned_dlen, aligned_ilen, sync = IS_DIRSYNC(dir);
+@@ -806,6 +807,9 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 	if (err)
+ 		goto out_ro;
+ 
++	if (delete_orphan)
++		ubifs_delete_orphan(c, inode->i_ino);
++
+ 	finish_reservation(c);
+ 	spin_lock(&ui->ui_lock);
+ 	ui->synced_i_size = ui->ui_size;
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index 37a42728cd77..ea49d367cd9c 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -1803,7 +1803,7 @@ int ubifs_consolidate_log(struct ubifs_info *c);
+ /* journal.c */
+ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
+ 		     const struct fscrypt_name *nm, const struct inode *inode,
+-		     int deletion, int xent);
++		     int deletion, int xent, int delete_orphan);
+ int ubifs_jnl_write_data(struct ubifs_info *c, const struct inode *inode,
+ 			 const union ubifs_key *key, const void *buf, int len);
+ int ubifs_jnl_write_inode(struct ubifs_info *c, const struct inode *inode);
+diff --git a/fs/ubifs/xattr.c b/fs/ubifs/xattr.c
+index 406c82eab513..b7b512070d76 100644
+--- a/fs/ubifs/xattr.c
++++ b/fs/ubifs/xattr.c
+@@ -149,7 +149,7 @@ static int create_xattr(struct ubifs_info *c, struct inode *host,
+ 	if (strcmp(fname_name(nm), UBIFS_XATTR_NAME_ENCRYPTION_CONTEXT) == 0)
+ 		host_ui->flags |= UBIFS_CRYPT_FL;
+ 
+-	err = ubifs_jnl_update(c, host, nm, inode, 0, 1);
++	err = ubifs_jnl_update(c, host, nm, inode, 0, 1, 0);
+ 	if (err)
+ 		goto out_cancel;
+ 	ubifs_set_inode_flags(host);
+-- 
+2.44.2
+

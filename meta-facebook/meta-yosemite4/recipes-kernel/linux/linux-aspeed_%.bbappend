@@ -15,7 +15,20 @@ SRC_URI += " \
     file://1012-ARM-dts-aspeed-yosemite4-modify-I2C-mode-and-freq.patch \
     file://1013-yosemite4-support-CAT9532-led-controller.patch \
     file://1014-adc128-filter-out-0x1ff.patch \
-    file://2000-ubifs-backports.patch \
-    file://2001-ubifs-backports.patch \
+    file://2000-ubifs-Fix-memory-leak-of-bud-log_hash.patch \
+    file://2001-ubifs-ubifs_link-Fix-wrong-name-len-calculating-when.patch \
+    file://2002-ubifs-Check-c-dirty_-n-p-n_cnt-and-c-nroot-state-und.patch \
+    file://2003-ubifs-fix-sort-function-prototype.patch \
+    file://2004-ubifs-Remove-unreachable-code-in-dbg_check_ltab_lnum.patch \
+    file://2005-ubifs-dbg_check_idx_size-Fix-kmemleak-if-loading-zno.patch \
+    file://2006-ubifs-Queue-up-space-reservation-tasks-if-retrying-m.patch \
+    file://2007-ubifs-Fix-unattached-xattr-inode-if-powercut-happens.patch \
+    file://2008-ubifs-Fix-adding-orphan-entry-twice-for-the-same-ino.patch \
+    file://2009-ubifs-Fix-space-leak-when-powercut-happens-in-linkin.patch \
+    file://2010-ubifs-Fix-unattached-inode-when-powercut-happens-in-.patch \
+    file://2011-ubifs-dbg_orphan_check-Fix-missed-key-type-checking.patch \
+    file://2012-ubifs-add-check-for-crypto_shash_tfm_digest.patch \
+    file://2013-ubifs-Don-t-add-xattr-inode-into-orphan-area.patch \
+    file://2014-ubifs-Remove-insert_dead_orphan-from-replaying-orpha.patch \
     file://yosemite4-local.cfg \
 "
