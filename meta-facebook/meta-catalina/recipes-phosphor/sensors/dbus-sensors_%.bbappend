@@ -15,6 +15,7 @@ SRC_URI += " \
     file://0102-dbus-sensors-Add-SatelliteSensor-support.patch \
     file://0103-dbus-sensors-Fix-SatelliteSensor-build-errors.patch \
     file://0104-dbus-sensors-fix-abnormal-sensor-readings-from-HMC.patch \
+    file://0105-SatelliteSensor-improve-I2C-transactions-by-repeat-S.patch \
     "
 
 SYSTEMD_OVERRIDE:${PN}:append = "\
