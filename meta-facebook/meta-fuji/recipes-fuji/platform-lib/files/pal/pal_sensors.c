@@ -6046,11 +6046,19 @@ int bic_read_sensor_wrapper(uint8_t slot_id, uint8_t fru, uint8_t sensor_num, bo
   int ret;
   ipmi_sensor_reading_t sensor;
   sdr_full_t *sdr;
+  const int BIC_RETRY_COUNT = 2;
+  int retry = 0;
 
-  ret = bic_read_sensor(slot_id, sensor_num, &sensor);
+  do {
+    //IPMB packets may encounter corruption due to I2C driver issues. Add a retry mechanism to address the BIC sensor reading value 'NA' issue.
+    ret = bic_read_sensor(slot_id, sensor_num, &sensor);
+    retry++;
+  } while (ret && retry < BIC_RETRY_COUNT);
+  
   if (ret) {
     return ret;
-  }
+  }  
+  
 
   if (sensor.flags & BIC_SENSOR_READ_NA) {
 #ifdef DEBUG
