@@ -1,4 +1,4 @@
-From ea2386366457722460d308cd914af7a9d0a29b97 Mon Sep 17 00:00:00 2001
+From da439cb6166f89057d72bc9cebdb5fb3928aa17c Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 18 Dec 2023 18:40:23 +0800
 Subject: [PATCH 01/16] requester: support multi-host MCTP devices hot plug
@@ -33,10 +33,10 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  meson.build                                   |   1 +
  pldmd/pldmd.cpp                               |   9 +-
  requester/configuration_discovery_handler.cpp | 178 ++++++++++++++++++
- requester/configuration_discovery_handler.hpp | 133 +++++++++++++
+ requester/configuration_discovery_handler.hpp | 138 ++++++++++++++
  .../configuration_discovery_handler_test.cpp  | 115 +++++++++++
  requester/test/meson.build                    |  13 +-
- 11 files changed, 482 insertions(+), 10 deletions(-)
+ 11 files changed, 487 insertions(+), 10 deletions(-)
  create mode 100644 requester/configuration_discovery_handler.cpp
  create mode 100644 requester/configuration_discovery_handler.hpp
  create mode 100644 requester/test/configuration_discovery_handler_test.cpp
@@ -72,10 +72,10 @@ index 3c3613d..0d3c297 100644
  using PropertyMap = std::map<Property, Value>;
  using InterfaceMap = std::map<Interface, PropertyMap>;
 diff --git a/common/utils.cpp b/common/utils.cpp
-index 76755f2..1557eef 100644
+index 11ce064..0972194 100644
 --- a/common/utils.cpp
 +++ b/common/utils.cpp
-@@ -426,6 +426,23 @@ PropertyMap DBusHandler::getDbusPropertiesVariant(
+@@ -431,6 +431,23 @@ PropertyMap DBusHandler::getDbusPropertiesVariant(
      return bus.call(method, dbusTimeout).unpack<PropertyMap>();
  }
  
@@ -100,7 +100,7 @@ index 76755f2..1557eef 100644
                                   const nlohmann::json& value)
  {
 diff --git a/common/utils.hpp b/common/utils.hpp
-index 159a13e..70a288f 100644
+index 9964188..b18a698 100644
 --- a/common/utils.hpp
 +++ b/common/utils.hpp
 @@ -174,7 +174,7 @@ struct DBusMapping
@@ -383,10 +383,10 @@ index 0000000..8b4d956
 +} // namespace pldm
 diff --git a/requester/configuration_discovery_handler.hpp b/requester/configuration_discovery_handler.hpp
 new file mode 100644
-index 0000000..6944d30
+index 0000000..88ca9ad
 --- /dev/null
 +++ b/requester/configuration_discovery_handler.hpp
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,138 @@
 +#pragma once
 +
 +#include "common/utils.hpp"
@@ -434,6 +434,11 @@ index 0000000..6944d30
 +     *  @param[in] removedMctpInfos - the removed MCTP endpoints
 +     */
 +    void handleRemovedMctpEndpoints(const MctpInfos& removedMctpInfos);
++
++    void updateMctpEndpointAvailability(const MctpInfo&, Availability)
++    {
++        return;
++    }
 +
 +    /** @brief Get existing configurations.
 +     *

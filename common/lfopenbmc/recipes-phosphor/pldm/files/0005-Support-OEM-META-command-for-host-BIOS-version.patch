@@ -1,4 +1,4 @@
-From 2d66f60f67428c2b64f00e38c83cc05b5a52fd14 Mon Sep 17 00:00:00 2001
+From f01cf48a1f87a4f5488411cfc6e1b418f4b68f13 Mon Sep 17 00:00:00 2001
 From: Chris Wang <Chris_Wang@wiwynn.com>
 Date: Wed, 10 Apr 2024 21:04:02 +0800
 Subject: [PATCH 05/16] Support OEM-META command for host BIOS version

@@ -1,4 +1,4 @@
-From 3c2cef3157838bd2b4dd2fbb46897d2fe36f4e57 Mon Sep 17 00:00:00 2001
+From 36abbc98b990359f67bed23c04a232c39e66d3c8 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/16] platform-mc: Add OEM Meta event handler
@@ -67,7 +67,7 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
 diff --git a/meson.build b/meson.build
-index 4fdc38b..f4efb1f 100644
+index 543f953..6de09f2 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -263,6 +263,7 @@ executable(
@@ -1144,7 +1144,7 @@ index 21199e0..3ccec55 100644
  } // namespace platform_mc
  } // namespace pldm
 diff --git a/platform-mc/manager.hpp b/platform-mc/manager.hpp
-index 213f1f5..35e2ce7 100644
+index 5654099..c1b9d09 100644
 --- a/platform-mc/manager.hpp
 +++ b/platform-mc/manager.hpp
 @@ -6,11 +6,14 @@
@@ -1183,7 +1183,7 @@ index 213f1f5..35e2ce7 100644
      {}
  
      /** @brief Helper function to do the actions before discovering terminus
-@@ -173,6 +180,18 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -199,6 +206,18 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
          return PLDM_SUCCESS;
      }
  
@@ -1202,7 +1202,7 @@ index 213f1f5..35e2ce7 100644
      /** @brief The function to trigger the event polling
       *
       *  @param[in] tid - Terminus ID
-@@ -247,6 +266,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -273,6 +292,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
  
      /** @brief map of PLDM event type to EventHandlers */
      PollHandlers pollHandlers;
@@ -1225,7 +1225,7 @@ index e8ea6b7..64c2701 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index ac78c48..4c90fde 100644
+index e663aa1..934339c 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -290,7 +290,8 @@ int main(int argc, char** argv)
@@ -1253,5 +1253,5 @@ index ac78c48..4c90fde 100644
  
      auto platformHandler = std::make_unique<platform::Handler>(
 -- 
-2.25.1
+2.44.2
 

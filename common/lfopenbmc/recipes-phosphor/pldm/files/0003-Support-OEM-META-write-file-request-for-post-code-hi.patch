@@ -1,4 +1,4 @@
-From fc4c8b8fe37d17e2d0c01a0c546a0e66fe162aae Mon Sep 17 00:00:00 2001
+From e1316e01e1a7a90a2325344b6bf9dff0b1738bee Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
 Subject: [PATCH 03/16] Support OEM-META write file request for post code
