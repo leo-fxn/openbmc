@@ -1,0 +1,257 @@
+swagger: '2.0'
+info:
+  description: Swagger doc for /api/server2/sensors
+  title: Swagger doc for /api/server2/sensors
+  version: 1.0.0
+paths:
+  /api/server2/sensors:
+    get:
+      produces:
+      - application/json
+      responses:
+        200:
+          description: ok
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              Information:
+                type: object
+                additionalProperties: false
+                properties:
+                  MB_INLET_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_OUTLET_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_FIO_FRONT_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_SOC_CPU_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_E1S_SSD_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_HSC_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_RETIMER_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_LPDDR5_UP_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_LPDDR5_DOWN_TEMP_C:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_HSC_INPUT_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_P12V_STBY_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_VDD_1V8_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_P3V3_STBY_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_SOCVDD_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_P3V_BAT_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_CPUVDD_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_1V2_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_VDD_3V3_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_P1V2_STBY_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_FBVDDQ_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_FBVDDP2_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_FBVDD1_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_P5V_STBY_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_ADC_CPU_DVDD_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_E1S_SSD_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_CPUVDD_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_SOCVDD_VOLT_V:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_HSC_OUTPUT_CURR_A:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_E1S_SSD_CURR_A:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_CPU_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_HSC_INPUT_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_E1S_SSD_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_CPUVDD_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_SOCVDD_PWR_W:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_CPU_THROTTLE_STA:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_PWR_BREAK_STA:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_SPARE_CH_STA:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+                  MB_PAGE_RETIRE_CNT:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      value:
+                        type: string
+              Actions:
+                type: array
+                items:
+                  type: string
+              Resources:
+                type: array
+                items:
+                  type: string
