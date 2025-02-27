@@ -15,8 +15,34 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-require recipes-core/images/fboss-lite-image.inc
+SUMMARY = "OpenBMC Host-Recovery utilies"
+SECTION = "base"
+PR = "r0"
+LICENSE = "GPL-2.0-or-later"
+LIC_FILES_CHKSUM = "file://spi_util.sh;beginline=5;endline=18;md5=0b1ee7d6f844d472fa306b2fee2167e0"
 
-IMAGE_INSTALL += " \
-    host-recovery \
-    "
+S="${WORKDIR}/sources"
+UNPACKDIR="${S}"
+
+LOCAL_URI = " \
+    file://spi_util.sh \
+"
+
+HOSTRECOVERY_UTILS_FILES = " \
+    spi_util.sh \
+"
+
+do_install() {
+  localbindir="${D}/usr/local/bin"
+  install -d ${localbindir}
+  for f in ${HOSTRECOVERY_UTILS_FILES}; do
+      install -m 755 ${f} ${localbindir}/${f}
+  done
+
+}
+
+RDEPENDS:${PN} += " \
+    bash \
+"
+
+FILES:${PN} += "/usr/local/bin"
