@@ -1,5 +1,7 @@
+import shutil
+
 from fixmybmc.bmccheck import bmcCheck
-from fixmybmc.status import Problem
+from fixmybmc.status import Problem, Skipped
 from fixmybmc.utils import run_cmd
 
 
@@ -9,6 +11,11 @@ def fpga_ver_ok():
     Check if output from fpga_ver.sh is ok
     """
     check_cmd = "fpga_ver.sh"
+
+    if shutil.which("fpga_ver.sh") is None:
+        return Skipped(
+            description="fpga_ver.sh does not exist on this system",
+        )
 
     status = run_cmd(check_cmd.split(" "))
     if status.returncode == 0:

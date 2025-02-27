@@ -34,12 +34,14 @@ class Color(Enum):
     RED = "\033[91m"
     GREEN = "\033[92m"
     ORANGE = "\033[38;5;208m"
+    YELLOW = "\033[93m"
 
 
 color_to_bg = {
     Color.RED: "\033[41m",
     Color.GREEN: "\033[42m",
     Color.ORANGE: "\033[48;5;208m",
+    Color.YELLOW: "\033[43m",
 }
 
 

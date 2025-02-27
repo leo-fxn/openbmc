@@ -70,6 +70,7 @@ def show_result_summary(checks: List[BmcCheck]) -> None:
     passed = [check for check in checks if isinstance(check.result, status.Ok)]
     problems = [check for check in checks if isinstance(check.result, status.Problem)]
     errors = [check for check in checks if isinstance(check.result, status.Error)]
+    skipped = [check for check in checks if isinstance(check.result, status.Skipped)]
     print("Result summary:")
     if len(passed) > 0:
         print(indent(styled(f"Passed: {len(passed)}", color(status.Ok.color), bold())))
@@ -86,6 +87,13 @@ def show_result_summary(checks: List[BmcCheck]) -> None:
         print(
             indent(styled(f"Errors: {len(errors)}", color(status.Error.color), bold()))
         )
+    if len(skipped) > 0:
+        print(
+            indent(
+                styled(f"Skipped: {len(skipped)}", color(status.Skipped.color), bold())
+            )
+        )
+        print(indent(", ".join([check.name for check in skipped]), level=2))
     print("-----")
 
     for check in problems + errors:

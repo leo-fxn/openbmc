@@ -103,6 +103,18 @@ class Problem(Status):
         return "\n".join(parts) or None
 
 
+class Skipped(Status):
+    color = Color.YELLOW
+
+    def __init__(
+        self,
+        description=None,
+    ) -> None:
+        if description is None:
+            raise TypeError("Description must be provided")
+        self.description = description
+
+
 def get_cmd_status_text(cmd_status: CompletedProcess) -> List[str]:
     parts = []
     if cmd_status.args:
