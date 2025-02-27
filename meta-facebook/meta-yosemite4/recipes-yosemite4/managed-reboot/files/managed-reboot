@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# Instead of rebooting ourselves, we ask CHAI for some help via SEL
+#
+busctl call xyz.openbmc_project.Logging \
+  /xyz/openbmc_project/logging \
+  xyz.openbmc_project.Logging.Create Create 'ssa{ss}' \
+  'Reboot requested: managed reboot requested' \
+  xyz.openbmc_project.Logging.Entry.Level.Error 0

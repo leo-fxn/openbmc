@@ -1,0 +1,6 @@
+[Unit]
+Description=Request CHAI for a reboot via SEL
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/managed-reboot

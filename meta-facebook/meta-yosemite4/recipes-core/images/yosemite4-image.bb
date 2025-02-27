@@ -17,3 +17,5 @@ IMAGE_INSTALL:append = " sshd-remediate"
 IMAGE_INSTALL:append = " sensor-cache"
 # T214925969: Temp measure to allow fans to be set to a particular PCT on boot
 IMAGE_INSTALL:append = " fan-manual-mode"
+# A service for asking for reboot assistance via SEL event
+IMAGE_INSTALL:append = " managed-reboot"
