@@ -47,8 +47,28 @@ fi
 
 echo -n "Setup sensor monitoring for FBTP... "
 
-# Vout is not enabled, set HSC_0xD4 register to 3F1Eh to enable Vout
-/usr/local/bin/me-util mb 0xb8 0xd9 0x57 0x01 0x0 0x88 0x8a 0x0 0x0 0x3 0x0 0xd4 0x1e 0x3f
+count=0
+while [ 1 ];
+do
+  ((count++))
+  response=$(/usr/local/bin/me-util mb 0xb8 0xd9 0x57 0x01 0x0 0x86 0x8a 0x0 0x0 0x1 0x2 0xd4)
+  byte4=$(echo $response | cut -d ' ' -f 4)
+  byte5=$(echo $response | cut -d ' ' -f 5)
+
+  if [ "$byte4" = "1E" ] && [ "$byte5" = "3F" ]; then
+    kv set read_12v ME
+    logger -t "sensord" -p daemon.info "Read 12v_OUT from ME"
+    break
+  elif [ $count -ge 30 ]; then
+    kv set read_12v ADC
+    logger -t "sensord" -p daemon.info "Read 12v_OUT from ADC"
+    break
+  else
+    # Vout is not enabled, set HSC_0xD4 register to 3F1Eh to enable Vout
+    /usr/local/bin/me-util mb 0xb8 0xd9 0x57 0x01 0x0 0x88 0x8a 0x0 0x0 0x3 0x0 0xd4 0x1e 0x3f
+    sleep 1
+  fi
+done
 
 runsv /etc/sv/sensord > /dev/null 2>&1 &
 

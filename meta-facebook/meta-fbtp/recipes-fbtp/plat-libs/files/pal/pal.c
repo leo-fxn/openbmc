@@ -1121,6 +1121,8 @@ read_hsc_vdelta_value(float *value) {
   uint8_t sku_id = 0;
   uint8_t hsc_volt_reg[2] = {0x88, 0x8B}; //VIN, VOUT
   float hsc_volt[2] = {0}; //VIN, VOUT
+  float p12v_adc, p5v_adc, p3v_adc;
+  char kv_str[MAX_VALUE_LEN] = {0};
 
   if (pal_get_platform_id(&sku_id) ||
       pal_get_board_rev_id(&revision_id)) {
@@ -1153,7 +1155,6 @@ read_hsc_vdelta_value(float *value) {
   req->data[8] = 0x02;
   tlen = 10 + MIN_IPMB_REQ_LEN; // Data Length + Others
 
-  ret = 0;
   for ( int i = 0; i < 2; i++ ) {
     req->data[9] = hsc_volt_reg[i];
     rlen = ipmb_send_buf(bus_id, tlen);
@@ -1170,28 +1171,33 @@ read_hsc_vdelta_value(float *value) {
     }
   }
 
-  if ( ret != READING_NA ) {
+  kv_get(kv_str, "read_12v", NULL, 0);
+  if (!strcmp(kv_str, "ME") && ret != READING_NA) {
     *value = hsc_volt[0] - hsc_volt[1];
-    // Get HSC fault
-    if ( *value >= HSC_FAULT_DIFF_THRES ) {
-      if ( retry < 1 ) {
-        // Check HSC vdelta again
-        retry++;
-      } else {
-        // read ADC P12V for comparison
-        float p12v_adc = 0;
-        if ( sensors_read_adc("MB_P12V", &p12v_adc) < 0 ) {
-          syslog(LOG_CRIT, "Failed to get MB_P12V\n");
-        }
-        syslog(LOG_CRIT, "HSC vdelta(Vin(%0.2f)-Vout(%0.2f)) %0.2f >= %0.2f, MB_P12V: %0.2f, turn off P12V_STBY\n" \
-                       , hsc_volt[0], hsc_volt[1], *value, HSC_FAULT_DIFF_THRES, p12v_adc);
-        turn_off_p12v_stby("HSC vdelta");
-      }
-    } else {
-      retry = 0;
+  }
+  else {
+    ret = sensors_read_adc("MB_P12V", &p12v_adc);
+    *value = hsc_volt[0] - p12v_adc;
+  }
+
+  if ( *value >= HSC_FAULT_DIFF_THRES ) {
+    if ( retry < 1 ) {
+      retry++;
     }
-  } else {
-    syslog(LOG_INFO, "Couldn't calculate hsc_vdelta, ret= %d, vin=%0.2f vout=%0.2f\n", ret, hsc_volt[0], hsc_volt[1]);
+    else {
+      sensors_read_adc("MB_P5_STBY", &p5v_adc);
+      sensors_read_adc("MB_P3V3_STBY", &p3v_adc);
+      syslog(LOG_CRIT, "HSC vdelta(Vin(%0.2f)-Vout(%0.2f)) %0.2f >= %0.2f\n" \
+                       , hsc_volt[0], hsc_volt[1], *value, HSC_FAULT_DIFF_THRES);
+      syslog(LOG_CRIT, "MB_P12V: %0.2f, MB_P5V_STBY: %0.2f, MB_P3V3_STBY: %0.2f" \
+                       , p12v_adc, p5v_adc, p3v_adc);
+      syslog(LOG_CRIT, "ME resp: rlen=%d, comp_code=%02X, byte10=%02X, byte11=%02X\n" \
+                       , rlen, rbuf[6], rbuf[10], rbuf[11]);
+      turn_off_p12v_stby("HSC vdelta");
+    }
+  }
+  else {
+    retry = 0;
   }
 
   return ret;
