@@ -54,4 +54,5 @@ IMAGE_INSTALL += " \
   redfish-events \
   i3c-tools \
   retimer-util \
+  jq \
 "
