@@ -3801,6 +3801,7 @@ static int
 pal_bmc_fan_threshold_init() {
   uint8_t fan_type = UNKNOWN_TYPE;
   uint8_t bmc_location = 0;
+  int slot_type = fby35_common_get_slot_type(FRU_SLOT1);
 
   if (fby35_common_get_bmc_location(&bmc_location) < 0) {
     syslog(LOG_ERR, "%s() Cannot get the location of BMC", __func__);
@@ -3817,7 +3818,8 @@ pal_bmc_fan_threshold_init() {
       }
     }
 
-    if (rev_id >= BB_REV_DVT && fan_type == SINGLE_TYPE) {
+    if ((rev_id >= BB_REV_DVT && fan_type == SINGLE_TYPE)
+        || slot_type == SERVER_TYPE_CL_EMR) {
         /*
           BMC_SENSOR_FAN0_TACH,
           BMC_SENSOR_FAN1_TACH,
