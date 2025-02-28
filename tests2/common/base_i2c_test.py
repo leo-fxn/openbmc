@@ -20,12 +20,15 @@
 
 import fnmatch
 import os
+import unittest
 from abc import abstractmethod
 
 from utils.cit_logger import Logger
 from utils.i2c_utils import I2cSysfsUtils
+from utils.test_utils import qemu_check
 
 
+@unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
 class BaseI2cTest(object):
     def setUp(self):
         Logger.start(name=self._testMethodName)

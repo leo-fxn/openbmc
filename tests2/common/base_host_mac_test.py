@@ -19,13 +19,15 @@
 #
 
 
+import unittest
 from abc import abstractmethod
 
 from utils.cit_logger import Logger
 from utils.shell_util import run_shell_cmd
-from utils.test_utils import mac_verify
+from utils.test_utils import mac_verify, qemu_check
 
 
+@unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
 class BaseHostMacTest(object):
     def setUp(self):
         Logger.start(name=self._testMethodName)
@@ -53,6 +55,7 @@ class BaseHostMacTest(object):
             ),
         )
 
+    @unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
     def test_host_mac_zero_test(self):
         self.set_host_mac()
         self.assertNotEqual(self.host_mac_cmd, None, "Host MAC command not set")
