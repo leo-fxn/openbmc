@@ -6,6 +6,8 @@ SRC_URI:append = " \
     file://0003-DeviceMgmt-fix-device-not-found.patch \
     file://0004-PSUSensor-Fix-error-for-decimal-part-of-scalefactor.patch \
     file://0006-Add-structured-logging-for-Threshold-events.patch \
+    file://0007-psusensor-fixed-not-activate-for-multiple-power-stat.patch \
+    file://0008-psusensors-fixed-multiple-power-state-issue.patch \
 "
 
 SRC_URI:append:fb-compute-multihost = " \
