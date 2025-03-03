@@ -1,4 +1,4 @@
-From 541c47d17bd74da5c73f2a894ac553f566b4f678 Mon Sep 17 00:00:00 2001
+From 4b30d0305163244e81c19af3e31b3d44c78a968c Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Fri, 1 Nov 2024 17:44:55 +0800
 Subject: [PATCH 13/16] platform-mc: Handle get PLDM Commands failure
@@ -15,10 +15,10 @@ Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
  1 file changed, 7 insertions(+)
 
 diff --git a/platform-mc/terminus_manager.cpp b/platform-mc/terminus_manager.cpp
-index 0aacf33..2f9ab9d 100644
+index 1086292..582528b 100644
 --- a/platform-mc/terminus_manager.cpp
 +++ b/platform-mc/terminus_manager.cpp
-@@ -395,6 +395,13 @@ exec::task<int> TerminusManager::initMctpTerminus(const MctpInfo& mctpInfo)
+@@ -391,6 +391,13 @@ exec::task<int> TerminusManager::initMctpTerminus(const MctpInfo& mctpInfo)
              lg2::error(
                  "Failed to Get PLDM Commands for terminus {TID}, error {ERROR}",
                  "TID", tid, "ERROR", rc);
@@ -33,5 +33,5 @@ index 0aacf33..2f9ab9d 100644
  
          for (size_t i = 0; i < cmds.size(); i++)
 -- 
-2.44.2
+2.43.5
 

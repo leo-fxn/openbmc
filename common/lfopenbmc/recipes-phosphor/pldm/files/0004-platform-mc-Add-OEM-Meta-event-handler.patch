@@ -1,4 +1,4 @@
-From 36abbc98b990359f67bed23c04a232c39e66d3c8 Mon Sep 17 00:00:00 2001
+From 173ad60e43c36df45f28339bfc22b7fabebcb85f Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/16] platform-mc: Add OEM Meta event handler
@@ -1144,7 +1144,7 @@ index 21199e0..3ccec55 100644
  } // namespace platform_mc
  } // namespace pldm
 diff --git a/platform-mc/manager.hpp b/platform-mc/manager.hpp
-index 5654099..c1b9d09 100644
+index 039d6f9..d9a849f 100644
 --- a/platform-mc/manager.hpp
 +++ b/platform-mc/manager.hpp
 @@ -6,11 +6,14 @@
@@ -1175,7 +1175,7 @@ index 5654099..c1b9d09 100644
 +        pldm::ConfigurationDiscoveryHandler* configurationDiscovery) :
          terminusManager(event, handler, instanceIdDb, termini, this,
                          pldm::BmcMctpEid),
-         platformManager(terminusManager, termini),
+         platformManager(terminusManager, termini, this),
          sensorManager(event, terminusManager, termini, this),
 -        eventManager(terminusManager, termini)
 +        eventManager(terminusManager, termini, configurationDiscovery),
@@ -1253,5 +1253,5 @@ index e663aa1..934339c 100644
  
      auto platformHandler = std::make_unique<platform::Handler>(
 -- 
-2.44.2
+2.43.5
 

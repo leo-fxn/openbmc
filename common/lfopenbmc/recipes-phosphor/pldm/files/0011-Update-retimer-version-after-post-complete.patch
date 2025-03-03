@@ -1,4 +1,4 @@
-From 614322c33247ea8a9608d15f0e4aa3f9db84ffe9 Mon Sep 17 00:00:00 2001
+From eeb86ea165a519a351fbd4489f1e73118bd327c6 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Thu, 19 Sep 2024 14:00:24 +0800
 Subject: [PATCH 11/16] Update retimer version after post complete
@@ -60,5 +60,5 @@ index 8a09289..22698e2 100644
      {
          event_name = eventList[eventType];
 -- 
-2.44.2
+2.43.5
 
