@@ -1,4 +1,4 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
+# Copyright 2014-present Facebook. All Rights Reserved.
 #
 # This program file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -14,12 +14,17 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
+#
+[Unit]
+Description=Power on Wedge microserver
+After=setup_board.service openbmc_gpio_setup.service setup_i2c.service ipmid.service kcsd.target
+Wants=openbmc_gpio_setup.service
+DefaultDependencies=no
 
-FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/power-on.sh
 
-LOCAL_URI += "\
-    file://board-utils.sh \
-    file://setup_i2c.sh \
-    file://setup_board.sh \
-    file://wedge_power_come_shutdown_reason.patch \
-    "
+[Install]
+WantedBy=multi-user.target

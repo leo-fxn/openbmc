@@ -23,7 +23,6 @@ LOCAL_URI += "\
     file://setup-gpio.sh\
     file://read_INA230.sh \
     file://setup_board.sh \
-    file://power-on-after-ipmid-kcsd.patch \
     "
 
 OPENBMC_UTILS_FILES += " \

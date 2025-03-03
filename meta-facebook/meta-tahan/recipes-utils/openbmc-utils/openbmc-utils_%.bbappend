@@ -22,5 +22,4 @@ LOCAL_URI += "\
     file://setup_i2c.sh \
     file://setup_board.sh \
     file://wedge_power_come_shutdown_reason.patch \
-    file://power-on-after-ipmid-kcsd.patch \
     "

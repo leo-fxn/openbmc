@@ -20,6 +20,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 LOCAL_URI += "\
     file://board-utils.sh \
     file://power-on.sh \
+    file://power-on.service \
     file://setup-gpio.sh \
     file://setup_board.sh \
     file://setup_i2c.sh \
