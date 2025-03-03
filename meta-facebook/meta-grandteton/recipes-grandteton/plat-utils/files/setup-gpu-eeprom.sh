@@ -22,6 +22,7 @@
 KV_CMD="/usr/bin/kv"
 
 GPU_CONFIG="gpu_config"
+HGX_MODEL="hgx_model"
 
 HGX_FRU_BIN="/tmp/fruid_hgx.bin"
 HGX_EEPROM_ADDR="0x53"
@@ -83,6 +84,22 @@ gpu_snr_mon () {
   fi
 }
 
+setup_gpu_model() {
+  hmc_model=("H100" "H200" "B100" "B200")
+  # TODO add UBB model
+  gpu=$1
+
+  if [ "$gpu" == "hgx" ]; then
+    for i in "${!hmc_model[@]}"; do
+      is_model="$(strings "$HGX_FRU_BIN" | grep -i "${hmc_model[$i]}")"
+      if [ -n "$is_model" ]; then
+        $KV_CMD set $GPU_MODEL "${hmc_model[$i]}" persistent
+        return
+      fi
+    done
+  fi
+}
+
 setup_gpu_eeprom () {
   gpu=("hgx" "ubb")
   names=("NVIDIA" "AMD")
@@ -98,6 +115,7 @@ setup_gpu_eeprom () {
     if [ -n "$is_gpu" ]; then
       $KV_CMD set $GPU_CONFIG "${gpu[$loop]}" persistent
       $KV_CMD set "${snr_polling[$loop]}" 1
+      setup_gpu_model "${gpu[$loop]}"
       gpu_snr_mon "${gpu[$loop]}" enable
       return
     fi

@@ -317,9 +317,9 @@ std::string updateNonBlocking(const std::string& comp, const std::string& path, 
 }
 
 HMCPhase getHMCPhase() {
-  HMCPhase phase = HMCPhase::BMC_FW_DVT;
+  HMCPhase phase = HMCPhase::HMC_FW_UNKNOWN;
   try {
-    std::string strModel = kv::get("gpu_model");
+    std::string strModel = kv::get("hgx_model", kv::region::persist);
     if (containStr(strModel, {"H100", "H200"})) {
       return HMCPhase::BMC_FW_DVT;
     }
@@ -347,7 +347,7 @@ HMCPhase getHMCPhase() {
 
   if (tryPhase(HMC_FW_INVENTORY + "HGX_FW_BMC_0")) {
     std::string url = HMC_URL + "Chassis/HGX_Chassis_0/Assembly";
-    phase = HMCPhase::BMC_FW_DVT;
+    phase = HMCPhase::HMC_FW_UNKNOWN;
     json jurl = json::parse(hgx.get(url));
 
     if (jurl.contains("Assemblies")) {
@@ -356,11 +356,11 @@ HMCPhase getHMCPhase() {
         if (x.contains("Model"))  {
           auto model = x["Model"].dump();
           if (containStr(model, {"H100", "H200"})) {
-            kv::set("gpu_model", model);
+            kv::set("hgx_model", model, kv::region::persist);
             return HMCPhase::BMC_FW_DVT;
           }
           else if (containStr(model, {"B100", "B200"})) {
-            kv::set("gpu_model", model);
+            kv::set("hgx_model", model, kv::region::persist);
             return HMCPhase::BMC_FW_B100;
           }
         }
@@ -368,11 +368,11 @@ HMCPhase getHMCPhase() {
     }
   }
   else if (tryPhase(HMC_FW_INVENTORY + "HGX_FW_HMC_0")) {
-    kv::set("gpu_model", "HGX_DVT");
+    kv::set("hgx_model", "HGX_DVT", kv::region::persist);
     phase = HMCPhase::HMC_FW_DVT;
   }
   else if (tryPhase(HMC_FW_INVENTORY + "HMC_Firmware")) {
-    kv::set("gpu_model", "HGX_EVT");
+    kv::set("hgx_model", "HGX_EVT", kv::region::persist);
     phase = HMCPhase::HMC_FW_EVT;
   }
 
