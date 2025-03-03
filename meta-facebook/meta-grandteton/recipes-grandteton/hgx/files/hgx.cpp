@@ -504,7 +504,8 @@ void factoryReset() {
   static const std::map<HMCPhase, std::string> urlMap = {
     {HMCPhase::HMC_FW_EVT, HMC_URL + "Managers/bmc" + HMC_FACTORY_RESET_SERVICE},
     {HMCPhase::HMC_FW_DVT, HMC_URL + "Managers/HGX_HMC_0" + HMC_FACTORY_RESET_SERVICE},
-    {HMCPhase::BMC_FW_DVT, HMC_URL + "Managers/HGX_BMC_0" + HMC_FACTORY_RESET_SERVICE}
+    {HMCPhase::BMC_FW_DVT, HMC_URL + "Managers/HGX_BMC_0" + HMC_FACTORY_RESET_SERVICE},
+    {HMCPhase::BMC_FW_B100, HMC_URL+ "Managers/HGX_BMC_0" + HMC_FACTORY_RESET_SERVICE}
   };
   std::string url = urlMap.at(getHMCPhase());
   hgx.post(url, json::object({{"ResetToDefaultsType", "ResetAll"}}).dump(), false);
@@ -514,7 +515,8 @@ void reset() {
   static const std::map<HMCPhase, std::string> urlMap = {
     {HMCPhase::HMC_FW_EVT, HMC_URL + "Managers/bmc" + HMC_RESET_SERVICE},
     {HMCPhase::HMC_FW_DVT, HMC_URL + "Managers/HGX_HMC_0" + HMC_RESET_SERVICE},
-    {HMCPhase::BMC_FW_DVT, HMC_URL + "Managers/HGX_BMC_0" + HMC_RESET_SERVICE}
+    {HMCPhase::BMC_FW_DVT, HMC_URL + "Managers/HGX_BMC_0" + HMC_RESET_SERVICE},
+    {HMCPhase::BMC_FW_B100, HMC_URL+ "Managers/HGX_BMC_0" + HMC_RESET_SERVICE}
   };
   std::string url = urlMap.at(getHMCPhase());
   hgx.post(url, json::object({{"ResetType", "GracefulRestart"}}).dump(), false);
@@ -524,7 +526,8 @@ void patch_bf_update() {
   static const std::map<HMCPhase, const std::vector<std::string>*> patchMap = {
     {HMCPhase::HMC_FW_EVT, &HMC_PATCH_TARGETS_EVT},
     {HMCPhase::HMC_FW_DVT, &HMC_PATCH_TARGETS_DVT},
-    {HMCPhase::BMC_FW_DVT, &BMC_PATCH_TARGETS_DVT}
+    {HMCPhase::BMC_FW_DVT, &BMC_PATCH_TARGETS_DVT},
+    {HMCPhase::BMC_FW_B100, &BMC_PATCH_TARGETS_DVT}
   };
   json patchJson = json::object({{"HttpPushUriTargets", json::array()}});
   for (const auto& target : *patchMap.at(getHMCPhase())) {
