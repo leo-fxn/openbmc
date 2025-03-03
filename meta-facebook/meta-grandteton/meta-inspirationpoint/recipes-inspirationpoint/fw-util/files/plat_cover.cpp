@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <openbmc/pal.h>
+#include <openbmc/kv.hpp>
 #include <openbmc/obmc-i2c.h>
 #include <syslog.h>
 #include "vr_fw.h"
@@ -35,8 +36,34 @@ int palBiosComponent::setMeRecovery(uint8_t /*retry*/) {
   return 0;
 }
 
-palBiosComponent bios("mb", "bios", "pnor", "/sys/bus/platform/drivers/aspeed-smc",
-                      "1e631000.spi", "FM_BMC_MUX_CS_SPI_SEL_0", true, "(F0TG)(.*)");
+
+class bios_cover_config {
+  private:
+    std::optional<palBiosComponent> bios;
+
+    bios_cover_config() {
+      try {
+        std::string product = kv::get("cpu_product", kv::region::temp);
+        if (product == "Turin") {
+          bios.emplace("mb", "bios", "pnor", "/sys/bus/platform/drivers/aspeed-smc",
+                       "1e631000.spi", "FM_BMC_MUX_CS_SPI_SEL_0", true, "(F0TC)(.*)");
+        } else if (product == "Genoa") {
+          bios.emplace("mb", "bios", "pnor", "/sys/bus/platform/drivers/aspeed-smc",
+                       "1e631000.spi", "FM_BMC_MUX_CS_SPI_SEL_0", true, "(F0TG)(.*)");
+        } else {
+          syslog(LOG_CRIT, "Unknown CPU product: %s", product.c_str());
+        }
+      } catch (const std::exception& err) {
+          syslog(LOG_CRIT, "Exception in bios_cover_config, err: %s", err.what());
+      }
+    }
+  public:
+    static bios_cover_config& getInstance() {
+      static bios_cover_config instance;
+      return instance;
+    }
+};
+bios_cover_config& config = bios_cover_config::getInstance();
 
 VrComponent vr_cpu0_vcore0("mb", "cpu0_vcore0", "VR_CPU0_VCORE0/SOC");
 VrComponent vr_cpu0_vcore1("mb", "cpu0_vcore1", "VR_CPU0_VCORE1/PVDDIO");
