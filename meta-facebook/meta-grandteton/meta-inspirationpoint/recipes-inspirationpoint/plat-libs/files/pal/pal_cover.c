@@ -251,8 +251,14 @@ error_exit:
 }
 
 int
-pal_check_psb_error(uint8_t head, uint8_t last) {
-  if(head == 0xEE) {
+pal_check_psb_error(uint32_t postcode) {
+  uint8_t head = postcode >> 24;
+  uint8_t last = postcode & 0xff;
+
+  if (head != 0xEE || (postcode && 0xffff00)) {
+    return 0;
+  }
+  else {
     switch (last) {
       case 0x03:
         syslog(LOG_CRIT, "PSB Event(EE0003) Error in BIOS Directory Table - Too many directory entries");

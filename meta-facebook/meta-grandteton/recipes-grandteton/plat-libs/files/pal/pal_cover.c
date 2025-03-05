@@ -36,7 +36,7 @@ pal_check_power_rail(int) {
 }
 
 int
-pal_check_psb_error(uint8_t head, uint8_t last) {
+pal_check_psb_error(uint32_t postcode) {
   return 0;
 }
 
