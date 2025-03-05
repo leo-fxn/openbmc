@@ -27,6 +27,7 @@ PLATFORMS = [
     "meru",
     "minerva",
     "minipack",
+    "minipack3n",
     "montblanc",
     "morgan800cc",
     "northdome",
