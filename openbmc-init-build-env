@@ -43,15 +43,16 @@ PLAT_DISTRO_OVERRIDES=(
   meta-gtartemis:lf-master
   meta-halfdome:lf-master
   meta-harma:lf-master
+  meta-icecube800bc:lf-master
   meta-inspirationpoint:lf-master
   meta-janga:lf-master
   meta-javaisland:lf-master
   meta-meru:lf-master
   meta-minerva:lf-master
-  meta-minipack:lf-master
   meta-minipack3n:lf-master
-  meta-morgan800cc:lf-master
+  meta-minipack:lf-master
   meta-montblanc:lf-master
+  meta-morgan800cc:lf-master
   meta-qemux86:lf-master
   meta-tahan:lf-master
   meta-ventura:lf-master

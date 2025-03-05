@@ -1,0 +1,199 @@
+// SPDX-License-Identifier: GPL-2.0+
+// Copyright (c) Meta Platforms, Inc. and affiliates.
+
+#include <linux/device.h>
+#include <linux/errno.h>
+#include <linux/kernel.h>	/* for ARRAY_SIZE */
+#include <linux/module.h>
+#include <linux/i2c.h>
+#include <linux/version.h>
+#include "i2c_dev_sysfs.h"
+
+/*
+ * NOTE: ONLY export register fields that are required from user space.
+ */
+static const i2c_dev_attr_st scmcpld_attrs[] = {
+	{
+		"version_id",
+		"Icecube SCM Board revision:\n"
+		" 0x0: EVT-1\n"
+		" 0x1: EVT-2\n"
+		" 0x2: EVT-3\n"
+		" 0x3: DVT-1\n"
+		" 0x4: DVT-2\n"
+		" 0x5: PVT\n"
+		" 0x6: MP\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x0,
+		0,
+		4,
+	},
+	{
+		"board_id",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x0,
+		4,
+		4,
+	},
+	{
+		"cpld_major_ver",
+		"CPLD MAJOR Revision",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x1,
+		0,
+		7,
+	},
+	{
+		"cpld_minor_ver",
+		"CPLD MINOR Revision",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x2,
+		0,
+		8,
+	},
+	{
+		"pwr_come_en",
+		"use to power on the COMe (default: 0)\n"
+		" 0: power off COMe\n"
+		" 1: power on COMe\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0x14,
+		0,
+		1,
+	},
+	{
+		"pwr_force_off",
+		"use to make COMe power off when set to 0\n"
+		" 0: COMe power is off\n"
+		" 1: COMe power is on\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0x14,
+		1,
+		1,
+	},
+	{
+		"pwr_cyc_n",
+		"write 0 to trigger CPLD power cycling COMe\n"
+		"then this bit will auto set to 1 after Power cycle finish\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0x14,
+		2,
+		1,
+	},
+	{
+		"pwr_come_cycle_dev_n",
+		"write 0 to trigger CPLD power cycling the COMe + I210 + SSD\n"
+		"then this bit will auto set to 1 after Power cycle finish\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0x14,
+		3,
+		1,
+	},
+	{
+		"iob_fpga_program",
+		" 0x00: Re-init"
+		" 0x01: Normal\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0x18,
+		2,
+		1,
+	},
+	{
+		"xp5r0v_come_pg",
+		" 0x00: Not good"
+		" 0x01: Good\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x1c,
+		0,
+		1,
+	},
+	{
+		"xp12r0v_come_pg",
+		" 0x00: Not good"
+		" 0x01: Good\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x1c,
+		1,
+		1,
+	},
+	{
+		"e1_ssd_present",
+		" 0x00: absent"
+		" 0x01: present\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0x27,
+		0,
+		1,
+	},
+	{
+		"spi_select",
+		" 0x00: BMC SPI to IOB FPGA FLASH"
+		" 0x01: BMC SPI to COMe"
+		" 0x02: BMC SPI to PROT\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0x41,
+		0,
+		8,
+	}
+};
+
+static const struct i2c_device_id scmcpld_id[] = {
+	{ "scmcpld", 0 },
+	{ },
+};
+MODULE_DEVICE_TABLE(i2c, scmcpld_id);
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(6, 5, 0)
+static int scmcpld_probe(struct i2c_client *client)
+#else
+static int scmcpld_probe(struct i2c_client *client,
+			 const struct i2c_device_id *id)
+#endif
+{
+	i2c_dev_data_st *pdata;
+
+	pdata = devm_kmalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+	if (pdata == NULL)
+		return -ENOMEM;
+
+	i2c_set_clientdata(client, pdata);
+
+	return i2c_dev_sysfs_data_init(client, pdata, scmcpld_attrs,
+				       ARRAY_SIZE(scmcpld_attrs));
+}
+
+static void scmcpld_remove(struct i2c_client *client)
+{
+	i2c_dev_data_st *pdata = i2c_get_clientdata(client);
+
+	i2c_dev_sysfs_data_clean(client, pdata);
+}
+
+static struct i2c_driver scmcpld_driver = {
+	.class    = I2C_CLASS_HWMON,
+	.driver = {
+		.name = "scmcpld",
+	},
+	.probe    = scmcpld_probe,
+	.remove   = scmcpld_remove,
+	.id_table = scmcpld_id,
+};
+
+module_i2c_driver(scmcpld_driver);
+
+MODULE_DESCRIPTION("FBOSS OpenBMC scmcpld Driver");
+MODULE_LICENSE("GPL");
