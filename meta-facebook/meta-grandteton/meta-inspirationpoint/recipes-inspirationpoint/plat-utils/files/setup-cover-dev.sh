@@ -377,4 +377,23 @@ if [ "$mb_product" == "GT1.5" ]; then
 
   # HPDB FRU
   i2c_device_add 37 0x51 24c64
+
+  # setup vpdb
+  vrev=$(kv get vpdb_rev)
+  VPDB_PVT4=8
+  VPDB_4TH_SOURCE=3
+
+  if [ "$vrev" -ge "$VPDB_PVT4" ]; then
+    # ADC Type
+    adc_type="$(gpio_get VPDB_SKU_ID_4)"
+    if [ "$adc_type" == "0" ]; then           # dif only
+      adc_dif_sku="$(($(gpio_get VPDB_SKU_ID_6) << 1 | $(gpio_get VPDB_SKU_ID_5)))"
+      if [ "$adc_dif_sku" == "$VPDB_4TH_SOURCE" ]; then
+        i2c_device_add 36 0x40 ina238
+        i2c_device_add 36 0x41 ina238
+        kv set vpdb_adc_source "$VPDB_4TH_SOURCE"
+      fi
+    fi
+  fi
+
 fi
