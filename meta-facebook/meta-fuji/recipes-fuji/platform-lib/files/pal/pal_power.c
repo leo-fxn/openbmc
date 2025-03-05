@@ -240,6 +240,9 @@ pal_get_server_power(uint8_t slot_id, uint8_t *status) {
       if (!(strncmp(value, "off", strlen("off")))) {
         *status = SERVER_POWER_OFF;
       }
+
+      // When the BIC status is abnormal, ensure that we can get the correct power status.
+      return 0;
     }
 
     if (!gpio.pwrgood_cpu)
