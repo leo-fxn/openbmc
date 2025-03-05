@@ -41,23 +41,27 @@ from typing import List
 @dataclass
 class EepromSpec:
     name: str
-    address: str
+    sysfs_path: str
 
 
 @dataclass
 class EepromFileSpec:
     platform_name: str
-    eeproms: List[EepromSpec]
+    eeprom_devices: List[EepromSpec]
 
 
 def gen_eeprom(platname, data_file: str, output_dir: str):
     eeproms = parse_spec(data_file)
-    fileSpec = EepromFileSpec(platform_name=platname, eeproms=eeproms)
+    fileSpec = EepromFileSpec(platform_name=platname, eeprom_devices=eeproms)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     output = os.path.join(output_dir, "eeprom.json")
     with open(output, "w+") as f:
-        f.write(json.dumps(asdict(fileSpec), indent=4))
+        f.write(
+            json.dumps(asdict(fileSpec), indent=4).replace(
+                "eeprom_devices", "eeprom devices"
+            )
+        )
 
 
 def get_eeprom_config(fname: str) -> List[EepromSpec]:
@@ -66,7 +70,8 @@ def get_eeprom_config(fname: str) -> List[EepromSpec]:
             return json.load(f)["eeprom devices"]
     except Exception as e:
         raise Exception(
-            "Unable to read eeprom configuration file: {}".format(fname)) from e
+            "Unable to read eeprom configuration file: {}".format(fname)
+        ) from e
 
 
 def parse_spec(fname: str) -> List[EepromSpec]:
@@ -74,7 +79,9 @@ def parse_spec(fname: str) -> List[EepromSpec]:
     with open(fname, "r") as f:
         try:
             for parsed_eeprom in json.load(f)["eeprom devices"]:
-                spec: EepromSpec = EepromSpec(name=parsed_eeprom["name"], address=parsed_eeprom["sysfs_path"])
+                spec: EepromSpec = EepromSpec(
+                    name=parsed_eeprom["name"], sysfs_path=parsed_eeprom["sysfs_path"]
+                )
                 eepromSpecs.append(spec)
             return eepromSpecs
 
