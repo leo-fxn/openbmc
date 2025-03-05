@@ -25,10 +25,12 @@ LOCAL_URI += " \
     file://fsc-config-8-retimer-650W.json \
     file://fsc-config-8-retimer-750W.json \
     file://fsc-config-8-retimer-ubb.json \
+    file://fsc-config-8-retimer-ubb-mi355.json \
     file://zone-evt.fsc \
     file://zone-2-retimer.fsc \
     file://zone-8-retimer.fsc \
     file://zone-8-retimer-ubb.fsc \
+    file://zone-8-retimer-ubb-mi355.fsc \
     file://zone-8-retimer-gt15.fsc \
     "
 
@@ -38,6 +40,7 @@ FSC_CONFIG += "fsc-config-evt.json \
                fsc-config-8-retimer-650W.json \
                fsc-config-8-retimer-750W.json \
                fsc-config-8-retimer-ubb.json \
+               fsc-config-8-retimer-ubb-mi355.json \
 	      "
 
 FSC_ZONE_CONFIG +="zone-evt.fsc \
@@ -45,5 +48,6 @@ FSC_ZONE_CONFIG +="zone-evt.fsc \
                    zone-8-retimer.fsc \
                    zone-8-retimer-ubb.fsc \
                    zone-8-retimer-gt15.fsc \
+                   zone-8-retimer-ubb-mi355.fsc \
 	          "
 RDEPENDS:${PN} += "bash"

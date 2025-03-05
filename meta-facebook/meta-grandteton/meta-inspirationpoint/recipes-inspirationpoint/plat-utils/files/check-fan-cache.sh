@@ -109,7 +109,12 @@ check_mb_rev() {
         if [ "$gpu_config" == "hgx" ]; then
           break
         elif [ "$gpu_config" == "ubb" ]; then
-          ln -s /etc/fsc-config-8-retimer-ubb.json ${DEFAULT_FSC_CONFIG}
+          cpu=$(kv get cpu_product)
+          if [ "$cpu" == "Genoa" ]; then
+            ln -s /etc/fsc-config-8-retimer-ubb.json ${DEFAULT_FSC_CONFIG}
+          else
+            ln -s /etc/fsc-config-8-retimer-ubb-mi355.json ${DEFAULT_FSC_CONFIG}
+          fi
           return
         else
           sleep 5
