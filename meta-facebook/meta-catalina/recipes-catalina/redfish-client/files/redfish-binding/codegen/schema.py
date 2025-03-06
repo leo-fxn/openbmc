@@ -44,7 +44,7 @@ class Version(object):
 
 
 class Schema(object):
-    def __init__(self, raw_schema: dict):
+    def __init__(self, file_name: str, raw_schema: dict):
         self.raw_schema = raw_schema
         if not isinstance(raw_schema, dict):
             raise TypeError(f"Expected schema to be a JSON object, got: {raw_schema}")
@@ -53,7 +53,7 @@ class Schema(object):
             raise ValueError(
                 f"Meta schema other than {VALID_META_SCHEMA} is not supported: {meta_schema}"
             )
-        self.id = get_value_for_required_key(raw_schema, SchemaKey.ID, str)
+        self.id = f"{SCHEMA_BASE_URL}{file_name}"
         id_match = re.match(
             re.escape(SCHEMA_BASE_URL)
             + r"(?P<name>[^.]+)(?:\.(?P<version>[^.]+))?\.json",
@@ -80,7 +80,7 @@ def load_schemas(schemas_dir: str) -> List[Schema]:
             continue
         with open(os.path.join(schemas_dir, filename), "r") as f:
             try:
-                schemas.append(Schema(json.load(f)))
+                schemas.append(Schema(filename, json.load(f)))
             except Exception as e:
                 logger.info(f"Skipping {filename}: {e}")
     logger.info(f"{len(schemas)} schemas are loaded")

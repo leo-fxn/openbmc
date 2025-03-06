@@ -35,7 +35,7 @@ SRC_URI = " \
 	file://subprojects \
 	file://test \
 	file://redfish-binding \
-	https://www.dmtf.org/sites/default/files/standards/documents/DSP8010_2024.3.zip;sha256sum=f2e2973965edbfac4e1fe351463939ce8e4ef878879d21dd5c19fc59ea7e139a \
+	https://www.dmtf.org/sites/default/files/standards/documents/DSP8010_2024.4.zip;sha256sum=f364f36046897ffb5957f7b19378efd4365648df09b888da679b8d1a6c6af19d \
 	file://configurations \
 	file://xyz.openbmc_project.RedfishClient.service \
 "
