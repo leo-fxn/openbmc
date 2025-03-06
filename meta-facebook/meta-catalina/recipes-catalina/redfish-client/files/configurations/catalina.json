@@ -1,0 +1,197 @@
+{
+  "service_name": "xyz.openbmc_project.RedfishClient",
+  "host_port": "172.31.13.251",
+  "interval_milliseconds": 1000,
+  "retries": 3,
+  "sensor_configs": {
+    "/HGX_BMC_0_Temp_0": {
+      "url": "/redfish/v1/Chassis/HGX_BMC_0/Sensors/HGX_BMC_0_Temp_0",
+      "symbolic_namespace": "temperature"
+    },
+    "/ProcessorModule_0_CPU_0_Energy_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_Energy_0",
+      "symbolic_namespace": "energy"
+    },
+    "/ProcessorModule_0_CPU_0_Power_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_Power_0",
+      "symbolic_namespace": "power"
+    },
+    "/ProcessorModule_0_Vreg_0_CpuPower_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_Vreg_0_CpuPower_0",
+      "symbolic_namespace": "power"
+    },
+    "/ProcessorModule_0_Vreg_0_SocPower_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_Vreg_0_SocPower_0",
+      "symbolic_namespace": "power"
+    },
+    "/ProcessorModule_0_CPU_0_TempAvg_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_TempAvg_0",
+      "symbolic_namespace": "temperature"
+    },
+    "/ProcessorModule_0_CPU_0_TempLimit_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_TempLimit_0",
+      "symbolic_namespace": "temperature"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_0": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_0",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_1": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_1",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_10": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_10",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_11": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_11",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_12": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_12",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_13": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_13",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_14": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_14",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_15": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_15",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_16": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_16",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_17": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_17",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_18": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_18",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_19": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_19",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_2": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_2",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_20": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_20",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_21": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_21",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_22": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_22",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_23": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_23",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_24": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_24",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_25": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_25",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_26": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_26",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_27": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_27",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_28": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_28",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_29": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_29",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_3": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_3",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_30": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_30",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_31": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_31",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_32": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_32",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_33": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_33",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_34": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_34",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_35": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_35",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_36": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_36",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_37": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_37",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_38": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_38",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_39": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_39",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_4": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_4",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_40": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_40",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_41": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_41",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_42": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_42",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_43": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_43",
+      "symbolic_namespace": "utilization"
+    },
+    "/ProcessorModule_0_CPU_0_CoreUtil_44": {
+      "url": "/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_CoreUtil_44",
+      "symbolic_namespace": "utilization"
+    }
+  },
+  "wait_milliseconds": 200
+}
