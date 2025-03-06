@@ -1,0 +1,27 @@
+#!/bin/sh
+
+
+memdump() {
+	echo "# free"
+	free
+
+	echo "Top"
+	top -m -n 1
+
+	echo "# /proc/meminfo"
+	cat /proc/meminfo
+
+	echo "# /proc/*/stuff"
+	for cmdline_p in /proc/*/cmdline; do
+		proc_p=$(dirname "$cmdline_p")
+		comm_p=$proc_p/comm
+		cmdline=$(tr -d '\0' < "$cmdline_p")
+		comm=$(tr -d '\0' < "$comm_p")
+		echo "PROC=$proc_p CMDLINE=$cmdline COMM=$comm"
+		echo "smaps_rollup"
+		cat "$proc_p/smaps_rollup"
+		echo "status bits"
+		grep "Vm\|Rss" "$proc_p/status"
+	done
+}
+memdump > /home/root/mem-out.txt
