@@ -21,3 +21,5 @@ IMAGE_INSTALL:append = " fan-manual-mode"
 IMAGE_INSTALL:append = " managed-reboot"
 # Install valgrind while looking for memory leaks
 IMAGE_INSTALL:append = " valgrind"
+# Added as a temp way to reset individual nics
+IMAGE_INSTALL:append = " nic-reset"

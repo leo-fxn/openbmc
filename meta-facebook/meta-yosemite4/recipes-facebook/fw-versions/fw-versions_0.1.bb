@@ -11,7 +11,7 @@ S = "${WORKDIR}/sources"
 UNPACKDIR = "${S}"
 
 HOST_INSTANCES="${@d.getVar('OBMC_HOST_INSTANCES', True).replace(" ", ":")}"
-NIC_INSTANCES="0:1:2:3"
+NIC_INSTANCES="${@d.getVar('OBMC_NIC_INSTANCES', True).replace(" ", ":")}"
 
 FW_TOOLS = "\
     mgmt-cpld,yosemite4-sys-init.service,multi-user.target,multi-user.target,0 \

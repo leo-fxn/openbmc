@@ -1,0 +1,6 @@
+[Unit]
+Description=Reset specified NIC
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/nic-reset %i
