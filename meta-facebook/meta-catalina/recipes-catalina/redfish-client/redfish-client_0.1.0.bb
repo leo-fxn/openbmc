@@ -18,6 +18,7 @@ DEPENDS = " \
 S = "${WORKDIR}/sources"
 UNPACKDIR = "${S}"
 
+SYSTEMD_SERVICE:${PN} += "xyz.openbmc_project.RedfishClient.service"
 SRC_URI = " \
 	file://http_client.cpp \
 	file://http_client.hpp \
@@ -36,4 +37,10 @@ SRC_URI = " \
 	file://redfish-binding \
 	https://www.dmtf.org/sites/default/files/standards/documents/DSP8010_2024.3.zip;sha256sum=f2e2973965edbfac4e1fe351463939ce8e4ef878879d21dd5c19fc59ea7e139a \
 	file://configurations \
+	file://xyz.openbmc_project.RedfishClient.service \
 "
+
+do_install:append() {
+	install -d ${D}${systemd_system_unitdir}
+	install -m 0644 ${S}/xyz.openbmc_project.RedfishClient.service ${D}${systemd_system_unitdir}
+}

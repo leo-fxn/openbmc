@@ -1,0 +1,11 @@
+[Unit]
+Description=Redfish Client
+After=network-online.target xyz.openbmc_project.EntityManager.service xyz.openbmc_project.Logging.service catalina-sys-init.service
+Wants=network-online.target xyz.openbmc_project.EntityManager.service xyz.openbmc_project.Logging.service catalina-sys-init.service
+
+[Service]
+Restart=on-failure
+ExecStart=/usr/bin/redfish-client /usr/share/redfish-client/configurations/catalina.json
+
+[Install]
+WantedBy=multi-user.target
