@@ -1,0 +1,121 @@
+From 71de31e554a169d2f1df5736066c7e9fea467aa5 Mon Sep 17 00:00:00 2001
+From: MandyMCHung <mandy.hung.wiwynn@gmail.com>
+Date: Mon, 3 Mar 2025 10:39:31 +0800
+Subject: [PATCH] Avoid recreating hwmon temp when blade cycle
+
+Problem:
+AC/DC cycles cause all hwmon temperature sensors to become unavailable.
+
+Cause:
+During AC/DC cycles on YV4 (8-host system), the hwmon temp sensor
+service detects power changes and improperly creates duplicate
+chassis-level sensors. These sensors should remain static and
+not disappear.
+
+Impact:
+The creation of duplicate sensors causes the hwmon service to
+crash and restart, leading to temporary sensor unavailability
+while the service resets and retrieves new readings.
+
+Change-Id: If2e022cf0aa2baf7a1703a945fa304db0b5b1816
+Signed-off-by: Mandy Hung <mandy.hung.wiwynn@gmail.com>
+---
+ meson.options                    | 6 ++++++
+ src/dbus-sensor_config.h.in      | 2 ++
+ src/hwmon-temp/HwmonTempMain.cpp | 8 ++++++++
+ src/hwmon-temp/meson.build       | 8 ++++++++
+ src/meson.build                  | 4 ++++
+ 5 files changed, 28 insertions(+)
+
+diff --git a/meson.options b/meson.options
+index de733c9..c9405ce 100644
+--- a/meson.options
++++ b/meson.options
+@@ -83,3 +83,9 @@ option(
+     value: 'disabled',
+     description: 'Enables Sensor override feature without any check.',
+ )
++option(
++    'disable-host-power-monitoring',
++    type: 'boolean',
++    value: false,
++    description: 'Disable host power monitoring for hwmon-temp.',
++)
+diff --git a/src/dbus-sensor_config.h.in b/src/dbus-sensor_config.h.in
+index 6dc9931..2dc34bf 100644
+--- a/src/dbus-sensor_config.h.in
++++ b/src/dbus-sensor_config.h.in
+@@ -6,4 +6,6 @@
+ constexpr const int validateUnsecureFeature = @VALIDATION_UNSECURE_FEATURE@;
+ 
+ constexpr const int insecureSensorOverride = @INSECURE_UNRESTRICTED_SENSOR_OVERRIDE@;
++
++constexpr const int disableHostPowerMonitoring = @DISABLE_HOST_POWER_MONITORING@;
+ // clang-format on
+\ No newline at end of file
+diff --git a/src/hwmon-temp/HwmonTempMain.cpp b/src/hwmon-temp/HwmonTempMain.cpp
+index 1ec199f..cddb95f 100644
+--- a/src/hwmon-temp/HwmonTempMain.cpp
++++ b/src/hwmon-temp/HwmonTempMain.cpp
+@@ -14,6 +14,8 @@
+ // limitations under the License.
+ */
+ 
++#include "dbus-sensor_config.h"
++
+ #include "DeviceMgmt.hpp"
+ #include "HwmonTempSensor.hpp"
+ #include "SensorPaths.hpp"
+@@ -580,6 +582,12 @@ static void powerStateChanged(
+     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+     std::shared_ptr<sdbusplus::asio::connection>& dbusConnection)
+ {
++    if (disableHostPowerMonitoring == 1)
++    {
++        std::cerr
++            << "[INFO] Host power monitoring is disabled, skipping power state change handling.\n";
++        return;
++    }
+     if (newState)
+     {
+         createSensors(io, objectServer, sensors, dbusConnection, nullptr, true);
+diff --git a/src/hwmon-temp/meson.build b/src/hwmon-temp/meson.build
+index 431335f..246e0ff 100644
+--- a/src/hwmon-temp/meson.build
++++ b/src/hwmon-temp/meson.build
+@@ -1,3 +1,10 @@
++disable_host_power_monitoring = get_option('disable-host-power-monitoring')
++
++hwmon_temp_cpp_args = []
++if disable_host_power_monitoring
++    hwmon_temp_cpp_args += ['-DDISABLE_HOST_POWER_MONITORING']
++endif
++
+ src_inc = include_directories('..')
+ 
+ executable(
+@@ -6,5 +13,6 @@ executable(
+     'HwmonTempSensor.cpp',
+     dependencies: [default_deps, devicemgmt_dep, thresholds_dep, utils_dep],
+     include_directories: src_inc,
++    cpp_args: hwmon_temp_cpp_args,
+     install: true,
+ )
+diff --git a/src/meson.build b/src/meson.build
+index ca995e5..cb39a14 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -7,6 +7,10 @@ conf_data.set10(
+     'INSECURE_UNRESTRICTED_SENSOR_OVERRIDE',
+     get_option('insecure-sensor-override').allowed(),
+ )
++conf_data.set(
++    'DISABLE_HOST_POWER_MONITORING',
++    get_option('disable-host-power-monitoring') ? '1' : '0',
++)
+ configure_file(
+     input: 'dbus-sensor_config.h.in',
+     output: 'dbus-sensor_config.h',
+-- 
+2.34.1
+
