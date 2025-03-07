@@ -1,7 +1,7 @@
-From 173ad60e43c36df45f28339bfc22b7fabebcb85f Mon Sep 17 00:00:00 2001
+From 8674b3415d5cb6bf0c4d02e2ab6c7c858065047f Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
-Subject: [PATCH 04/16] platform-mc: Add OEM Meta event handler
+Subject: [PATCH 04/15] platform-mc: Add OEM Meta event handler
 
 Add OEM Meta handler with event type 0xFB. It will print the logs
 with prefix "BIOS_IPMI_SEL", so the user can utilize it to filter
@@ -61,8 +61,8 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  platform-mc/event_manager.hpp           |  15 +-
  platform-mc/manager.hpp                 |  27 +-
  platform-mc/test/meson.build            |   2 +
- pldmd/pldmd.cpp                         |  10 +-
- 8 files changed, 1020 insertions(+), 7 deletions(-)
+ pldmd/pldmd.cpp                         |  17 +-
+ 8 files changed, 1024 insertions(+), 10 deletions(-)
  create mode 100644 oem/meta/platform-mc/event_oem_meta.cpp
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
@@ -1144,7 +1144,7 @@ index 21199e0..3ccec55 100644
  } // namespace platform_mc
  } // namespace pldm
 diff --git a/platform-mc/manager.hpp b/platform-mc/manager.hpp
-index 039d6f9..d9a849f 100644
+index 45a311a..6dc89aa 100644
 --- a/platform-mc/manager.hpp
 +++ b/platform-mc/manager.hpp
 @@ -6,11 +6,14 @@
@@ -1202,7 +1202,7 @@ index 039d6f9..d9a849f 100644
      /** @brief The function to trigger the event polling
       *
       *  @param[in] tid - Terminus ID
-@@ -273,6 +292,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -284,6 +303,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
  
      /** @brief map of PLDM event type to EventHandlers */
      PollHandlers pollHandlers;
@@ -1225,20 +1225,35 @@ index e8ea6b7..64c2701 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index e663aa1..934339c 100644
+index f1109a6..ca8eef4 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
-@@ -290,7 +290,8 @@ int main(int argc, char** argv)
-     // Platform handler.
+@@ -225,8 +225,13 @@ int main(int argc, char** argv)
+     }
+     DBusHandler dbusHandler;
  
++    auto configurationDiscovery =
++        std::make_unique<pldm::ConfigurationDiscoveryHandler>(&dbusHandler);
++
      std::unique_ptr<platform_mc::Manager> platformManager =
 -        std::make_unique<platform_mc::Manager>(event, reqHandler, instanceIdDb);
 +        std::make_unique<platform_mc::Manager>(event, reqHandler, instanceIdDb,
 +                                               configurationDiscovery.get());
++
  
-     pldm::responder::platform::EventMap addOnEventHandlers{
-         {PLDM_CPER_EVENT,
-@@ -313,6 +314,13 @@ int main(int argc, char** argv)
+     std::unique_ptr<pldm::host_effecters::HostEffecterParser>
+         hostEffecterParser =
+@@ -258,9 +263,6 @@ int main(int argc, char** argv)
+     std::shared_ptr<HostPDRHandler> hostPDRHandler;
+     std::unique_ptr<DbusToPLDMEvent> dbusToPLDMEventHandler;
+ 
+-    auto configurationDiscovery =
+-        std::make_unique<pldm::ConfigurationDiscoveryHandler>(&dbusHandler);
+-
+     std::unique_ptr<platform_config::Handler> platformConfigHandler{};
+     platformConfigHandler =
+         std::make_unique<platform_config::Handler>(PDR_JSONS_DIR);
+@@ -315,6 +317,13 @@ int main(int argc, char** argv)
                               size_t eventDataOffset) {
               return platformManager->handleSensorEvent(
                   request, payloadLength, formatVersion, tid, eventDataOffset);

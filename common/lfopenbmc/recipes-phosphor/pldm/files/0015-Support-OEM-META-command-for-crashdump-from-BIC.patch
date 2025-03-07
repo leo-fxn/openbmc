@@ -1,7 +1,7 @@
-From 379966f0a2b5f2e96f380aaf69f65bd6fb8fd0f7 Mon Sep 17 00:00:00 2001
+From 9967ff98bc7bb82eda03f99ca89754b98a20dc92 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Tue, 31 Dec 2024 10:29:35 +0800
-Subject: [PATCH 15/16] Support OEM-META command for crashdump from BIC
+Subject: [PATCH 15/15] Support OEM-META command for crashdump from BIC
 
 Add a handler for write file IO command with type "crashdump".
 The BIOS will send crashdump data to BIC, and the BIC will send

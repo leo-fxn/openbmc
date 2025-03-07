@@ -1,7 +1,7 @@
-From 4b30d0305163244e81c19af3e31b3d44c78a968c Mon Sep 17 00:00:00 2001
+From b19440b759625aaafad2aeb22c7a736542f48fcf Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Fri, 1 Nov 2024 17:44:55 +0800
-Subject: [PATCH 13/16] platform-mc: Handle get PLDM Commands failure
+Subject: [PATCH 13/15] platform-mc: Handle get PLDM Commands failure
 
 Ensure the TID is unmapped and the terminus is erased from termini
 when retrieving PLDM commands fails. This prevents the terminus
@@ -15,7 +15,7 @@ Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
  1 file changed, 7 insertions(+)
 
 diff --git a/platform-mc/terminus_manager.cpp b/platform-mc/terminus_manager.cpp
-index 1086292..582528b 100644
+index c64c0c3..0c29889 100644
 --- a/platform-mc/terminus_manager.cpp
 +++ b/platform-mc/terminus_manager.cpp
 @@ -391,6 +391,13 @@ exec::task<int> TerminusManager::initMctpTerminus(const MctpInfo& mctpInfo)

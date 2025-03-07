@@ -1,7 +1,7 @@
-From 724b9f8ac1cf708275e1fa538ffda5736b12bdc2 Mon Sep 17 00:00:00 2001
+From f220bef89b5b84302a3cc6ef09326a88f149e301 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
-Subject: [PATCH 03/16] Support OEM-META write file request for post code
+Subject: [PATCH 03/15] Support OEM-META write file request for post code
  history
 
 Support write file req when multiple hosts send postcode to BMC
@@ -448,7 +448,7 @@ index 0000000..81ff4eb
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index f69afd1..e663aa1 100644
+index ef4fbb9..f1109a6 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -68,6 +68,9 @@ PHOSPHOR_LOG2_USING;
@@ -461,7 +461,7 @@ index f69afd1..e663aa1 100644
  
  constexpr const char* PLDMService = "xyz.openbmc_project.PLDM";
  
-@@ -272,6 +275,12 @@ int main(int argc, char** argv)
+@@ -277,6 +280,12 @@ int main(int argc, char** argv)
              pldmTransport.getEventSource(), hostEID, instanceIdDb, &reqHandler);
      }
  

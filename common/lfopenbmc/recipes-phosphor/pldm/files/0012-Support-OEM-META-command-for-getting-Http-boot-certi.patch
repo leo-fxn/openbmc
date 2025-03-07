@@ -1,7 +1,7 @@
-From 9ba09a2eeb27163fc9e5f7e433e4a4cc29c49cdf Mon Sep 17 00:00:00 2001
+From 0e02a4e14af22c9640e5cd0aa6d93f1bae1b7b2b Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 16:21:45 +0800
-Subject: [PATCH 12/16] Support OEM-META command for getting Http boot
+Subject: [PATCH 12/15] Support OEM-META command for getting Http boot
  certification
 
 Summary:
