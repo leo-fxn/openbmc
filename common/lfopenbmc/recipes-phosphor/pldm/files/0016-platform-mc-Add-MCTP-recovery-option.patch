@@ -1,0 +1,90 @@
+From 8dc97a08d49ebb95a6911a43343405303011eb28 Mon Sep 17 00:00:00 2001
+From: Eric Yang <eric.yang.wiwynn@gmail.com>
+Date: Thu, 6 Mar 2025 16:48:20 +0800
+Subject: [PATCH] platform-mc: Add MCTP recovery option
+
+Allow enabling or disabling MCTP 2.0 recovery feature.
+Calls `.Recover` method on timeout to handle communication recovery.
+
+Change-Id: I298a1b397495496622254de80c67e081ec104945
+Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
+---
+ common/utils.cpp                 | 4 ++++
+ meson.build                      | 1 +
+ meson.options                    | 8 ++++++++
+ platform-mc/terminus_manager.cpp | 2 ++
+ 4 files changed, 15 insertions(+)
+
+diff --git a/common/utils.cpp b/common/utils.cpp
+index 11ce064..9cce6bf 100644
+--- a/common/utils.cpp
++++ b/common/utils.cpp
+@@ -549,6 +549,7 @@ int emitStateSensorEventSignal(uint8_t tid, uint16_t sensorId,
+ 
+ void recoverMctpEndpoint(const std::string& endpointObjPath)
+ {
++#ifdef MCTP_RECOVERY
+     auto& bus = DBusHandler::getBus();
+     try
+     {
+@@ -566,6 +567,9 @@ void recoverMctpEndpoint(const std::string& endpointObjPath)
+             "failed to make a D-Bus call to recover MCTP Endpoint, ERROR {ERR_EXCEP}",
+             "ERR_EXCEP", e);
+     }
++#else
++    [[maybe_unused]] auto& _endpointObjPath = endpointObjPath;
++#endif
+ }
+ 
+ uint16_t findStateSensorId(const pldm_pdr* pdrRepo, uint8_t tid,
+diff --git a/meson.build b/meson.build
+index 66286f6..624d96c 100644
+--- a/meson.build
++++ b/meson.build
+@@ -137,6 +137,7 @@ conf_data.set(
+     get_option('default-sensor-update-interval'),
+ )
+ conf_data.set('SENSOR_POLLING_TIME', get_option('sensor-polling-time'))
++conf_data.set('MCTP_RECOVERY', get_option('mctp-recovery').allowed())
+ 
+ configure_file(output: 'config.h', configuration: conf_data)
+ 
+diff --git a/meson.options b/meson.options
+index 531f9d4..e85f803 100644
+--- a/meson.options
++++ b/meson.options
+@@ -212,3 +212,11 @@ option(
+                     `GetSensorReading` if the sensor need to be updated.''',
+     value: 249,
+ )
++
++## MCTP Recovery Option
++option(
++    'mctp-recovery',
++    type: 'feature',
++    description: 'Recovery in request timeout. Calls `.Recover` method on timeout to handle communication recovery',
++    value: 'enabled',
++)
+diff --git a/platform-mc/terminus_manager.cpp b/platform-mc/terminus_manager.cpp
+index c64c0c3..bed3b0a 100644
+--- a/platform-mc/terminus_manager.cpp
++++ b/platform-mc/terminus_manager.cpp
+@@ -666,6 +666,7 @@ exec::task<int> TerminusManager::sendRecvPldmMsg(
+     auto rc = co_await sendRecvPldmMsgOverMctp(eid, request, responseMsg,
+                                                responseLen);
+ 
++#ifdef MCTP_RECOVERY
+     if (rc == PLDM_ERROR_NOT_READY)
+     {
+         // Call Recover() to check enpoint's availability
+@@ -677,6 +678,7 @@ exec::task<int> TerminusManager::sendRecvPldmMsg(
+         pldm::utils::recoverMctpEndpoint(endpointObjPath);
+         updateMctpEndpointAvailability(mctpInfo.value(), false);
+     }
++#endif
+ 
+     co_return rc;
+ }
+-- 
+2.25.1
+
