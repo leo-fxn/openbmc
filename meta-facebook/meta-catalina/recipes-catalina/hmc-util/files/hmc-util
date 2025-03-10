@@ -109,12 +109,71 @@ prepare_update_target_str()
     return 0
 }
 
+is_erot_background_copy_status_done()
+{
+    EROT_URL="${HMC_URL_PREFIX}/redfish/v1/Chassis/$1"
+    CURL_CMD="curl --connect-timeout ${CURL_CONNECT_TIMEOUT} -s '${EROT_URL}'"
+    if ! CURL_DATA=$(eval "${CURL_CMD}"); then
+        echo "NA (hmc no response)"
+        return 1
+    fi
+
+    BC_STATUS="$(echo "${CURL_DATA}" | jq -r '.Oem.Nvidia.BackgroundCopyStatus')"
+    echo "$1 BackgroundCopyStatus: $BC_STATUS"
+
+    if [ "$BC_STATUS" != "Completed" ]; then
+        return 1
+    fi
+    return 0
+}
+
+check_erot_background_copy_status()
+{
+    ALL_EROT_BC_DONE=true
+
+    case "$1" in
+        "all"|"bundle")
+            is_erot_background_copy_status_done "HGX_ERoT_BMC_0" || ALL_EROT_BC_DONE=false
+            is_erot_background_copy_status_done "HGX_ERoT_FPGA_0" || ALL_EROT_BC_DONE=false
+            is_erot_background_copy_status_done "HGX_ERoT_FPGA_1" || ALL_EROT_BC_DONE=false
+            ;;
+        "sbios")
+            is_erot_background_copy_status_done "HGX_ERoT_CPU_0" || ALL_EROT_BC_DONE=false
+            is_erot_background_copy_status_done "HGX_ERoT_CPU_1" || ALL_EROT_BC_DONE=false
+            ;;
+        "HGX_FW_BMC_0")
+            is_erot_background_copy_status_done "HGX_ERoT_BMC_0" || ALL_EROT_BC_DONE=false
+            ;;
+        "HGX_FW_FPGA_0")
+            is_erot_background_copy_status_done "HGX_ERoT_FPGA_0" || ALL_EROT_BC_DONE=false
+            ;;
+        "HGX_FW_FPGA_1")
+            is_erot_background_copy_status_done "HGX_ERoT_FPGA_1" || ALL_EROT_BC_DONE=false
+            ;;
+        "HGX_FW_CPU_0")
+            is_erot_background_copy_status_done "HGX_ERoT_CPU_0" || ALL_EROT_BC_DONE=false
+            ;;
+        "HGX_FW_CPU_1")
+            is_erot_background_copy_status_done "HGX_ERoT_CPU_1" || ALL_EROT_BC_DONE=false
+            ;;
+    esac
+
+    if [ "$ALL_EROT_BC_DONE" = false ]; then
+        return 1
+    fi
+
+    return 0
+}
+
 update_comp()
 {
     if ! TARGET_STR=$(prepare_update_target_str "$1"); then
         echo "failed: Unknow component, $1"
         exit 1
     fi
+
+    EROT_BUSY=false
+    check_erot_background_copy_status "$1" || EROT_BUSY=true
 
     FORCE_UPDATE=""
     if [ "$3" = "--force-update" ]; then
@@ -167,6 +226,9 @@ update_comp()
             if [ "$TASK_STATE" = "Completed" ]; then
                 return 0
             else
+                if [ "$EROT_BUSY" = true ]; then
+                    echo "Firmware update failed might be due to ERoT is busy, please try update again."
+                fi
                 return 1
             fi
         fi
