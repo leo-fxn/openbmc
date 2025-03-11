@@ -126,6 +126,10 @@ class Warning(Status):
             raise TypeError("Description must be provided")
         self.description = description
 
+    @property
+    def info(self):
+        return self.description
+
 
 def get_cmd_status_text(cmd_status: CompletedProcess) -> List[str]:
     parts = []

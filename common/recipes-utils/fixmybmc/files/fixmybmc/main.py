@@ -84,6 +84,7 @@ def show_result_summary(checks: List[BmcCheck]) -> None:
                 )
             )
         )
+        print(indent(", ".join([check.name for check in problems]), level=2))
     if len(errors) > 0:
         print(
             indent(styled(f"Errors: {len(errors)}", color(status.Error.color), bold()))
@@ -113,7 +114,6 @@ def show_result_summary(checks: List[BmcCheck]) -> None:
         )
         print(f"{print_res_name} {check.name}")
         print(f"{indent(str(check.result))}")
-        print(f"{indent(check.result.description)}")
 
 
 def show_remediations(
