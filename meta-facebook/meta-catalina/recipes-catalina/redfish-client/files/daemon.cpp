@@ -561,13 +561,19 @@ class DbusServer
         }
 
         ctx.spawn(runEventPollingLoop());
-        ctx.spawn(runSensorLoop());
+        sensorThread = std::thread([this] { runSensorLoop(); });
+    }
+
+    ~DbusServer()
+    {
+        ctx.request_stop();
+        if (sensorThread.joinable()) {
+            sensorThread.join();
+        }
     }
 
   private:
-    auto readWithRetries(sdbusplus::async::context& ctx,
-                         const SensorConfigValue& sensorConfigValue)
-        -> sdbusplus::async::task<std::optional<Sensor>>
+    std::optional<Sensor> readWithRetries(const SensorConfigValue& sensorConfigValue)
     {
         for (int i = 0; i < daemonConfig.retries; ++i)
         {
@@ -586,7 +592,7 @@ class DbusServer
 
             try
             {
-                co_return Sensor::parseSensor(sensorJson);
+                return Sensor::parseSensor(sensorJson);
             }
             catch (const std::exception& exn)
             {
@@ -596,10 +602,10 @@ class DbusServer
                       sensorJson.c_str());
             };
 
-            co_await sdbusplus::async::sleep_for(
-                ctx, std::chrono::milliseconds(daemonConfig.waitMilliseconds));
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(daemonConfig.waitMilliseconds));
         }
-        co_return std::nullopt;
+        return std::nullopt;
     }
 
     auto runEventPollingLoop() -> sdbusplus::async::task<>
@@ -634,7 +640,7 @@ class DbusServer
         co_return;
     }
 
-    auto runSensorLoop() -> sdbusplus::async::task<>
+    void runSensorLoop()
     {
         info("Running DBus Server sensor loop");
         try
@@ -643,8 +649,8 @@ class DbusServer
             {
                 for (const auto& [metricKey, metric] : metrics)
                 {
-                    auto maybeSensor = co_await readWithRetries(
-                        ctx, metric->sensorConfigValue);
+                    auto maybeSensor = readWithRetries(
+                        metric->sensorConfigValue);
                     if (!maybeSensor.has_value())
                     {
                         continue;
@@ -655,17 +661,14 @@ class DbusServer
                     Sensor sensor = maybeSensor.value();
                     ctx.spawn(metric->update(std::move(sensor)));
                 }
-                co_await sdbusplus::async::sleep_for(
-                    ctx, std::chrono::milliseconds(
-                             daemonConfig.intervalMilliseconds));
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    daemonConfig.intervalMilliseconds));
             }
         }
         catch (const std::logic_error& exn)
         {
             debug("Unhandled logic error: {NAME}", "WHAT", exn.what());
         };
-
-        co_return;
     }
 
     sdbusplus::async::context& ctx;
@@ -673,6 +676,7 @@ class DbusServer
     std::vector<std::shared_ptr<EventsDbusObject>> eventObjects;
     DaemonConfig daemonConfig;
     std::shared_ptr<IRedfishSource> redfishSource;
+    std::thread sensorThread;
 };
 
 void installSignalHandlers()
