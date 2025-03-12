@@ -1,0 +1,230 @@
+From a9efac26088187374fc27aae835b3695c8b6807e Mon Sep 17 00:00:00 2001
+From: Eric Yang <eric.yang.wiwynn@gmail.com>
+Date: Thu, 6 Mar 2025 17:40:53 +0800
+Subject: [PATCH] platform-mc: Add option for discovering FRU data
+
+Allow enabling or disabling the discovery of FRU data from terminus.
+Supports retrieving FRU data during the terminus discovery phase and
+exposes it to the inventory object.
+
+Change-Id: I88fad87ebd4f7f52aab52d6a18521da0e4559c4c
+Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
+---
+ meson.build                      |  4 ++++
+ meson.options                    |  8 ++++++++
+ platform-mc/platform_manager.cpp | 31 +++++++++++++++++++++++++++++++
+ platform-mc/terminus.cpp         | 15 +++++++++++++--
+ platform-mc/terminus.hpp         | 12 ++++++++++++
+ 5 files changed, 68 insertions(+), 2 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 3c9074e..2b10fff 100644
+--- a/meson.build
++++ b/meson.build
+@@ -138,6 +138,10 @@ conf_data.set(
+ )
+ conf_data.set('SENSOR_POLLING_TIME', get_option('sensor-polling-time'))
+ conf_data.set('MCTP_RECOVERY', get_option('mctp-recovery').allowed())
++conf_data.set(
++    'DISCOVERY_FRU_DATA',
++    get_option('discovery-fru-data-from-terminus').allowed(),
++)
+ 
+ configure_file(output: 'config.h', configuration: conf_data)
+ 
+diff --git a/meson.options b/meson.options
+index fa559c8..28a67bf 100644
+--- a/meson.options
++++ b/meson.options
+@@ -228,3 +228,11 @@ option(
+     description: 'Recovery in request timeout. Calls `.Recover` method on timeout to handle communication recovery',
+     value: 'enabled',
+ )
++
++## Discovery FRU Data from Terminus Option
++option(
++    'discovery-fru-data-from-terminus',
++    type: 'feature',
++    description: 'Enable discovery of FRU data from terminus during the terminus discovery phase.',
++    value: 'enabled',
++)
+diff --git a/platform-mc/platform_manager.cpp b/platform-mc/platform_manager.cpp
+index 1e35477..fd624f5 100644
+--- a/platform-mc/platform_manager.cpp
++++ b/platform-mc/platform_manager.cpp
+@@ -618,6 +618,7 @@ exec::task<int> PlatformManager::eventMessageSupported(
+ exec::task<int> PlatformManager::getFRURecordTableMetadata(pldm_tid_t tid,
+                                                            uint16_t* total)
+ {
++#ifdef DISCOVERY_FRU_DATA
+     Request request(
+         sizeof(pldm_msg_hdr) + PLDM_GET_FRU_RECORD_TABLE_METADATA_REQ_BYTES);
+     auto requestMsg = new (request.data()) pldm_msg;
+@@ -680,6 +681,11 @@ exec::task<int> PlatformManager::getFRURecordTableMetadata(pldm_tid_t tid,
+     }
+ 
+     co_return rc;
++#else
++    [[maybe_unused]] auto _tid = tid;
++    [[maybe_unused]] auto _total = total;
++    co_return PLDM_SUCCESS;
++#endif
+ }
+ 
+ exec::task<int> PlatformManager::getFRURecordTable(
+@@ -688,6 +694,7 @@ exec::task<int> PlatformManager::getFRURecordTable(
+     uint8_t* transferFlag, size_t* responseCnt,
+     std::vector<uint8_t>& recordData)
+ {
++#ifdef DISCOVERY_FRU_DATA
+     Request request(sizeof(pldm_msg_hdr) + PLDM_GET_FRU_RECORD_TABLE_REQ_BYTES);
+     auto requestMsg = new (request.data()) pldm_msg;
+ 
+@@ -745,11 +752,22 @@ exec::task<int> PlatformManager::getFRURecordTable(
+     }
+ 
+     co_return rc;
++#else
++    [[maybe_unused]] auto _tid = tid;
++    [[maybe_unused]] auto _dataTransferHndl = dataTransferHndl;
++    [[maybe_unused]] auto _transferOpFlag = transferOpFlag;
++    [[maybe_unused]] auto _nextDataTransferHndl = nextDataTransferHndl;
++    [[maybe_unused]] auto _transferFlag = transferFlag;
++    [[maybe_unused]] auto _responseCnt = responseCnt;
++    [[maybe_unused]] auto& _recordData = recordData;
++    co_return PLDM_SUCCESS;
++#endif
+ }
+ 
+ void PlatformManager::updateInventoryWithFru(
+     pldm_tid_t tid, const uint8_t* fruData, const size_t fruLen)
+ {
++#ifdef DISCOVERY_FRU_DATA
+     if (tid == PLDM_TID_RESERVED || !termini.contains(tid) || !termini[tid])
+     {
+         lg2::error("Invalid terminus {TID}", "TID", tid);
+@@ -757,12 +775,19 @@ void PlatformManager::updateInventoryWithFru(
+     }
+ 
+     termini[tid]->updateInventoryWithFru(fruData, fruLen);
++#else
++    [[maybe_unused]] auto _tid = tid;
++    [[maybe_unused]] auto _fruData = fruData;
++    [[maybe_unused]] auto _fruLen = fruLen;
++    return;
++#endif
+ }
+ 
+ exec::task<int> PlatformManager::getFRURecordTables(
+     pldm_tid_t tid, const uint16_t& totalTableRecords,
+     std::vector<uint8_t>& fruData)
+ {
++#ifdef DISCOVERY_FRU_DATA
+     if (!totalTableRecords)
+     {
+         lg2::info("Fru record table has 0 records");
+@@ -818,6 +843,12 @@ exec::task<int> PlatformManager::getFRURecordTables(
+     fruData = receivedFru;
+ 
+     co_return PLDM_SUCCESS;
++#else
++    [[maybe_unused]] auto _tid = tid;
++    [[maybe_unused]] auto _totalTableRecords = totalTableRecords;
++    [[maybe_unused]] auto& _fruData = fruData;
++    co_return PLDM_SUCCESS;
++#endif
+ }
+ 
+ } // namespace platform_mc
+diff --git a/platform-mc/terminus.cpp b/platform-mc/terminus.cpp
+index d59ac26..fd30d06 100644
+--- a/platform-mc/terminus.cpp
++++ b/platform-mc/terminus.cpp
+@@ -102,9 +102,14 @@ bool Terminus::createInventoryPath(std::string tName)
+     inventoryPath = "/xyz/openbmc_project/inventory/system/board/" + tName;
+     try
+     {
++#ifdef DISCOVERY_FRU_DATA
+         inventoryItemBoardInft =
+             std::make_unique<pldm::dbus_api::PldmEntityReq>(
+                 utils::DBusHandler::getBus(), inventoryPath.c_str());
++#else
++        inventoryItemBoardInft = std::make_unique<InventoryItemBoardIntf>(
++            utils::DBusHandler::getBus(), inventoryPath.c_str());
++#endif
+         return true;
+     }
+     catch (const sdbusplus::exception_t& e)
+@@ -584,8 +589,9 @@ std::shared_ptr<NumericSensor> Terminus::getSensorObject(SensorId id)
+  *  @param[in] p - pointer to each record of FRU record table
+  *  @param[in] tableSize - FRU table size
+  */
+-static bool isTableEnd(const uint8_t* table, const uint8_t* p,
+-                       const size_t tableSize)
++
++[[maybe_unused]] static bool isTableEnd(const uint8_t* table, const uint8_t* p,
++                                        const size_t tableSize)
+ {
+     auto offset = p - table;
+     return (tableSize - offset) < sizeof(struct pldm_fru_record_data_format);
+@@ -594,6 +600,7 @@ static bool isTableEnd(const uint8_t* table, const uint8_t* p,
+ void Terminus::updateInventoryWithFru(const uint8_t* fruData,
+                                       const size_t fruLen)
+ {
++#ifdef DISCOVERY_FRU_DATA
+     auto tmp = getTerminusName();
+     if (!tmp || tmp.value().empty())
+     {
+@@ -705,6 +712,10 @@ void Terminus::updateInventoryWithFru(const uint8_t* fruData,
+             ptr += sizeof(pldm_fru_record_tlv) - 1 + tlv->length;
+         }
+     }
++#else
++    [[maybe_unused]] auto _fruData = fruData;
++    [[maybe_unused]] auto _fruLen = fruLen;
++#endif
+ }
+ 
+ } // namespace platform_mc
+diff --git a/platform-mc/terminus.hpp b/platform-mc/terminus.hpp
+index da3d919..0977374 100644
+--- a/platform-mc/terminus.hpp
++++ b/platform-mc/terminus.hpp
+@@ -11,6 +11,9 @@
+ 
+ #include <sdbusplus/server/object.hpp>
+ #include <sdeventplus/event.hpp>
++#ifndef DISCOVERY_FRU_DATA
++#include <xyz/openbmc_project/Inventory/Item/Board/server.hpp>
++#endif
+ 
+ #include <algorithm>
+ #include <bitset>
+@@ -35,6 +38,10 @@ using SensorName = std::string;
+ using SensorAuxiliaryNames = std::tuple<
+     SensorId, SensorCnt,
+     std::vector<std::vector<std::pair<NameLanguageTag, SensorName>>>>;
++#ifndef DISCOVERY_FRU_DATA
++using InventoryItemBoardIntf = sdbusplus::server::object_t<
++    sdbusplus::xyz::openbmc_project::Inventory::Item::server::Board>;
++#endif
+ 
+ /** @struct EntityKey
+  *
+@@ -305,8 +312,13 @@ class Terminus
+     /** @brief Terminus name */
+     EntityName terminusName{};
+     /* @brief The pointer of inventory D-Bus interface for the terminus */
++#ifdef DISCOVERY_FRU_DATA
+     std::unique_ptr<pldm::dbus_api::PldmEntityReq> inventoryItemBoardInft =
+         nullptr;
++#else
++    /* @brief The pointer of iventory D-Bus interface for the terminus */
++    std::unique_ptr<InventoryItemBoardIntf> inventoryItemBoardInft = nullptr;
++#endif
+ 
+     /* @brief Inventory D-Bus object path of the terminus */
+     std::string inventoryPath;
+-- 
+2.25.1
+

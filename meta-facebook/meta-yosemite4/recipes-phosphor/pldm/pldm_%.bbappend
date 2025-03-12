@@ -7,4 +7,5 @@ EXTRA_OEMESON:append = " \
   -Ddbus-timeout-value=10 \
   -Dinstance-id-expiration-interval=6 \
   -Dmctp-recovery=disabled \
+  -Ddiscovery-fru-data-from-terminus=disabled \
 "
