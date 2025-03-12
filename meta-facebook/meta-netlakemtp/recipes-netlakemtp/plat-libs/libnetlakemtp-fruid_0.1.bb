@@ -3,7 +3,7 @@ SUMMARY = "NETLAKE Fruid Library"
 DESCRIPTION = "library for netlakemtp fruid information"
 SECTION = "base"
 PR = "r1"
-LICENSE = "GPL-2.0-only"
+LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://netlakemtp_fruid.c;beginline=8;endline=20;md5=435eababecd3f367d90616c70e27bdd6"
 
 inherit meson

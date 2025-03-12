@@ -4,7 +4,7 @@ SUMMARY = "Front Panel Control Daemon"
 DESCRIPTION = "Daemon to monitor and control the front panel "
 SECTION = "base"
 PR = "r1"
-LICENSE = "GPL-2.0-only"
+LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://front-paneld.c;beginline=5;endline=17;md5=da35978751a9d71b73679307c4d296ec"
 
 
@@ -16,8 +16,7 @@ SRC_URI = "file://Makefile \
            file://run-front-paneld.sh \
           "
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${WORKDIR}"
 
 binfiles = "front-paneld"
 
@@ -35,8 +34,8 @@ do_install() {
   install -d ${D}${sysconfdir}/sv
   install -d ${D}${sysconfdir}/sv/front-paneld
   install -d ${D}${sysconfdir}/front-paneld
-  install -m 755 ${UNPACKDIR}/setup-front-paneld.sh ${D}${sysconfdir}/init.d/setup-front-paneld.sh
-  install -m 755 ${UNPACKDIR}/run-front-paneld.sh ${D}${sysconfdir}/sv/front-paneld/run
+  install -m 755 setup-front-paneld.sh ${D}${sysconfdir}/init.d/setup-front-paneld.sh
+  install -m 755 run-front-paneld.sh ${D}${sysconfdir}/sv/front-paneld/run
   update-rc.d -r ${D} setup-front-paneld.sh start 67 5 .
 }
 
