@@ -1,0 +1,207 @@
+From 2c9ab23cf234ae3755737c9e08032cc812d83429 Mon Sep 17 00:00:00 2001
+From: Eric Yang <eric.yang.wiwynn@gmail.com>
+Date: Tue, 11 Mar 2025 13:47:42 +0800
+Subject: [PATCH] entity-manager: Add config-prefix filtering
+
+This change introduces a new option "config-prefix" that enables
+filtering of JSON configuration files by their filename prefix.
+This feature reduces unnecessary D-Bus overhead and enhances
+performance.
+
+Change-Id: I94a1030edfd78b966aba44d5818b1da82f107c86
+Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
+---
+ meson.build            |  5 +++
+ meson.options          |  6 ++++
+ src/entity_manager.cpp | 13 +++++---
+ src/utils.cpp          | 73 ++++++++++++++++++++++++++----------------
+ src/utils.hpp          | 12 +++++--
+ 5 files changed, 74 insertions(+), 35 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index f789a0d..63e0b5f 100644
+--- a/meson.build
++++ b/meson.build
+@@ -7,6 +7,11 @@ project(
+     meson_version: '>=1.1.1',
+ )
+ add_project_arguments('-Wno-psabi', language: 'cpp')
++config_prefix_val = get_option('config-prefix')
++add_project_arguments(
++    '-DCONFIG_PREFIX="@0@"'.format(config_prefix_val),
++    language: 'cpp',
++)
+ 
+ boost_args = [
+     '-DBOOST_ASIO_NO_DEPRECATED',
+diff --git a/meson.options b/meson.options
+index 65c1f97..11fe79d 100644
+--- a/meson.options
++++ b/meson.options
+@@ -28,3 +28,9 @@ option(
+     value: true,
+     description: 'Run JSON schema validation during the build.',
+ )
++option(
++    'config-prefix',
++    type: 'string',
++    value: 'all',
++    description: 'Comma-separated list of JSON filename prefixes to filter. Default loads all JSON files.',
++)
+diff --git a/src/entity_manager.cpp b/src/entity_manager.cpp
+index 84d131b..4010d2d 100644
+--- a/src/entity_manager.cpp
++++ b/src/entity_manager.cpp
+@@ -827,12 +827,17 @@ void postToDbus(const nlohmann::json& newConfiguration,
+ // reads json files out of the filesystem
+ bool loadConfigurations(std::list<nlohmann::json>& configurations)
+ {
++    const std::string configPrefixesEnv = CONFIG_PREFIX;
++    std::vector<std::string> configPrefixes =
++        (configPrefixesEnv != "all" && !configPrefixesEnv.empty())
++            ? splitConfigString(configPrefixesEnv, ',', true)
++            : std::vector<std::string>{};
++
+     // find configuration files
+     std::vector<std::filesystem::path> jsonPaths;
+-    if (!findFiles(
+-            std::vector<std::filesystem::path>{configurationDirectory,
+-                                               hostConfigurationDirectory},
+-            R"(.*\.json)", jsonPaths))
++    if (!findFiles({std::filesystem::path(configurationDirectory),
++                    std::filesystem::path(hostConfigurationDirectory)},
++                   R"(.*\.json)", jsonPaths, configPrefixes))
+     {
+         std::cerr << "Unable to find any configuration files in "
+                   << configurationDirectory << "\n";
+diff --git a/src/utils.cpp b/src/utils.cpp
+index d95fb5e..92d947c 100644
+--- a/src/utils.cpp
++++ b/src/utils.cpp
+@@ -47,54 +47,71 @@ static bool powerStatusOn = false;
+ // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+ static std::unique_ptr<sdbusplus::bus::match_t> powerMatch = nullptr;
+ 
+-bool findFiles(const fs::path& dirPath, const std::string& matchString,
+-               std::vector<fs::path>& foundPaths)
++std::vector<std::string> splitConfigString(const std::string& input,
++                                           char delimiter, bool ignoreSpaces)
+ {
+-    if (!fs::exists(dirPath))
+-    {
+-        return false;
+-    }
++    std::vector<std::string> parts;
++    std::istringstream stream(input);
++    std::string part;
+ 
+-    std::regex search(matchString);
+-    std::smatch match;
+-    for (const auto& p : fs::directory_iterator(dirPath))
++    while (std::getline(stream, part, delimiter))
+     {
+-        std::string path = p.path().string();
+-        if (std::regex_search(path, match, search))
++        if (ignoreSpaces)
+         {
+-            foundPaths.emplace_back(p.path());
++            part.erase(0, part.find_first_not_of(" \t"));
++            part.erase(part.find_last_not_of(" \t") + 1);
+         }
++
++        parts.emplace_back(std::move(part));
+     }
+-    return true;
++    return parts;
+ }
+ 
+-bool findFiles(const std::vector<fs::path>&& dirPaths,
+-               const std::string& matchString,
+-               std::vector<fs::path>& foundPaths)
++bool findFiles(const fs::path& dirPath, const std::string& matchString,
++               std::vector<fs::path>& foundPaths,
++               const std::vector<std::string>& prefixes)
+ {
+-    std::map<fs::path, fs::path> paths;
++    if (!fs::exists(dirPath))
++    {
++        return false;
++    }
++
+     std::regex search(matchString);
+-    std::smatch match;
+-    for (const auto& dirPath : dirPaths)
++
++    for (const auto& entry : fs::directory_iterator(dirPath))
+     {
+-        if (!fs::exists(dirPath))
++        const std::string filename = entry.path().filename().string();
++
++        if (!std::regex_search(filename, search))
+         {
+             continue;
+         }
+ 
+-        for (const auto& p : fs::directory_iterator(dirPath))
++        if (!prefixes.empty() &&
++            !std::any_of(prefixes.begin(), prefixes.end(),
++                         [&filename](const std::string& prefix) {
++                             return filename.starts_with(prefix);
++                         }))
+         {
+-            std::string path = p.path().string();
+-            if (std::regex_search(path, match, search))
+-            {
+-                paths[p.path().filename()] = p.path();
+-            }
++            continue;
+         }
++
++        foundPaths.emplace_back(entry.path());
+     }
+ 
+-    for (const auto& [key, value] : paths)
++    return !foundPaths.empty();
++}
++bool findFiles(const std::vector<fs::path>& dirPaths,
++               const std::string& matchString,
++               std::vector<fs::path>& foundPaths,
++               const std::vector<std::string>& prefixes)
++{
++    for (const auto& dirPath : dirPaths)
+     {
+-        foundPaths.emplace_back(value);
++        if (fs::exists(dirPath))
++        {
++            findFiles(dirPath, matchString, foundPaths, prefixes);
++        }
+     }
+ 
+     return !foundPaths.empty();
+diff --git a/src/utils.hpp b/src/utils.hpp
+index 57c787f..a7fef70 100644
+--- a/src/utils.hpp
++++ b/src/utils.hpp
+@@ -57,10 +57,16 @@ const static constexpr char* property = "CurrentHostState";
+ 
+ bool findFiles(const std::filesystem::path& dirPath,
+                const std::string& matchString,
+-               std::vector<std::filesystem::path>& foundPaths);
+-bool findFiles(const std::vector<std::filesystem::path>&& dirPaths,
++               std::vector<std::filesystem::path>& foundPaths,
++               const std::vector<std::string>& prefixes = {});
++
++bool findFiles(const std::vector<std::filesystem::path>& dirPaths,
+                const std::string& matchString,
+-               std::vector<std::filesystem::path>& foundPaths);
++               std::vector<std::filesystem::path>& foundPaths,
++               const std::vector<std::string>& prefixes = {});
++
++std::vector<std::string> splitConfigString(
++    const std::string& input, char delimiter = ',', bool ignoreSpaces = true);
+ 
+ bool getI2cDevicePaths(
+     const std::filesystem::path& dirPath,
+-- 
+2.25.1
+
