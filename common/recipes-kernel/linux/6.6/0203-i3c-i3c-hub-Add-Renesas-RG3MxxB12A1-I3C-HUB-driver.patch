@@ -813,14 +813,14 @@ index 000000000000..73a9b96e6635
 +		/* TODO: verify if connection is done */
 +	}
 +
-+	/* Enable TP here in case TP was configured */
-+	ret = regmap_update_bits(priv->regmap, I3C_HUB_TP_ENABLE,
-+				 i3c_mask | smbus_mask | gpio_mask,
-+				 i3c_val | smbus_val | gpio_val);
-+	if (ret)
-+		return ret;
-+
-+	return regmap_update_bits(priv->regmap, I3C_HUB_TP_NET_CON_CONF, i3c_mask, i3c_val);
++	/* hack out these lines
++	 *
++	 *
++	 *
++	 *
++	 *
++	 */
++	return 0;
 +}
 +
 +static int i3c_hub_configure_hw(struct device *dev)
