@@ -191,6 +191,10 @@ static int processSol(fd_set* master, int serverfd, int fdmax,
   } else if (nbytes < 0) {
     syslog(LOG_ERR, "mTerm_server: Error on read fd=%d\n", solFd);
     return -1;
+  } else {  // nbytes == 0 (EOF)
+    // S496905: Stop reading on EOF/deleted tty device
+    syslog(LOG_ERR, "mTerm_server: EOF on fd=%d (deleted tty device?)\n", solFd);
+    return -1;
   }
   return 1;
 }
