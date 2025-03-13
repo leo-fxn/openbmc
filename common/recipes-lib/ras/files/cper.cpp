@@ -603,7 +603,14 @@ int createCperDumpEntry(const uint8_t& payloadId,
   uint64_t timestamp =
       std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::system_clock::now().time_since_epoch()).count();
-  oss << CPER_DUMP_PATH << "slot" << payloadId + 1 << "_cper_" << timestamp;
+
+  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  std::tm* time_info = std::localtime(&now);
+
+  oss << CPER_DUMP_PATH
+      << "slot" << payloadId + 1
+      << "_cper_" << std::put_time(time_info, "%Y%m%d%H%M%S")
+      << "_" << timestamp;
   auto faultLogFile = fs::path(oss.str());
 
   std::ofstream ofs;
