@@ -37,7 +37,8 @@ struct command
         const auto event_defs = utils::redfish_registry::load();
 
         auto result = json::empty_map();
-
+        auto log_value = std::vector<std::pair<std::string, js>>{};
+		
         debug("Finding log entries.");
         co_await utils::mapper::subtree_for_each(
             ctx, log_entry::ns_path, log_entry::interface,
@@ -132,6 +133,7 @@ struct command
                         redfish["args"] = std::move(args);
                         entry_json["redfish"] = std::move(redfish);
                     }
+                    log_value.emplace_back(std::to_string(properties.id), std::move(entry_json));
                 }
                 catch (...)
                 {
@@ -139,8 +141,9 @@ struct command
                             path.str);
                 }
             });
-
-        json::display(result);
+        json::sort_json_values(log_value);
+        auto json_result = json::merge_duplicate_keys_to_json(log_value);
+        json::display(json_result);
         co_return;
     }
 
