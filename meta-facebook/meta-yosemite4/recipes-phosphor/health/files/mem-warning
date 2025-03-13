@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# We're often in the situation where ipmid is leaking. If we're low on memory
+# then let's just tell ipmid to chill
+systemctl stop phosphor-ipmi-host
 
 memdump() {
 	echo "# free"

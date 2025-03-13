@@ -1,7 +1,0 @@
-[Unit]
-Description=Dump stats on who is using up memory
-
-[Service]
-Type=oneshot
-ExecStart=/usr/libexec/phosphor-health-monitor/mem-dump
-SyslogIdentifier=mem-dump

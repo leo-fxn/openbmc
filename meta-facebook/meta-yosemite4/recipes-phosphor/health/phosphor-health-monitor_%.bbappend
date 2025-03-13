@@ -1,19 +1,19 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += " \
-  file://mem-dump.service \
-  file://mem-dump \
+  file://mem-warning.service \
+  file://mem-warning \
 "
 
-MEM_WARN_TGT = "mem-dump.service"
+MEM_WARN_TGT = "mem-warning.service"
 
 SYSTEMD_SERVICE:${PN} += "\
-  mem-dump.service \
+  mem-warning.service \
 "
 
 do_install:append:() {
   install -d ${D}${datadir}/phosphor-health-monitor
-  install -m 0644 ${UNPACKDIR}/mem-dump.service ${D}${systemd_system_unitdir}/mem-dump.service
+  install -m 0644 ${UNPACKDIR}/mem-warning.service ${D}${systemd_system_unitdir}/mem-warning.service
   install -d ${D}${libexecdir}/${PN}
-  install -m 0755 ${UNPACKDIR}/mem-dump ${D}${libexecdir}/${PN}/
+  install -m 0755 ${UNPACKDIR}/mem-warning ${D}${libexecdir}/${PN}/
 }
