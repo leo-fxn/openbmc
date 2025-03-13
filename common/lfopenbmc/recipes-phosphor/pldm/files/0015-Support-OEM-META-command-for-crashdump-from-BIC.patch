@@ -1,7 +1,7 @@
-From 9967ff98bc7bb82eda03f99ca89754b98a20dc92 Mon Sep 17 00:00:00 2001
+From 217803926170bd556626b2c14a249e6f693ad2c8 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Tue, 31 Dec 2024 10:29:35 +0800
-Subject: [PATCH 15/15] Support OEM-META command for crashdump from BIC
+Subject: [PATCH] Support OEM-META command for crashdump from BIC
 
 Add a handler for write file IO command with type "crashdump".
 The BIOS will send crashdump data to BIC, and the BIC will send
@@ -11,6 +11,7 @@ generate the crashdump file.
 Tested: tested and verified on yv4.
 Change-Id: Iae94d598a5b98d05ab0a4e8a1c84dda8de1bb4ef
 Signed-off-by: PeterHo-wiwynn <peter.ho.wiwynn@gmail.com>
+Upstream-Status: Pending
 ---
  libpldmresponder/meson.build                  |   1 +
  .../libpldmresponder/oem_meta_file_io.cpp     |   4 +
@@ -825,6 +826,3 @@ index 0000000..03922cb
 +};
 +
 +} // namespace pldm::responder::oem_meta
--- 
-2.43.5
-

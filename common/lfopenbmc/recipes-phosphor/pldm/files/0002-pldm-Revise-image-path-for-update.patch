@@ -1,7 +1,7 @@
-From 773caf3382160cd224217b6a21c1b41800e38ba7 Mon Sep 17 00:00:00 2001
+From 57e0c092a4279c98ee0016b371282aea05b9e15e Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <delphine_cc_chiu@wiwynn.com>
 Date: Tue, 25 Jun 2024 14:51:37 +0800
-Subject: [PATCH 02/15] pldm: Revise image path for update
+Subject: [PATCH] pldm: Revise image path for update
 
 Revise image path from /tmp/images to /tmp/pldm_images to prevent image
 been removed by SoftwareManager due to both service are watching the
@@ -9,6 +9,7 @@ same path.
 
 Change-Id: I52379e3d1ddf9c5d72585e8e4a7391c0911baa60
 Signed-off-by: Delphine CC Chiu <delphine_cc_chiu@wiwynn.com>
+Upstream-Status: Pending
 ---
  fw-update/watch.cpp | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
@@ -45,6 +46,3 @@ index 60f18fc..56a0e5a 100644
              auto rc = static_cast<Watch*>(userdata)->imageCallback(tarballPath);
              if (rc < 0)
              {
--- 
-2.43.5
-

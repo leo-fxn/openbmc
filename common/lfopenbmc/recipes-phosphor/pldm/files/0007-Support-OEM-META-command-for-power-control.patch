@@ -1,7 +1,7 @@
-From b403a5b0b7d20211540b455ea0a40e66c773aaa9 Mon Sep 17 00:00:00 2001
+From a0e02efe8fb917787869e172176bd991fadf8085 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Fri, 14 Jun 2024 16:24:31 +0800
-Subject: [PATCH 07/15] Support OEM-META command for power control
+Subject: [PATCH] Support OEM-META command for power control
 
 Summary:
   - Add handler for write-file command "SLED_CYCLE, 12V-CYCLE
@@ -13,6 +13,7 @@ and DC-cycle" to let Host can trigger power control to the system.
 
 Change-Id: Ie6264217359f722be8181919f15bc08df510750a
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
+Upstream-Status: Pending
 ---
  libpldmresponder/meson.build                  |   1 +
  .../libpldmresponder/oem_meta_file_io.cpp     |   6 +
@@ -323,6 +324,3 @@ index 0000000..e18e5b6
 +};
 +
 +} // namespace pldm::responder::oem_meta
--- 
-2.43.5
-

@@ -1,11 +1,12 @@
-From 12fe22208ad7022031c9bbb32089136a0ff4dfc0 Mon Sep 17 00:00:00 2001
+From d1d9063c2bd7ae7bb3f05205393a00dad4b604c6 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Fri, 28 Jun 2024 11:19:43 +0800
-Subject: [PATCH 08/15] oem-meta: Add APML alert handler
+Subject: [PATCH] oem-meta: Add APML alert handler
 
 Add APML alert handler. It will call `amd-ras` to do ADDC.
 
 Change-Id: I9b8587c345e20a17ae858cfb021478c5878c55ab
+Upstream-Status: Pending
 ---
  libpldmresponder/meson.build                  |  1 +
  .../libpldmresponder/oem_meta_file_io.cpp     |  3 +
@@ -200,6 +201,3 @@ index 0000000..40c3cf0
 +};
 +
 +} // namespace pldm::responder::oem_meta
--- 
-2.43.5
-

@@ -1,8 +1,7 @@
-From 0e02a4e14af22c9640e5cd0aa6d93f1bae1b7b2b Mon Sep 17 00:00:00 2001
+From 66ce79aad9cdf06392f1363ebc0896bf2f9a67bf Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 16:21:45 +0800
-Subject: [PATCH 12/15] Support OEM-META command for getting Http boot
- certification
+Subject: [PATCH] Support OEM-META command for getting Http boot certification
 
 Summary:
 - Support parsing read file IO for Http Boot command (type: 0x03) and
@@ -12,6 +11,7 @@ decode_oem_meta_file_io_req function.
 
 Change-Id: Iaa0da923a8703703744eccccbbc8d95146444c14
 Signed-off-by: Lora Lin <lora.lin.wiwynn@gmail.com>
+Upstream-Status: Pending
 ---
  libpldmresponder/meson.build                  |   1 +
  .../libpldmresponder/oem_meta_file_io.cpp     |  78 +++++++++
@@ -400,6 +400,3 @@ index 0000000..28b085d
 +};
 +
 +} // namespace pldm::responder::oem_meta
--- 
-2.43.5
-

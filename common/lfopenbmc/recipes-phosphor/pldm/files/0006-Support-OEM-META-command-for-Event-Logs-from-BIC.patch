@@ -1,7 +1,7 @@
-From 15df9fec7b7710409e87eee6578fec6f1782df17 Mon Sep 17 00:00:00 2001
+From 5118a09cf8a2ef939c73eb6253cae175cba2afd1 Mon Sep 17 00:00:00 2001
 From: Bright Cheng <bright_cheng@wiwynn.com>
 Date: Wed, 26 Jun 2024 14:25:18 +0800
-Subject: [PATCH 06/15] Support OEM-META command for Event Logs from BIC
+Subject: [PATCH] Support OEM-META command for Event Logs from BIC
 
 Summary:
   - Add handler for write-file command "EVENT_LOG", which is sent
@@ -9,6 +9,7 @@ when host events are triggered, parse event type from a list and
 add SEL in BMC.
 
 Change-Id: I55a19b6c22e05cae3a9572a8d6707769ae7ee402
+Upstream-Status: Pending
 ---
  libpldmresponder/meson.build                  |   1 +
  .../libpldmresponder/oem_meta_file_io.cpp     |   4 +
@@ -274,6 +275,3 @@ index 0000000..e58c1a2
 +};
 +
 +} // namespace pldm::responder::oem_meta
--- 
-2.43.5
-

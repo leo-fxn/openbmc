@@ -1,7 +1,7 @@
-From af17959f4c904246368e0f3e01ea4eaf7e7906be Mon Sep 17 00:00:00 2001
+From a5cd81d1d6f0527ac11a51856f472373ce087352 Mon Sep 17 00:00:00 2001
 From: Chris Wang <Chris_Wang@wiwynn.com>
 Date: Wed, 10 Apr 2024 21:04:02 +0800
-Subject: [PATCH 05/15] Support OEM-META command for host BIOS version
+Subject: [PATCH] Support OEM-META command for host BIOS version
 
 Summary:
   - Add handler for write-file command "BIOS_VERSION", which is sent
@@ -10,6 +10,7 @@ to settingsd.
 
 Change-Id: I5eaf6123816cfb4e1b3f6b77ba4ea91d77ee61c2
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
+Upstream-Status: Pending
 ---
  libpldmresponder/meson.build                  |   1 +
  .../libpldmresponder/oem_meta_file_io.cpp     |   7 +-
@@ -361,6 +362,3 @@ index ca8eef4..79ddd0d 100644
  #endif
  
      auto fruHandler = std::make_unique<fru::Handler>(
--- 
-2.43.5
-

@@ -1,4 +1,4 @@
-From a9efac26088187374fc27aae835b3695c8b6807e Mon Sep 17 00:00:00 2001
+From cdb54200a9de878c734f00544d59f2a1a44f8da4 Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Thu, 6 Mar 2025 17:40:53 +0800
 Subject: [PATCH] platform-mc: Add option for discovering FRU data
@@ -9,6 +9,7 @@ exposes it to the inventory object.
 
 Change-Id: I88fad87ebd4f7f52aab52d6a18521da0e4559c4c
 Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
+Upstream-Status: Pending
 ---
  meson.build                      |  4 ++++
  meson.options                    |  8 ++++++++
@@ -137,10 +138,10 @@ index 1e35477..fd624f5 100644
  
  } // namespace platform_mc
 diff --git a/platform-mc/terminus.cpp b/platform-mc/terminus.cpp
-index d59ac26..fd30d06 100644
+index c262842..16dc71b 100644
 --- a/platform-mc/terminus.cpp
 +++ b/platform-mc/terminus.cpp
-@@ -102,9 +102,14 @@ bool Terminus::createInventoryPath(std::string tName)
+@@ -103,9 +103,14 @@ bool Terminus::createInventoryPath(std::string tName)
      inventoryPath = "/xyz/openbmc_project/inventory/system/board/" + tName;
      try
      {
@@ -155,7 +156,7 @@ index d59ac26..fd30d06 100644
          return true;
      }
      catch (const sdbusplus::exception_t& e)
-@@ -584,8 +589,9 @@ std::shared_ptr<NumericSensor> Terminus::getSensorObject(SensorId id)
+@@ -601,8 +606,9 @@ std::shared_ptr<NumericSensor> Terminus::getSensorObject(SensorId id)
   *  @param[in] p - pointer to each record of FRU record table
   *  @param[in] tableSize - FRU table size
   */
@@ -167,7 +168,7 @@ index d59ac26..fd30d06 100644
  {
      auto offset = p - table;
      return (tableSize - offset) < sizeof(struct pldm_fru_record_data_format);
-@@ -594,6 +600,7 @@ static bool isTableEnd(const uint8_t* table, const uint8_t* p,
+@@ -611,6 +617,7 @@ static bool isTableEnd(const uint8_t* table, const uint8_t* p,
  void Terminus::updateInventoryWithFru(const uint8_t* fruData,
                                        const size_t fruLen)
  {
@@ -175,7 +176,7 @@ index d59ac26..fd30d06 100644
      auto tmp = getTerminusName();
      if (!tmp || tmp.value().empty())
      {
-@@ -705,6 +712,10 @@ void Terminus::updateInventoryWithFru(const uint8_t* fruData,
+@@ -722,6 +729,10 @@ void Terminus::updateInventoryWithFru(const uint8_t* fruData,
              ptr += sizeof(pldm_fru_record_tlv) - 1 + tlv->length;
          }
      }
@@ -185,9 +186,9 @@ index d59ac26..fd30d06 100644
 +#endif
  }
  
- } // namespace platform_mc
+ std::vector<std::string> Terminus::getSensorNames(const SensorId& sensorId)
 diff --git a/platform-mc/terminus.hpp b/platform-mc/terminus.hpp
-index da3d919..0977374 100644
+index c3134bd..fda5275 100644
 --- a/platform-mc/terminus.hpp
 +++ b/platform-mc/terminus.hpp
 @@ -11,6 +11,9 @@
@@ -211,7 +212,7 @@ index da3d919..0977374 100644
  
  /** @struct EntityKey
   *
-@@ -305,8 +312,13 @@ class Terminus
+@@ -320,8 +327,13 @@ class Terminus
      /** @brief Terminus name */
      EntityName terminusName{};
      /* @brief The pointer of inventory D-Bus interface for the terminus */
@@ -225,6 +226,3 @@ index da3d919..0977374 100644
  
      /* @brief Inventory D-Bus object path of the terminus */
      std::string inventoryPath;
--- 
-2.25.1
-

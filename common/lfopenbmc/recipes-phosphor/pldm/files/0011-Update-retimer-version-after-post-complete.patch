@@ -1,7 +1,7 @@
-From 774daed25d9fa931f9f6bc2f08d2c740c53e1ad9 Mon Sep 17 00:00:00 2001
+From 53f163a97781889bec5dad308ecfec8c2975401c Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Thu, 19 Sep 2024 14:00:24 +0800
-Subject: [PATCH 11/15] Update retimer version after post complete
+Subject: [PATCH] Update retimer version after post complete
 
 The retimer will not be ready right away after fw update. The best
 timing to read retimer version is post-complete.
@@ -10,6 +10,7 @@ This patch isn't sent to upstream because the fw-versions service
 is internal temporary solution.
 
 Change-Id: Id088e4b2bad2ed644cb0629e55ff85f919353e68
+Upstream-Status: Pending
 ---
  .../oem_meta_file_io_type_event_log.cpp       | 20 +++++++++++++++++++
  1 file changed, 20 insertions(+)
@@ -59,6 +60,3 @@ index 8a09289..22698e2 100644
      else
      {
          event_name = eventList[eventType];
--- 
-2.43.5
-

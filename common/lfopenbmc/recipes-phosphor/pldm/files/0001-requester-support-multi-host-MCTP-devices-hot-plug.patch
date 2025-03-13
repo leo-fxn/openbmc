@@ -1,7 +1,7 @@
-From e6ffad2aa57baef67dbdc235f81939618df96419 Mon Sep 17 00:00:00 2001
+From a3a3a0d82a7aba2408c947ccea77266ca3c88b89 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 18 Dec 2023 18:40:23 +0800
-Subject: [PATCH 01/15] requester: support multi-host MCTP devices hot plug
+Subject: [PATCH] requester: support multi-host MCTP devices hot plug
 
 Currently, pldmd listens for new MCTP endpoint exposed by mctpd, but
 they only shows their EID, Network Id, and SupportedMessageTypes, which
@@ -24,6 +24,7 @@ confirm that the configurations are successfully stored.
 
 Change-Id: I59b8bf434576cbdea651848a8da11e5b870e2dfa
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
+Upstream-Status: Pending
 ---
  common/test/mocked_utils.hpp                  |   4 +
  common/types.hpp                              |   6 +-
@@ -675,6 +676,3 @@ index f269561..d30d884 100644
  
  foreach t : tests
      test(
--- 
-2.43.5
-

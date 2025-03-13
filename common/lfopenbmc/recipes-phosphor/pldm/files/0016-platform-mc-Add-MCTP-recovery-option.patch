@@ -1,4 +1,4 @@
-From 8dc97a08d49ebb95a6911a43343405303011eb28 Mon Sep 17 00:00:00 2001
+From bdb88cbf197882ac9e1e448bcb8161ff9b6225c9 Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Thu, 6 Mar 2025 16:48:20 +0800
 Subject: [PATCH] platform-mc: Add MCTP recovery option
@@ -8,6 +8,7 @@ Calls `.Recover` method on timeout to handle communication recovery.
 
 Change-Id: I298a1b397495496622254de80c67e081ec104945
 Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
+Upstream-Status: Pending
 ---
  common/utils.cpp                 | 4 ++++
  meson.build                      | 1 +
@@ -16,10 +17,10 @@ Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
  4 files changed, 15 insertions(+)
 
 diff --git a/common/utils.cpp b/common/utils.cpp
-index 11ce064..9cce6bf 100644
+index 0972194..79a9cbb 100644
 --- a/common/utils.cpp
 +++ b/common/utils.cpp
-@@ -549,6 +549,7 @@ int emitStateSensorEventSignal(uint8_t tid, uint16_t sensorId,
+@@ -566,6 +566,7 @@ int emitStateSensorEventSignal(uint8_t tid, uint16_t sensorId,
  
  void recoverMctpEndpoint(const std::string& endpointObjPath)
  {
@@ -27,7 +28,7 @@ index 11ce064..9cce6bf 100644
      auto& bus = DBusHandler::getBus();
      try
      {
-@@ -566,6 +567,9 @@ void recoverMctpEndpoint(const std::string& endpointObjPath)
+@@ -583,6 +584,9 @@ void recoverMctpEndpoint(const std::string& endpointObjPath)
              "failed to make a D-Bus call to recover MCTP Endpoint, ERROR {ERR_EXCEP}",
              "ERR_EXCEP", e);
      }
@@ -38,7 +39,7 @@ index 11ce064..9cce6bf 100644
  
  uint16_t findStateSensorId(const pldm_pdr* pdrRepo, uint8_t tid,
 diff --git a/meson.build b/meson.build
-index 66286f6..624d96c 100644
+index 6de09f2..3c9074e 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -137,6 +137,7 @@ conf_data.set(
@@ -50,10 +51,10 @@ index 66286f6..624d96c 100644
  configure_file(output: 'config.h', configuration: conf_data)
  
 diff --git a/meson.options b/meson.options
-index 531f9d4..e85f803 100644
+index b95b3ac..fa559c8 100644
 --- a/meson.options
 +++ b/meson.options
-@@ -212,3 +212,11 @@ option(
+@@ -220,3 +220,11 @@ option(
                      `GetSensorReading` if the sensor need to be updated.''',
      value: 249,
  )
@@ -66,10 +67,10 @@ index 531f9d4..e85f803 100644
 +    value: 'enabled',
 +)
 diff --git a/platform-mc/terminus_manager.cpp b/platform-mc/terminus_manager.cpp
-index c64c0c3..bed3b0a 100644
+index 85b2f53..767b9e8 100644
 --- a/platform-mc/terminus_manager.cpp
 +++ b/platform-mc/terminus_manager.cpp
-@@ -666,6 +666,7 @@ exec::task<int> TerminusManager::sendRecvPldmMsg(
+@@ -673,6 +673,7 @@ exec::task<int> TerminusManager::sendRecvPldmMsg(
      auto rc = co_await sendRecvPldmMsgOverMctp(eid, request, responseMsg,
                                                 responseLen);
  
@@ -77,7 +78,7 @@ index c64c0c3..bed3b0a 100644
      if (rc == PLDM_ERROR_NOT_READY)
      {
          // Call Recover() to check enpoint's availability
-@@ -677,6 +678,7 @@ exec::task<int> TerminusManager::sendRecvPldmMsg(
+@@ -684,6 +685,7 @@ exec::task<int> TerminusManager::sendRecvPldmMsg(
          pldm::utils::recoverMctpEndpoint(endpointObjPath);
          updateMctpEndpointAvailability(mctpInfo.value(), false);
      }
@@ -85,6 +86,3 @@ index c64c0c3..bed3b0a 100644
  
      co_return rc;
  }
--- 
-2.25.1
-
