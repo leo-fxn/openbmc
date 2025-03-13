@@ -2741,6 +2741,91 @@ parse_intel_bank_mapping_name(uint8_t bank_num, char *error_log) {
   return 0;
 }
 
+static void
+parse_intel_srf_bank_mapping_name(uint8_t bank_num, char *error_log) {
+
+    switch (bank_num) {
+    case 0:
+      strcpy(error_log, "BUS");
+      break;
+    case 1:
+      strcpy(error_log, "L2");
+      break;
+    case 2:
+      strcpy(error_log, "FEC");
+      break;
+    case 3:
+      strcpy(error_log, "MEC");
+      break;
+    case 4:
+      strcpy(error_log, "Ubox");
+      break;
+    case 5:
+      strcpy(error_log, "UPI");
+      break;
+    case 6:
+      strcpy(error_log, "PCU");
+      break;
+    case 7:
+      strcpy(error_log, "CHA");
+      break;
+    case 9:
+      strcpy(error_log, "LLC");
+      break;
+    case 11:
+      strcpy(error_log, "MSE");
+      break;
+    case 12:
+      strcpy(error_log, "B2CMI");
+      break;
+    case 13:
+      strcpy(error_log, "MCCHAN0");
+      break;
+    case 14:
+      strcpy(error_log, "MCCHAN1");
+      break;
+    case 15:
+      strcpy(error_log, "MCCHAN2");
+      break;
+    case 16:
+      strcpy(error_log, "MCCHAN3");
+      break;
+    case 17:
+      strcpy(error_log, "MCCHAN4");
+      break;
+    case 18:
+      strcpy(error_log, "MCCHAN5");
+      break;
+    case 19:
+      strcpy(error_log, "MCCHAN6");
+      break;
+    case 20:
+      strcpy(error_log, "MCCHAN7");
+      break;
+    case 21:
+      strcpy(error_log, "MCCHAN8");
+      break;
+    case 22:
+      strcpy(error_log, "MCCHAN9");
+      break;
+    case 23:
+      strcpy(error_log, "MCCHAN10");
+      break;
+    case 24:
+      strcpy(error_log, "MCCHAN11");
+      break;
+    case 30:
+      strcpy(error_log, "HBM_M2MEM");
+      break;
+    case 31:
+      strcpy(error_log, "HBM_IMC_DP0");
+      break;
+    default:
+      strcpy(error_log, "UNKNOWN");
+      break;
+  }
+}
+
 static int
 parse_amd_bank_mapping_name(uint8_t bank_num, char *error_log) {
 
@@ -2948,7 +3033,11 @@ pal_parse_mce_error_sel(uint8_t fru, uint8_t *event_data, char *error_log) {
 
   switch (cpu_model) {
   case CPU_INTEL:
-    parse_intel_bank_mapping_name(bank_num, bank_mapping_name);
+    if (fby35_common_get_slot_type(fru) == SERVER_TYPE_GL) {
+      parse_intel_srf_bank_mapping_name(bank_num, bank_mapping_name);
+    } else {
+      parse_intel_bank_mapping_name(bank_num, bank_mapping_name);
+    }
     break;
   case CPU_AMD:
     parse_amd_bank_mapping_name(bank_num, bank_mapping_name);
