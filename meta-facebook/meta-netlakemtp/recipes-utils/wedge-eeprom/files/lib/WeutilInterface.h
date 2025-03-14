@@ -20,7 +20,8 @@
 
 #define DEFAULT_EEPROM_NAME "netlake-eeprom"
 #define MIN_TYPE 0
-#define MAX_TYPE 20
+#define MAX_TYPE_V5 20
+#define MAX_TYPE_V6 21
 #define SYS_LEN 8
 #define MAC_LEN 8
 #define SYS_MANUFACTURING_DATE_LEN 8
@@ -29,13 +30,18 @@
 #define MAC_ADR_LEN 5
 #define MAC_ADR_BASE_LEN 1
 #define HEADER_LEN 3
-#define CRC_VALUE_H 1
-#define CRC_VALUE_L 2
+#define RMA_LEN 1
+#define CRC_TYPE 1
+#define CRC_LENGTH 2
+#define CRC_VALUE_H 3
+#define CRC_VALUE_L 4
 #define CRC_TYPE_ADR 0xFA
 #define CRC_LEN_ADR 0x02
 #define NULL_TYPE 0xFF
+#define NULL_BYTE 0xFF
 #define HEADER 0xFB
-#define FORMAT_VERSION 0x05
+#define FORMAT_VERSION_V5 0x05
+#define FORMAT_VERSION_V6 0x06
 #define CRC_INIT 0x1D0F //CRC-CCITT-AUG initial value
 #define CHECK_HIGHEST_BIT 0x8000
 #define TRUNCATED_POLYNOMIA 0x1021
@@ -68,9 +74,11 @@ enum fieldId {
 };
 
 //
-//  META FBOSS EEPROM v5 Format TypeID.
+//  META FBOSS EEPROM Format TypeID.
+//  1.META FBOSS EEPROM Format v5 TypeID : 1~20
+//  2.META FBOSS EEPROM Format v6 TypeID : 1~21
 //
-enum typeId_v5 {
+enum typeId_fboss {
   ID_PRODUCT_NAME = 1,         //1,Product Name
   ID_PRODUCT_PART_NUM,         //2,Product Part Number
   ID_SYS_ASSEM_PART_NUM,       //3,System Assembly Part Number
@@ -90,7 +98,8 @@ enum typeId_v5 {
   ID_X86_CPU_MAC,              //17,X86 CPU MAC Base + X86 CPU MAC Address Size
   ID_BMC_MAC,                  //18,BMC MAC Base + BMC MAC Address Size
   ID_SWITCH_ASIC_MAC,          //19,Switch ASIC MAC Base + Switch ASIC MAC Base
-  ID_RSVD_MAC                  //20,META Reserved MAC Base + META Reserved MAC Address Size
+  ID_RSVD_MAC,                 //20,META Reserved MAC Base + META Reserved MAC Address Size
+  ID_RMA                       //21,RMA (only for FBOSS v6 format)
 };
 
 std::map<std::string, std::string> listEepromDevices();

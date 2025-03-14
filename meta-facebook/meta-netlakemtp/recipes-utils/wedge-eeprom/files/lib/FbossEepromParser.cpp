@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "CrcLib.h"
 #include "FbossEepromParser.h"
 
 namespace {
@@ -54,7 +55,7 @@ std::vector<EepromFieldEntry> kFieldDictionaryV3 = {
     {13, "System Manufacturer", FIELD_STRING, 8, 121},
     {14, "System Manufacturing Date", FIELD_DATE, 4, 129},
     {15, "PCB Manufacturer", FIELD_STRING, 8, 133},
-    {16, "Assembled at", FIELD_STRING, 8, 141},
+    {16, "Assembled At", FIELD_STRING, 8, 141},
     {17, "Local MAC", FIELD_LEGACY_MAC, 12, 149},
     {17, "Extended MAC Base", FIELD_LEGACY_MAC, 12, 161},
     {18, "Extended MAC Address Size", FIELD_LE_UINT, 2, 173},
@@ -77,7 +78,7 @@ std::vector<EepromFieldEntry> kFieldDictionaryV4 = {
     {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
     {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
     {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
-    {15, "Assembled at", FIELD_STRING, VARIABLE, VARIABLE},
+    {15, "Assembled At", FIELD_STRING, VARIABLE, VARIABLE},
     {16, "Local MAC", FIELD_V4_MAC, 6, VARIABLE},
     {17, "Extended MAC Base", FIELD_V4_MAC, 6, VARIABLE},
     {18, "Extended MAC Address Size", FIELD_LE_UINT, 2, VARIABLE},
@@ -101,12 +102,41 @@ std::vector<EepromFieldEntry> kFieldDictionaryV5 = {
     {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
     {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
     {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
-    {15, "Assembled at", FIELD_STRING, VARIABLE, VARIABLE},
+    {15, "Assembled At", FIELD_STRING, VARIABLE, VARIABLE},
     {16, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE},
     {17, "X86 CPU MAC", FIELD_V5_MAC, 8, VARIABLE},
     {18, "BMC MAC", FIELD_V5_MAC, 8, VARIABLE},
     {19, "Switch ASIC MAC", FIELD_V5_MAC, 8, VARIABLE},
     {20, "META Reserved MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {250, "CRC16", FIELD_BE_HEX, 2, VARIABLE},
+};
+
+const std::vector<EepromFieldEntry> kFieldDictionaryV6 = {
+    {0, "NA", FIELD_LE_UINT, -1, -1}, // TypeCode 0 is reserved
+    {1, "Product Name", FIELD_STRING, VARIABLE, VARIABLE},
+    {2, "Product Part Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {3, "System Assembly Part Number", FIELD_STRING, 8, VARIABLE},
+    {4, "Meta PCBA Part Number", FIELD_STRING, 12, VARIABLE},
+    {5, "Meta PCB Part Number", FIELD_STRING, 12, VARIABLE},
+    {6, "ODM/JDM PCBA Part Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {7, "ODM/JDM PCBA Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {8, "Product Production State", FIELD_BE_UINT, 1, VARIABLE},
+    {9, "Product Version", FIELD_BE_UINT, 1, VARIABLE},
+    {10, "Product Sub-Version", FIELD_BE_UINT, 1, VARIABLE},
+    {11, "Product Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
+    {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
+    {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
+    {15, "Assembled At", FIELD_STRING, VARIABLE, VARIABLE},
+    {16, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE},
+    {17, "X86 CPU MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {18, "BMC MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {19, "Switch ASIC MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {20, "META Reserved MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {21, "RMA", FIELD_BE_UINT, 1, VARIABLE},
+    {101, "Vendor Defined Field 1", FIELD_BE_HEX, VARIABLE, VARIABLE},
+    {102, "Vendor Defined Field 2", FIELD_BE_HEX, VARIABLE, VARIABLE},
+    {103, "Vendor Defined Field 3", FIELD_BE_HEX, VARIABLE, VARIABLE},
     {250, "CRC16", FIELD_BE_HEX, 2, VARIABLE},
 };
 
@@ -120,6 +150,8 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
       break;
     case 5:
       return kFieldDictionaryV5;
+    case 6:
+      return kFieldDictionaryV6;
     default:
       throw std::runtime_error(
           "Invalid EEPROM version : " + std::to_string(version));
@@ -167,6 +199,7 @@ FbossEepromParser::getContents() {
       break;
     case 4:
     case 5:
+    case 6:
       parsedValue = parseEepromBlobTLV(
           eepromVer, buffer, std::min(readCount, kMaxEepromSize));
       break;
@@ -356,6 +389,15 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     cursor += itemLen + 2;
     // the CRC16 is the last content, parsing must stop.
     if (key == "CRC16") {
+      uint16_t crcProgrammed = std::stoi(value, nullptr, 16);
+      uint16_t crcCalculated = weutil::CrcLib::crc16_ccitt_aug(buffer, cursor - 4);
+      if (crcProgrammed == crcCalculated) {
+        parsedValue[itemCode] += " (CRC Matched)";
+      } else {
+        std::stringstream ss;
+        ss << " (CRC Mismatch. Expected 0x" << std::hex << crcCalculated << ")";
+        parsedValue[itemCode] += ss.str();
+      }
       break;
     }
   }
@@ -374,11 +416,15 @@ FbossEepromParser::prepareEepromFieldMap(
   std::vector<EepromFieldEntry> fieldDictionary;
   fieldDictionary = getEepromFieldDict(eepromVer);
 
+  // Add the EEPROM version to parsed result. It's not part of the
+  // field dictionary, so we add it here.
+  result.push_back({"Version", std::to_string(eepromVer)});
+
   for (auto dictItem : fieldDictionary) {
     std::string key = dictItem.fieldName;
     std::string value;
     auto match = parsedValue.find(dictItem.typeCode);
-    // "NA" is reservered, and not for display
+    // "NA" is reserved, and not for display
     if (key == "NA") {
       continue;
     }

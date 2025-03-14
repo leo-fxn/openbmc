@@ -64,6 +64,7 @@ static void usage() {
   std::cout << "          18    |  BMC (MAC Base + BMC MAC Address Size)       |      8\n";
   std::cout << "          19    |  Switch ASIC (MAC Base + MAC Address Size)   |      8\n";
   std::cout << "          20    |  META Reserved (MAC Base + MAC Address Size) |      8\n";
+  std::cout << "          21    |  RMA (only for FBOSS v6 format)              |      1\n";
   std::cout << "       -------------------------------------------------------------------------\n";
   std::cout << "          Notice: Type 17~20 need to add - before enter MAC Address Size. \n";
   std::cout << "          ex. weutil -m 17 11:22:33:44:55:66-258\n";
@@ -117,10 +118,12 @@ std::vector<uint8_t> readFileContents(const std::string& filePath, std::streamsi
       inputFile.close();
       return data; // Return the read data
     } else {
+      std::cerr << std::endl;
       std::cerr << "ERROR: File is empty or unable to read file size: " << filePath << std::endl;
       return {};
     }
   } else {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Unable to open file for reading: " << filePath << std::endl;
     return {};
   }
@@ -133,6 +136,7 @@ static int writeFileContents(const std::string& filePath, const std::vector<uint
     outputFile.close();
     return 1;
   } else {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Unable to open file for writing: " << filePath << std::endl;
     return 0;
   }
@@ -148,10 +152,12 @@ static void writeEepromData(const std::string& eDeviceName, const std::string& e
           std::cout << "Write " << fileName << " to " << eDeviceName << " success !" << std::endl;
           return;
         } else {
+          std::cerr << std::endl;
           std::cerr << "ERROR: Failed to write " << fileName << " to " << eDeviceName << std::endl;
           return;
         }
     } else {
+      std::cerr << std::endl;
       std::cerr << "ERROR: Can't write data to " << eDeviceName << std::endl;
       return;
     }
@@ -162,6 +168,7 @@ static void dumpEepromData(const std::string& eepromDevicePath, const std::strin
   std::vector<uint8_t> eepromData = readFileContents(eepromDevicePath, eepromSize);
   // read eeprom file
   if (eepromData.empty()) {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Unable to read data from: " << eepromDevicePath << std::endl;
     return;
   }
@@ -169,8 +176,10 @@ static void dumpEepromData(const std::string& eepromDevicePath, const std::strin
   // write dump file using writeFileContents function
   int result = writeFileContents(dumpFileName, eepromData);
   if (result) {
+    std::cerr << std::endl;
     std::cout << "EEPROM data dumped successfully to " << dumpFileName << std::endl;
   } else {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Failed to write data to file: " << dumpFileName << std::endl;
   }
 }
@@ -181,14 +190,16 @@ static void modifyEepromData(const std::string& eDeviceName,
                              std::string& modifyValue) {
   int modifyTypeID = std::stoi(modifyType);
   int modifyValueLength = 0;
+  int MAX_TYPE = 0;
   std::vector<uint8_t> modifyValueHex;
   std::vector<uint8_t> modifyValueMac;
 
   // check modify type/length/value
   switch (modifyTypeID) {
-    case typeId_v5::ID_SYS_ASSEM_PART_NUM: // System Assembly Part Number
+    case typeId_fboss::ID_SYS_ASSEM_PART_NUM: // System Assembly Part Number
       if (modifyValue.length() > SYS_LEN) {
-        std::cout << "ERROR: Type " << modifyTypeID << " input value is out of range !" << '\n';
+        std::cerr << std::endl;
+        std::cerr << "ERROR: Type " << modifyTypeID << " input value is out of range !" << '\n';
         return;
       } else {
         if (modifyValue.length() < SYS_LEN) {
@@ -197,9 +208,10 @@ static void modifyEepromData(const std::string& eDeviceName,
         modifyValueLength = SYS_LEN;
       }
       break;
-    case typeId_v5::ID_SYS_MANUFACTURING_DATE: // System Manufacturing Date
+    case typeId_fboss::ID_SYS_MANUFACTURING_DATE: // System Manufacturing Date
       if (modifyValue.length() > SYS_MANUFACTURING_DATE_LEN) {
-        std::cout << "ERROR: Type " << modifyTypeID << " input value is out of range !" << '\n';
+        std::cerr << std::endl;
+        std::cerr << "ERROR: Type " << modifyTypeID << " input value is out of range !" << '\n';
         return;
       } else {
         if (modifyValue.length() < SYS_MANUFACTURING_DATE_LEN) {
@@ -208,10 +220,11 @@ static void modifyEepromData(const std::string& eDeviceName,
         modifyValueLength = SYS_MANUFACTURING_DATE_LEN;
       }
       break;
-    case typeId_v5::ID_PCBA_PART_NUM: // Meta PCBA Part Number
-    case typeId_v5::ID_PCB_PART_NUM:  // Meta PCB Part Number
+    case typeId_fboss::ID_PCBA_PART_NUM: // Meta PCBA Part Number
+    case typeId_fboss::ID_PCB_PART_NUM:  // Meta PCB Part Number
       if (modifyValue.length() > PCB_PCBA_PART_LEN) {
-        std::cout << "ERROR: Type " << modifyTypeID << " input value is out of range !" << '\n';
+        std::cerr << std::endl;
+        std::cerr << "ERROR: Type " << modifyTypeID << " input value is out of range !" << '\n';
         return;
       } else {
         if (modifyValue.length() < PCB_PCBA_PART_LEN) {
@@ -220,12 +233,13 @@ static void modifyEepromData(const std::string& eDeviceName,
         modifyValueLength = PCB_PCBA_PART_LEN;
       }
       break;
-    case typeId_v5::ID_PRODUCT_PRODUCTION_STATE: // Product Production State
-    case typeId_v5::ID_PRODUCT_VER:              // Product Version
-    case typeId_v5::ID_PRODUCT_SUB_VER:{         // Product Sub Version
+    case typeId_fboss::ID_PRODUCT_PRODUCTION_STATE: // Product Production State
+    case typeId_fboss::ID_PRODUCT_VER:              // Product Version
+    case typeId_fboss::ID_PRODUCT_SUB_VER:{         // Product Sub Version
         int modifyValueInt = std::stoi(modifyValue);
         if (modifyValueInt < 0 || modifyValueInt > 255) {
-          std::cout << "ERROR: Type " << modifyTypeID << " is out of range !" << '\n';
+          std::cerr << std::endl;
+          std::cerr << "ERROR: Type " << modifyTypeID << " is out of range !" << '\n';
           return;
         } else {
           modifyValueHex.push_back(static_cast<uint8_t>(modifyValueInt));
@@ -233,10 +247,10 @@ static void modifyEepromData(const std::string& eDeviceName,
         }
       }
       break;
-    case typeId_v5::ID_X86_CPU_MAC:     // X86 CPU MAC Addresses
-    case typeId_v5::ID_BMC_MAC:         // BMC MAC Addresses
-    case typeId_v5::ID_SWITCH_ASIC_MAC: // Switch ASIC MAC Addresses
-    case typeId_v5::ID_RSVD_MAC:{       // Meta Reserved MAC Addresses
+    case typeId_fboss::ID_X86_CPU_MAC:     // X86 CPU MAC Addresses
+    case typeId_fboss::ID_BMC_MAC:         // BMC MAC Addresses
+    case typeId_fboss::ID_SWITCH_ASIC_MAC: // Switch ASIC MAC Addresses
+    case typeId_fboss::ID_RSVD_MAC:{       // Meta Reserved MAC Addresses
         // check MAC value format
         int colonCount = 0; // detect ":"
         int dashCount = 0;  // detect "-"
@@ -250,7 +264,8 @@ static void modifyEepromData(const std::string& eDeviceName,
         }
 
         if ((colonCount != MAC_ADR_LEN) || (dashCount != MAC_ADR_BASE_LEN)) {
-          std::cout << "ERROR: Type " << modifyTypeID << " input value format incorrect !" << '\n';
+          std::cerr << std::endl;
+          std::cerr << "ERROR: Type " << modifyTypeID << " input value format incorrect !" << '\n';
           return;
         } else {// set MAC value format
           std::istringstream modifyValueStream(modifyValue);
@@ -277,8 +292,25 @@ static void modifyEepromData(const std::string& eDeviceName,
         modifyValueLength = MAC_LEN;
       }
         break;
+    case typeId_fboss::ID_RMA:{
+      int modifyValueInt = std::stoi(modifyValue);
+        if (modifyValueInt < 0 || modifyValueInt > 255) {
+          std::cerr << std::endl;
+          std::cerr << "ERROR: Type " << modifyTypeID << " is out of range !" << '\n';
+          return;
+        } else {
+          modifyValueHex.push_back(static_cast<uint8_t>(modifyValueInt));
+          modifyValueLength = RMA_LEN;
+        }
+      }
+      break;
     default:
       modifyValueLength = modifyValue.length();
+      if (modifyValueLength == 0 ) { // means input ASII will be "" --> NULL value
+          std::cerr << std::endl;
+          std::cerr << "ERROR: Type " << modifyTypeID << " can't not bo NULL data !" << '\n';
+          return;
+      }
       break;
   }
 
@@ -286,16 +318,62 @@ static void modifyEepromData(const std::string& eDeviceName,
   std::streamsize fileSize;
   std::vector<uint8_t> data = readFileContents(eDevicePath, fileSize);
   if (data.empty()) {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Unable to read data from: " << eDeviceName << std::endl;
+    return;
+  } else {
+    std::cout << "Read "<< eDeviceName << " ------- [Pass]" << std::endl;
+  }
+
+  // check eeprom data - Header
+  if (data[0] == HEADER && data[1] == HEADER && data[2] == FORMAT_VERSION_V5) {
+      std::cout << "Check Header -------------- [Pass]" << std::endl;
+      MAX_TYPE = MAX_TYPE_V5;
+      if(modifyTypeID == typeId_fboss::ID_RMA) {
+        std::cerr << std::endl;
+        std::cerr << "ERROR: Type " << modifyTypeID << " is not in FBOSS V5 format !" << '\n';
+        return;
+      }
+  } else if (data[0] == HEADER && data[1] == HEADER && data[2] == FORMAT_VERSION_V6) {
+      std::cout << "Check Header -------------- [Pass]" << std::endl;
+      MAX_TYPE = MAX_TYPE_V6;
+  }
+    else {
+    std::cerr << std::endl;
+    std::cerr << "ERROR: Header Check failed !" << std::endl;
     return;
   }
 
-  //check eeprom Header
-  if (data[0] == HEADER && data[1] == HEADER && data[2] == FORMAT_VERSION) {
-    std::cout << eDeviceName << " is follow Meta FBOSS EEPROM Format v5!" << std::endl;
+  size_t Check_CRC_location = 0;
+  // check CRC TL byte is in eeprom or not
+  for (int i = 0 ; i < data.size() ; i++) {
+    if ((data[i+1] == CRC_TYPE_ADR)&&(data[i+2] == CRC_LEN_ADR)) {
+      Check_CRC_location = i;
+      break;
+    }
+  }
+
+  // check is there has garbage data after CRC TLV byte
+  if ((data[Check_CRC_location+5] == NULL_BYTE)&&(data[Check_CRC_location+6] == NULL_BYTE)) {
+      // check CRC TL byte is in eeprom again
+    for (int j = Check_CRC_location+5 ; j < data.size() ; j++) {
+      if ((data[j] == CRC_TYPE_ADR)&&(data[j] == CRC_LEN_ADR)) {
+        std::cerr << std::endl;
+        std::cerr << "ERROR: Get Another CRC TL data!" << std::endl;
+        return;
+      }
+    }
   } else {
-    std::cerr << "ERROR: EEPROM type not follow Meta FBOSS EEPROM Format v5! : " << eDeviceName << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "ERROR: Garbage Data after CRC TLV!" << std::endl;
     return;
+  }
+
+  if (Check_CRC_location == 0) {
+    std::cerr << std::endl;
+    std::cerr << "ERROR: Can'r get CRC TL Data Byte in eeprom" << std::endl;
+  } else {
+    std::cout << "Check CRC TLV ------------- [Pass]" <<std::endl;
   }
 
   // set the new eeprom data need to follow TLV format
@@ -306,7 +384,7 @@ static void modifyEepromData(const std::string& eDeviceName,
   int eepromLength_adr_size = 1;  // length address size, 1 means one byte
 
   std::vector<uint8_t> new_eeprom_data;
-  // Check Type is between 1~20
+  // Check Type value is in eeprom or not
   if (static_cast<int>(data[eepromType]) >= MIN_TYPE && static_cast<int>(data[eepromType]) <= MAX_TYPE) {
 
     while(1){ //find which type value need to modify
@@ -320,15 +398,16 @@ static void modifyEepromData(const std::string& eDeviceName,
         new_eeprom_data.push_back(static_cast<uint8_t>(modifyValueLength));
 
         switch (modifyTypeID) {
-          case typeId_v5::ID_PRODUCT_PRODUCTION_STATE:
-          case typeId_v5::ID_PRODUCT_VER:
-          case typeId_v5::ID_PRODUCT_SUB_VER:
+          case typeId_fboss::ID_PRODUCT_PRODUCTION_STATE:
+          case typeId_fboss::ID_PRODUCT_VER:
+          case typeId_fboss::ID_PRODUCT_SUB_VER:
+          case typeId_fboss::ID_RMA:
             new_eeprom_data.insert(new_eeprom_data.end(), modifyValueHex.begin(), modifyValueHex.end());
             break;
-          case typeId_v5::ID_X86_CPU_MAC:
-          case typeId_v5::ID_BMC_MAC:
-          case typeId_v5::ID_SWITCH_ASIC_MAC:
-          case typeId_v5::ID_RSVD_MAC:
+          case typeId_fboss::ID_X86_CPU_MAC:
+          case typeId_fboss::ID_BMC_MAC:
+          case typeId_fboss::ID_SWITCH_ASIC_MAC:
+          case typeId_fboss::ID_RSVD_MAC:
             new_eeprom_data.insert(new_eeprom_data.end(), modifyValueMac.begin(), modifyValueMac.end());
             break;
           default:
@@ -342,12 +421,14 @@ static void modifyEepromData(const std::string& eDeviceName,
         if (data.size() > (eepromType + eepromLength_adr_size + (static_cast<int>(data[eepromLength])) + 1)) {
           new_eeprom_data.insert(new_eeprom_data.end(), data.begin() + eepromType + eepromLength_adr_size + (static_cast<int>(data[eepromLength])) + 1, data.end());
         } else {
+          std::cerr << std::endl;
           std::cerr << "ERROR: modify EEPROM Processing error !" <<std::endl;
           return;
         }
         break;
 
       } else if (data[eepromType] == NULL_TYPE) { //0xff maens get NULL need to break
+        std::cerr << std::endl;
         std::cerr << "ERROR: modify EEPROM Processing error get error Type value !" <<std::endl;
         return;
       } else {
@@ -358,12 +439,13 @@ static void modifyEepromData(const std::string& eDeviceName,
         eepromLength = eepromLength + eepromLength_adr_size + (static_cast<int>(data[eepromLength])) + next_eepromLength_adr;
       }
     }
+    std::cout << "Modify Value -------------- [Pass]" << std::endl;
 
     // calculate new_eeprom_data Header ~ CRC type & length
     size_t CRCendIndex = 0;
     for (int i = new_eeprom_data.size() - 1; i > HEADER_LEN; --i) {
       if ((new_eeprom_data[i-1] == CRC_TYPE_ADR)&&(new_eeprom_data[i] == CRC_LEN_ADR)) {
-        CRCendIndex = i;
+        CRCendIndex = i-2;
         break;
       }
     }
@@ -382,27 +464,40 @@ static void modifyEepromData(const std::string& eDeviceName,
           }
         }
       }
+      std::cout << "Calculate CRC-CCITT_AUG --- [Pass]" << std::endl;
+
+      new_eeprom_data[CRCendIndex + CRC_TYPE] = CRC_TYPE_ADR;
+      new_eeprom_data[CRCendIndex + CRC_LENGTH] = CRC_LEN_ADR;
       new_eeprom_data[CRCendIndex + CRC_VALUE_H] = newCRC >> 8;   // CRC HighByte
       new_eeprom_data[CRCendIndex + CRC_VALUE_L] = newCRC & 0xFF; // CRC LowByte
-      std::cout << "Calculate new CRC-CCITT value success !" << std::endl;
     } else {
+      std::cerr << std::endl;
       std::cerr << "ERROR: CRC processing error !" <<std::endl;
       return;
     }
 
   } else {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Read "<< eDeviceName << " Type fail!" << std::endl;
   }
 
   // write new_eeprom_data to eeprom
   if (!new_eeprom_data.empty()) {
     int result = writeFileContents(eDevicePath, new_eeprom_data);
+    std::cout << "--------------------------------------------" << std::endl;
     if (result) {
-        std::cout << "Modify value written to " << eDeviceName << " success!" << std::endl;
+        if(MAX_TYPE == MAX_TYPE_V5){
+          std::cout << "[EEPROM Date Format : Meta FBOSS V5]" << std::endl;
+        } else {
+          std::cout << "[EEPROM Data Format : Meta FBOSS V6]" << std::endl;
+        }
+        std::cout << "[Write new Data to " << eDeviceName << " Success!]" << std::endl;
     } else {
+        std::cerr << std::endl;
         std::cerr << "ERROR: Failed to write modified data to " << eDeviceName << std::endl;
     }
   } else {
+    std::cerr << std::endl;
     std::cerr << "ERROR: Modify EEPROM data is empty!" << std::endl;
   }
   return;
@@ -427,7 +522,7 @@ int main(int argc, char* argv[]) {
   std::string modifyType;
   std::string modifyValue;
   std::string dumpFileName;
-  const std::string weutil_version = "1.1";
+  const std::string weutil_version = "3.0";
 
   static struct option long_options[] = {
       {"list", no_argument, NULL, 'l'},
@@ -468,7 +563,7 @@ int main(int argc, char* argv[]) {
         doPrint = 1;
         break;
       case 'v':
-        std::cout << "weutil version is " << weutil_version << std::endl;
+        std::cout << "weutil version is " << weutil_version << " (only for Netlake)" << std::endl;
         break;
       case 'w':
         writeFileName = optarg;
@@ -479,9 +574,11 @@ int main(int argc, char* argv[]) {
           try {
             modifyTypeInt = std::stoi(optarg);
           } catch (const std::invalid_argument& e) {
+            std::cerr << std::endl;
             std::cerr << "ERROR: Type is Invalid argument: " << optarg << std::endl;
             exit(1);
           } catch (const std::out_of_range& e) {
+            std::cerr << std::endl;
             std::cerr << "ERROR: Type is Argument out of range: " << optarg << std::endl;
             exit(1);
           }
@@ -490,6 +587,7 @@ int main(int argc, char* argv[]) {
           optind++;
           modifyFlag = 1;
         } else {
+          std::cerr << std::endl;
           std::cerr << "ERROR: -m option requires two arguments.\n";
           exit(1);
         }
@@ -533,7 +631,7 @@ int main(int argc, char* argv[]) {
   if (allFlag) {
     std::map<std::string, std::string> res = listEepromDevices();
     for (auto listEnt : res) {
-      std::cout << "EEPROM: " + listEnt.first << std::endl;
+      std::cerr << "EEPROM: " + listEnt.first << std::endl;
       printEepromData(listEnt.first, jsonFlag);
       std::cout << std::endl;
     }
@@ -542,7 +640,8 @@ int main(int argc, char* argv[]) {
 
   if (doPrint) {
     if (eepromNameToPath(eepromDeviceName).value_or("") == "") {
-      std::cout << "ERROR: invalid eeprom device name: " + eepromDeviceName
+      std::cerr << std::endl;
+      std::cerr << "ERROR: invalid eeprom device name: " + eepromDeviceName
                 << '\n';
       exit(1);
     }
@@ -560,7 +659,8 @@ int main(int argc, char* argv[]) {
         }
         writeEepromData(eepromDeviceName, eepromDevicePath, writeFileName);
       } else {
-        std::cout << "ERROR: File is NULL !: " + writeFileName
+        std::cerr << std::endl;
+        std::cerr << "ERROR: File is NULL !: " + writeFileName
                   << '\n';
         exit(1);
       }
@@ -568,7 +668,7 @@ int main(int argc, char* argv[]) {
   }
 
   if(modifyFlag) {
-    if ((modifyTypeInt >= MIN_TYPE) && (modifyTypeInt <= MAX_TYPE)) {
+    if ((modifyTypeInt >= MIN_TYPE) && (modifyTypeInt <= MAX_TYPE_V6)) {
       //load eeprom device name and path
       std::map<std::string, std::string> res = listEepromDevices();
       for (auto& eeprom : res) {
@@ -579,7 +679,10 @@ int main(int argc, char* argv[]) {
       }
       modifyEepromData(eepromDeviceName, eepromDevicePath, modifyType, modifyValue);
     } else {
-      std::cout << "ERROR: Type is not between 1~20 ! " << '\n';
+      std::cerr << std::endl;
+      std::cerr << "ERROR: Type is modify incorrect !" << '\n';
+      std::cerr << "Meta FBOSS v5 Type is between 1~20 ! " << '\n';
+      std::cerr << "Meta FBOSS v6 Type is between 1~21 ! " << '\n';
       exit(1);
     }
     exit(0);
@@ -596,6 +699,7 @@ int main(int argc, char* argv[]) {
       }
       dumpEepromData(eepromDevicePath, dumpFileName);
     } else {
+      std::cerr << std::endl;
       std::cerr << "ERROR: Missing file name for the dump operation.\n";
       exit(1);
     }
