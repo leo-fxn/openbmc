@@ -1,4 +1,4 @@
-From 8661091350f625def80eb9414ad1abd2995e6776 Mon Sep 17 00:00:00 2001
+From a2f65071d7253de56de4cc3228ee3fe17dce04d5 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH] platform-mc: Add OEM Meta event handler
@@ -68,10 +68,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
 diff --git a/meson.build b/meson.build
-index 543f953..6de09f2 100644
+index 4c78d06..f616f69 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -263,6 +263,7 @@ executable(
+@@ -264,6 +264,7 @@ executable(
      oem_files,
      'requester/mctp_endpoint_discovery.cpp',
      'requester/configuration_discovery_handler.cpp',
@@ -1213,12 +1213,12 @@ index 45a311a..6dc89aa 100644
  } // namespace platform_mc
  } // namespace pldm
 diff --git a/platform-mc/test/meson.build b/platform-mc/test/meson.build
-index e8ea6b7..64c2701 100644
+index 2d722e9..5720af4 100644
 --- a/platform-mc/test/meson.build
 +++ b/platform-mc/test/meson.build
-@@ -9,6 +9,8 @@ test_src = declare_dependency(
-         '../numeric_sensor.cpp',
+@@ -10,6 +10,8 @@ test_src = declare_dependency(
          '../event_manager.cpp',
+         '../dbus_to_terminus_effecters.cpp',
          '../../requester/mctp_endpoint_discovery.cpp',
 +        '../../requester/configuration_discovery_handler.cpp',
 +        '../../oem/meta/platform-mc/event_oem_meta.cpp',
@@ -1226,7 +1226,7 @@ index e8ea6b7..64c2701 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index f1109a6..ca8eef4 100644
+index 84e30d6..4c74666 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -225,8 +225,13 @@ int main(int argc, char** argv)

@@ -1,4 +1,4 @@
-From a0e02efe8fb917787869e172176bd991fadf8085 Mon Sep 17 00:00:00 2001
+From 91084da4edfd66c810c5f348c1224c91e5341639 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Fri, 14 Jun 2024 16:24:31 +0800
 Subject: [PATCH] Support OEM-META command for power control
@@ -25,10 +25,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 5fc72d5..6d53ca2 100644
+index c01ee23..84bf5e7 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -74,6 +74,7 @@ if get_option('oem-meta').allowed()
+@@ -73,6 +73,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp',

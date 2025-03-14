@@ -3,7 +3,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI:append = " \
     file://0001-user-mgr-Add-max_system_users-as-a-build-time-config.patch \
     file://0002-user-mgr-Allow-non-IPMI-usernames-with-dot-.-charact.patch \
-    file://0003-increase-the-systemMaxUserNameLen.patch \
 "
 
 # Bump maximum amount of system users

@@ -1,4 +1,4 @@
-From fc883a06e5cffd188f6642d11b9bccd7c1f7555d Mon Sep 17 00:00:00 2001
+From 95ba7c1d5c09307997f47b339869432612412138 Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Fri, 1 Nov 2024 17:44:55 +0800
 Subject: [PATCH] platform-mc: Handle get PLDM Commands failure

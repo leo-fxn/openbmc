@@ -1,4 +1,4 @@
-From 6012a7fa8af5aab89e7da63bacfb142e50be4eda Mon Sep 17 00:00:00 2001
+From 5d6cb50d0751c7bd6bccca503a48827ed510ec18 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
 Subject: [PATCH] Support OEM-META write file request for post code history
@@ -27,10 +27,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 14c8bb0..723fcc0 100644
+index acbb400..c0e3ea7 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -38,6 +38,7 @@ sources = [
+@@ -37,6 +37,7 @@ sources = [
      '../host-bmc/utils.cpp',
      '../host-bmc/dbus/pcie_device.cpp',
      '../host-bmc/dbus/pcie_slot.cpp',
@@ -38,7 +38,7 @@ index 14c8bb0..723fcc0 100644
      'event_parser.cpp',
  ]
  
-@@ -66,6 +67,14 @@ if get_option('oem-ibm').allowed()
+@@ -65,6 +66,14 @@ if get_option('oem-ibm').allowed()
      ]
  endif
  
@@ -54,7 +54,7 @@ index 14c8bb0..723fcc0 100644
      'pldmresponder',
      sources,
 diff --git a/meson.build b/meson.build
-index b744284..543f953 100644
+index e2efb11..4c78d06 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -140,6 +140,10 @@ conf_data.set('SENSOR_POLLING_TIME', get_option('sensor-polling-time'))
@@ -448,7 +448,7 @@ index 0000000..81ff4eb
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index ef4fbb9..f1109a6 100644
+index 8e7a285..84e30d6 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -68,6 +68,9 @@ PHOSPHOR_LOG2_USING;

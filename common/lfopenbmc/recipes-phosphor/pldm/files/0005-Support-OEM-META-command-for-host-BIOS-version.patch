@@ -1,4 +1,4 @@
-From a5cd81d1d6f0527ac11a51856f472373ce087352 Mon Sep 17 00:00:00 2001
+From 9d54c97d007c56940cc02d68ba64f96d12378112 Mon Sep 17 00:00:00 2001
 From: Chris Wang <Chris_Wang@wiwynn.com>
 Date: Wed, 10 Apr 2024 21:04:02 +0800
 Subject: [PATCH] Support OEM-META command for host BIOS version
@@ -24,10 +24,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 723fcc0..3a81364 100644
+index c0e3ea7..8e6d6f8 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -72,6 +72,7 @@ if get_option('oem-meta').allowed()
+@@ -71,6 +71,7 @@ if get_option('oem-meta').allowed()
      sources += [
          '../oem/meta/libpldmresponder/oem_meta_file_io.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp',
@@ -350,7 +350,7 @@ index 0000000..ad672f0
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index ca8eef4..79ddd0d 100644
+index 4c74666..b7c45fc 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -285,7 +285,7 @@ int main(int argc, char** argv)

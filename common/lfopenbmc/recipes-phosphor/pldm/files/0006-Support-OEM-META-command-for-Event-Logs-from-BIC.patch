@@ -1,4 +1,4 @@
-From 5118a09cf8a2ef939c73eb6253cae175cba2afd1 Mon Sep 17 00:00:00 2001
+From 475f28a8216932556534ce4bddbf4ece99155802 Mon Sep 17 00:00:00 2001
 From: Bright Cheng <bright_cheng@wiwynn.com>
 Date: Wed, 26 Jun 2024 14:25:18 +0800
 Subject: [PATCH] Support OEM-META command for Event Logs from BIC
@@ -21,10 +21,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 3a81364..5fc72d5 100644
+index 8e6d6f8..c01ee23 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -73,6 +73,7 @@ if get_option('oem-meta').allowed()
+@@ -72,6 +72,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_post_code.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp',

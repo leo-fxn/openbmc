@@ -1,4 +1,4 @@
-From d1d9063c2bd7ae7bb3f05205393a00dad4b604c6 Mon Sep 17 00:00:00 2001
+From 8769f688bc7c7af13380473b5cf9587493b6df37 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Fri, 28 Jun 2024 11:19:43 +0800
 Subject: [PATCH] oem-meta: Add APML alert handler
@@ -18,10 +18,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_apml_alert.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 6d53ca2..769c340 100644
+index 84bf5e7..be2ef53 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -75,6 +75,7 @@ if get_option('oem-meta').allowed()
+@@ -74,6 +74,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_bios_version.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp',

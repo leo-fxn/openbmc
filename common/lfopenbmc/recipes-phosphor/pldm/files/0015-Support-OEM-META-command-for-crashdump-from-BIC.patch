@@ -1,4 +1,4 @@
-From 217803926170bd556626b2c14a249e6f693ad2c8 Mon Sep 17 00:00:00 2001
+From 065b10449967cda0626882ca83df07ebe39e6b53 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Tue, 31 Dec 2024 10:29:35 +0800
 Subject: [PATCH] Support OEM-META command for crashdump from BIC
@@ -23,10 +23,10 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/libpldmresponder/oem_meta_file_io_type_crash_dump.hpp
 
 diff --git a/libpldmresponder/meson.build b/libpldmresponder/meson.build
-index 9f0687e..653d90e 100644
+index 6c58b1d..f45e7c0 100644
 --- a/libpldmresponder/meson.build
 +++ b/libpldmresponder/meson.build
-@@ -77,6 +77,7 @@ if get_option('oem-meta').allowed()
+@@ -76,6 +76,7 @@ if get_option('oem-meta').allowed()
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_apml_alert.cpp',
          '../oem/meta/libpldmresponder/oem_meta_file_io_type_http_boot.cpp',
