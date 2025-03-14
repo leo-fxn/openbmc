@@ -1,0 +1,12 @@
+[Unit]
+Description=FW Version Fetch for rmc-all-versions
+After=xyz.openbmc_project.Settings.service
+After=ventura-sys-init.service
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/fw-versions/rmc-all-versions
+
+[Install]
+WantedBy=multi-user.target

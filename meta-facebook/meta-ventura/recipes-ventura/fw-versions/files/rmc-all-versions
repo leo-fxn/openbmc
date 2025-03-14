@@ -1,0 +1,43 @@
+#!/bin/bash
+set -e
+
+version=$(fw-util bmc --version tpm | awk '{print $NF}')
+echo "version: $version"
+
+busctl set-property \
+    xyz.openbmc_project.Settings \
+    /xyz/openbmc_project/software/chassis/Ventura_SCM_tpm \
+    xyz.openbmc_project.Software.Version \
+    Version "s" "$version"
+
+CFG0_version=$(cpld-fw-handler version -i i2c -b 14 -a 0x40 --target CFG0| awk '{print $NF}')
+CFG1_version=$(cpld-fw-handler version -i i2c -b 14 -a 0x40 --target CFG1| awk '{print $NF}')
+
+busctl set-property \
+    xyz.openbmc_project.Settings \
+    /xyz/openbmc_project/software/chassis/Ventura_RMC_cpld_cfg0 \
+    xyz.openbmc_project.Software.Version \
+    Version "s" "$CFG0_version"
+
+busctl set-property \
+    xyz.openbmc_project.Settings \
+    /xyz/openbmc_project/software/chassis/Ventura_RMC_cpld_cfg1 \
+    xyz.openbmc_project.Software.Version \
+    Version "s" "$CFG1_version"
+
+cpld_version=$(fw-util scm --version cpld | awk '{print $NF}')
+echo "version: $cpld_version"
+
+busctl set-property \
+    xyz.openbmc_project.Settings \
+    /xyz/openbmc_project/software/chassis/Ventura_SCM_cpld \
+    xyz.openbmc_project.Software.Version \
+    Version "s" "$cpld_version"
+
+bmc_version=$(fw-util bmc --version bmc | awk '{print $NF}')
+
+busctl set-property \
+    xyz.openbmc_project.Settings \
+    /xyz/openbmc_project/software/chassis/Ventura_RMC_SCM_bmc \
+    xyz.openbmc_project.Software.Version \
+    Version "s" "$bmc_version"
