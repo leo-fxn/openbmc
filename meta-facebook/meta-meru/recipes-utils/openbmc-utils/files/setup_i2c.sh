@@ -58,7 +58,6 @@ i2c_device_add 9 0x50 24c512 # SCM EEPROM
 i2c_device_add 9 0x23 smbcpld # SMBCPLD
 i2c_device_add 9 0x52 24c512 # SMB EEPROM
 i2c_device_add 12 0x43 pwrcpld
-hwmon_device_add 15 0x4a lm73
 
 userver_power_on
 

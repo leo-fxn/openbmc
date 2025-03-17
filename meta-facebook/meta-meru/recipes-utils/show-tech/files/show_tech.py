@@ -144,7 +144,7 @@ def i2cDetectDump():
     print("########## I2C DETECT ##########")
     print("################################\n")
 
-    for bus in range(0, 16):
+    for bus in range(0, 15):
         print(
             "##### SMBus{} INFO #####\n{}".format(
                 bus,
