@@ -24,7 +24,7 @@ import argparse
 import subprocess
 
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 
 def runCmd(cmd, echo=False, verbose=False, timeout=60, ignoreReturncode=False):
@@ -63,7 +63,11 @@ def runCmd(cmd, echo=False, verbose=False, timeout=60, ignoreReturncode=False):
 
 
 def dumpWeutil(target="BMC", verbose=False):
-    cmd = "weutil {}".format(target)
+    cmd = "weutil -e {}".format(target)
+    out = runCmd(cmd, echo=verbose, verbose=verbose)
+    if len(out.splitlines()) > 1:
+        print("##### {} SERIAL NUMBER #####\n{}".format(target, out))
+    cmd = "weutil_prefdl {}".format(target)
     print(
         "##### {} SERIAL NUMBER #####\n{}".format(
             target, runCmd(cmd, echo=verbose, verbose=verbose)

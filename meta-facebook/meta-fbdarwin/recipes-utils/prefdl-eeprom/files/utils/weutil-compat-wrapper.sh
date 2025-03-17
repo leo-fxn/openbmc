@@ -32,10 +32,12 @@
 # the arguments to the new parser; if no, pass the arguments to the old
 # parser.
 prefdl_util_arg=""
+e_flag_arg=1
 all_args=("$@")
 while test $# -gt 0; do
     case "${1,,}" in
        -e|--eeprom)
+            e_flag_arg=0
             shift
             if test $# -gt 0; then
                 shift
@@ -55,6 +57,6 @@ if [ -n "$prefdl_util_arg" ]; then
     /usr/bin/weutil_prefdl "${all_args[@]}"
 elif bmc_has_meta_eeprom; then
     /usr/bin/weutil_meta "${all_args[@]}"
-else
+elif [ $e_flag_arg -eq 1 ]; then
     /usr/bin/weutil_prefdl "${all_args[@]}"
 fi
