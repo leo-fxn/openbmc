@@ -35,7 +35,7 @@ usage() {
     echo "Usage:"
     echo "$program <fpga> <action> <fpga file>"
     echo "      <fpga> : scm, smb, smb_cpld, fan, th4_qspi,"
-    echo "               pim, pim_base, pim16q, pim8ddm"
+    echo "               pim, pim_base, pim16q, pim8ddm, pim8ddr"
     echo "      <action> : program, verify, erase (spi only)"
     exit 1
 }
@@ -271,6 +271,11 @@ program_spi_image() {
            SKIP_MB=1
            FPGA_TYPE=1
            ;;
+        PIM8DDR)
+           PARTITION="pim8ddr"
+           SKIP_MB=3
+           FPGA_TYPE=3
+           ;;
         PIM8DDM)
            PARTITION="pim8ddm"
            SKIP_MB=2
@@ -412,6 +417,14 @@ read_spi_partition_image() {
            PARTITION="header_pim16q"
            SKIP_MB=1
            ;;
+        PIM8DDR)
+           PARTITION="pim8ddr"
+           SKIP_MB=3
+           ;;
+        HEADER_PIM8DDR)
+           PARTITION="header_pim8ddr"
+           SKIP_MB=3
+           ;;
         PIM8DDM)
            PARTITION="pim8ddm"
            SKIP_MB=2
@@ -551,6 +564,9 @@ case "$1" in
    pim16q) shift 1
       do_pim "$@" pim16q
       ;;
+   pim8ddr) shift 1
+      do_pim "$@" pim8ddr
+      ;;
    pim8ddm) shift 1
       do_pim "$@" pim8ddm
       ;;
@@ -559,6 +575,9 @@ case "$1" in
       ;;
    header_pim16q) shift 1
       do_pim "$@" header_pim16q
+      ;;
+   header_pim8ddr) shift 1
+      do_pim "$@" header_pim8ddr
       ;;
    header_pim8ddm) shift 1
       do_pim "$@" header_pim8ddm

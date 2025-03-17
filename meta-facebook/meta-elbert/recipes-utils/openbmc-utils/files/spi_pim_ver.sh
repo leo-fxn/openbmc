@@ -25,7 +25,7 @@
 # This utility displays the FPGA versions in each PIM SPI Flash parition
 
 echo "------PIM-FLASH-CONFIG------"
-partition_list="header_pim_base header_pim16q header_pim8ddm"
+partition_list="header_pim_base header_pim16q header_pim8ddm header_pim8ddr"
 for partition in ${partition_list}; do
     PIM_REVISION_FILE="/tmp/.pim_spi_header_$partition"
     if [ ! -f "$PIM_REVISION_FILE" ]; then

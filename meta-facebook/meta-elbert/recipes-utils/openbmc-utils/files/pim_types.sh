@@ -34,6 +34,8 @@ for pim in ${pim_list}; do
             pim_type='PIM16Q2'
         elif echo "$fru" | grep -q '88-16CD'; then
             pim_type='PIM16Q'
+        elif echo "$fru" | grep -q '88-8DR'; then
+            pim_type='PIM8DDR'
         elif echo "$fru" | grep -q '88-8D'; then
             pim_type='PIM8DDM'
         fi

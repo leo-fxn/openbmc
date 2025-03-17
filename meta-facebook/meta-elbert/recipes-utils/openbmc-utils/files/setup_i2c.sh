@@ -155,7 +155,7 @@ do
         i2c_device_add "$bus_id" 0x18 pmbus   # TPS546D24
 
         fru="$(peutil "$pim" 2>&1)"
-        if echo "$fru" | grep -q '88-16CD2'; then
+        if echo "$fru" | grep -q '88-16CD2' || echo "$fru" | grep -q '88-8DR'; then
             echo "PIM$pim has no UCD9090/LM73"
         else
             retry_command 3 enable_power_security_mode "$bus_id" 0x4e "UCD9090B"
@@ -163,7 +163,7 @@ do
             i2c_device_add "$bus_id" 0x4e ucd9090 # UCD9090
         fi
 
-        if echo "$fru" | grep -q '88-8D'; then
+        if echo "$fru" | grep -q '88-8D' && ! echo "$fru" | grep -q '88-8DR' ; then
             i2c_device_add "$bus_id" 0x40 pmbus # MP5023
             i2c_device_add "$bus_id" 0x54 isl68224 # ISL68224
             retry_command 3 maybe_enable_isl_wp "$bus_id" 0x54

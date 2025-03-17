@@ -41,7 +41,7 @@ do
     pim=$((i+2))
     if wedge_is_pim_present "$pim"; then
         pim_type=$(wedge_pim_type "$pim")
-        if [[ "$pim_type" == "16q2" ]]; then
+        if [[ "$pim_type" == "16q2" || "$pim_type" == "8ddr" ]]; then
             echo "PIM${pim} has no DPM..."
         else
             # PIM 2-9, SMBUS 16-23
@@ -82,6 +82,8 @@ do
     elif [[ "$pim_type" == "16q2" ]]; then
         echo "PIM${pim} has no ISL... skipping."
     elif [[ "$pim_type" == "16q" ]]; then
+        echo "PIM${pim} has no ISL... skipping."
+    elif [[ "$pim_type" == "8ddr" ]]; then
         echo "PIM${pim} has no ISL... skipping."
     elif [[ "$pim_type" == "unplug" ]]; then
         echo "PIM${pim} not present... skipping."
