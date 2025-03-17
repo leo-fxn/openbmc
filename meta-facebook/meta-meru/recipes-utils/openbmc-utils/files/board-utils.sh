@@ -37,6 +37,27 @@ LAYOUT_FILE="/etc/meru_flash.layout"
 
 WEUTIL_CMD='weutil -e'
 
+DS4520_BUS=8
+DS4520_IO0_REG=0xf8
+
+wedge_is_bmc_personality() {
+    DEV_ADDR=""
+    if i2cget -y 8 0x52 0x0 &> /dev/null; then
+        DEV_ADDR=0x52
+    else
+        # P1 systems have DS4520 at 0x50
+        echo "DS4520 not detected at 8-0052, trying 8-0050"
+        DEV_ADDR=0x50
+    fi
+
+    io_reg_val=$(i2cget -y $DS4520_BUS $DEV_ADDR $DS4520_IO0_REG)
+    if [ "$((io_reg_val & 0x1))" = "1" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 retry_command() {
     # Retry command up to $1 attempts
     local retries=$1
