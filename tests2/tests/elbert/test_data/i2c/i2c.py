@@ -42,6 +42,12 @@ pim8ddm = [
     ("0050", "24c512", "at24"),
     ("0054", "isl68224", "isl68137"),
 ]
+pim8ddr = [
+    # Address, name, driver
+    ("0016", "pmbus", "pmbus"),
+    ("0018", "pmbus", "pmbus"),
+    ("0050", "24c512", "at24"),
+]
 psu_devices = [
     # Address, name, driver
     ("0058", "psu_driver", "psu_driver")
@@ -76,4 +82,10 @@ pim8ddm_secure_devices = [
     ("UCD", 0x4E, "ucd"),
     ("UCD", 0x4E, "ucd"),
     ("ISL", 0x54, "pmbus-0x40"),
+]
+
+pim8ddr_secure_devices = [
+    # Name, device, type
+    ("TPS-UPPER", 0x16, "pmbus-0x80"),
+    ("TPS-UPPER", 0x18, "pmbus-0x80"),
 ]

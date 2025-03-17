@@ -21,13 +21,14 @@ import unittest
 
 from common.base_rest_endpoint_test import FbossRestEndpointTest
 from tests.elbert.test_data.sensors.sensors import (
+    FAN_SENSORS,
+    PIM_16Q2_SENSORS,
+    PIM_16Q_SENSORS,
+    PIM_8DDM_SENSORS,
+    PIM_8DDR_SENSORS,
+    PSU_SENSORS,
     SCM_SENSORS,
     SMB_SENSORS,
-    PIM_16Q_SENSORS,
-    PIM_16Q2_SENSORS,
-    PIM_8DDM_SENSORS,
-    FAN_SENSORS,
-    PSU_SENSORS,
 )
 from utils.shell_util import run_shell_cmd
 
@@ -94,6 +95,9 @@ class RestEndpointTest(FbossRestEndpointTest, unittest.TestCase):
                     self.endpoint_sensors_attrb.append(sensor.format(idx))
             elif "PIM {}: PIM8DDM".format(idx) in pim_types:
                 for sensor in PIM_8DDM_SENSORS:
+                    self.endpoint_sensors_attrb.append(sensor.format(idx))
+            elif "PIM {}: PIM8DDR".format(idx) in pim_types:
+                for sensor in PIM_8DDR_SENSORS:
                     self.endpoint_sensors_attrb.append(sensor.format(idx))
 
         for idx in range(1, 5):

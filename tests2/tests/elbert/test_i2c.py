@@ -22,15 +22,17 @@ import unittest
 
 from common.base_i2c_test import BaseI2cTest
 from tests.elbert.test_data.i2c.i2c import (
-    plat_i2c_tree,
-    pim16q2,
     pim16q,
-    pim8ddm,
-    psu_devices,
-    secure_devices,
+    pim16q2,
     pim16q2_secure_devices,
     pim16q_secure_devices,
+    pim8ddm,
     pim8ddm_secure_devices,
+    pim8ddr,
+    pim8ddr_secure_devices,
+    plat_i2c_tree,
+    psu_devices,
+    secure_devices,
 )
 from utils.shell_util import run_shell_cmd
 from utils.test_utils import qemu_check
@@ -81,6 +83,12 @@ class ElbertI2cTest(BaseI2cTest, unittest.TestCase):
                         "name": name,
                         "driver": driver,
                     }
+            elif "PIM {}: PIM8DDR".format(pim) in pim_types:
+                for address, name, driver in pim8ddr:
+                    self.i2c_tree["{:02d}-{}".format(pim_bus[pim - 2], address)] = {
+                        "name": name,
+                        "driver": driver,
+                    }
 
         # Add PSU1-4 devices for available psus
         for psu in range(1, 4 + 1):
@@ -125,6 +133,8 @@ class ElbertI2cTest(BaseI2cTest, unittest.TestCase):
                 pim_secure_devices = pim16q_secure_devices
             elif "PIM {}: PIM8DDM".format(pim) in pim_types:
                 pim_secure_devices = pim8ddm_secure_devices
+            elif "PIM {}: PIM8DDR".format(pim) in pim_types:
+                pim_secure_devices = pim8ddr_secure_devices
 
             for name, dev, dev_type in pim_secure_devices:
                 devices.append(("PIM{} {}".format(pim, name), bus, dev, dev_type))

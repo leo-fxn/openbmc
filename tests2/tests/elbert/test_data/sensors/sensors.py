@@ -89,6 +89,15 @@ PIM_8DDM_SENSORS = [
     "PIM{}_ECB_CURR",
 ]
 
+PIM_8DDR_SENSORS = [
+    "PIM{}_POS_3V3_U_VOUT",
+    "PIM{}_POS_3V3_U_TEMP",
+    "PIM{}_POS_3V3_U_CURR",
+    "PIM{}_POS_3V3_L_VOUT",
+    "PIM{}_POS_3V3_L_TEMP",
+    "PIM{}_POS_3V3_L_CURR",
+]
+
 SCM_SENSORS = [
     "SCM_ECB_VIN",
     "SCM_ECB_VOUT",

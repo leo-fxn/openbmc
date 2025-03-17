@@ -92,6 +92,8 @@ def prepare_piminfo():
                 pim_type[pim] = "16Q2"
             elif "88-16CD" in part_number:
                 pim_type[pim] = "16Q"
+            elif "88-8DR" in part_number:
+                pim_type[pim] = "8DDR"
             elif "88-8D" in part_number:
                 pim_type[pim] = "8DDM"
 

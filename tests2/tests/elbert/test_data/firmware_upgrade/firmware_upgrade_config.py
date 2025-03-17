@@ -21,7 +21,7 @@
 import sys
 from abc import abstractmethod
 
-from common.base_fw_upgrade_test import DEV_SERVER_RESOURCE_PATH, BaseFwUpgradeTest
+from common.base_fw_upgrade_test import BaseFwUpgradeTest, DEV_SERVER_RESOURCE_PATH
 
 
 # Global variables
@@ -44,6 +44,7 @@ UPGRADING_TIMEOUT = {
     "fan": 60,
     "pim_base": 30,
     "pim8ddm": 30,
+    "pim8ddr": 30,
     "pim16q": 30,
     "th4_qspi": 30,
 }

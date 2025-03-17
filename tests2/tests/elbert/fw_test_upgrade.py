@@ -69,6 +69,10 @@ class FwUpgradeTest(unittest.TestCase):
             6,
             "fpga_util.sh pim8ddm program {filename}",  # noqa B950
         ],  # priority=6, upgrade_cmd
+        "pim8ddr": [
+            6,
+            "fpga_util.sh pim8ddr program {filename}",  # noqa B950
+        ],  # priority=6, upgrade_cmd
     }
 
     def setUp(self):

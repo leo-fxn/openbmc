@@ -58,7 +58,8 @@ def pal_get_pim_type(fru_id: int) -> str:
         1: "16Q",
         2: "8DDM",
         3: "16Q2",
-        4: "NONE",
+        4: "8DDR",
+        5: "NONE",
     }
     retry = 3
     ret = lpal_hndl.pal_get_pim_type(fru_id, retry)

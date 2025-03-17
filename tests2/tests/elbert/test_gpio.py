@@ -20,8 +20,7 @@
 import unittest
 
 from common.base_gpio_test import BaseGpioTest
-from tests.elbert.test_data.gpio.gpio import GPIOS
-from tests.elbert.test_data.gpio.gpio import pim_gpios
+from tests.elbert.test_data.gpio.gpio import GPIOS, pim_gpios
 from utils.shell_util import run_shell_cmd
 from utils.test_utils import qemu_check
 
@@ -37,6 +36,6 @@ class GpioTest(BaseGpioTest, unittest.TestCase):
             if "0x1" in run_shell_cmd(cmd.format(pim)):
                 pim_type = run_shell_cmd("/usr/bin/kv get pim{}_type".format(pim))
                 # Create GPIOS for inserted PIMs only
-                if pim_type.strip() != "16q2":
-                    # PIM16Q2 has no pim gpios
+                if pim_type.strip() != "16q2" and pim_type.strip() != "8ddr":
+                    # PIM16Q2 and PIM8DDR have no pim gpios
                     self.gpios.update(pim_gpios(pim))
