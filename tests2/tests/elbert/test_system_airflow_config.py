@@ -28,12 +28,12 @@ class SystemAirflowConfigTest(unittest.TestCase):
     def setUp(self):
         Logger.start(name=self._testMethodName)
         # (pim16q_count, pim8ddm_count, psu_count) : config
-        # If config not here, expect CONFIG_UNKNOWN = 4
+        # If config not here, expect CONFIG_UNKNOWN = 5
         self.configs = {
-            (8, 0, 2): 0,  # CONFIG_8PIM16Q_0PIM8DDM_2PSU
-            (5, 3, 2): 1,  # CONFIG_5PIM16Q_3PIM8DDM_2PSU
-            (2, 6, 4): 2,  # CONFIG_2PIM16Q_6PIM8DDM_4PSU
-            (0, 8, 4): 3,  # CONFIG_0PIM16Q_8PIM8DDM_4PSU
+            (8, 0, 0, 2): 0,  # CONFIG_8PIM16Q_0PIM8DDM_2PSU
+            (5, 3, 0, 2): 1,  # CONFIG_5PIM16Q_3PIM8DDM_2PSU
+            (2, 6, 0, 4): 2,  # CONFIG_2PIM16Q_6PIM8DDM_4PSU
+            (0, 8, 0, 4): 3,  # CONFIG_0PIM16Q_8PIM8DDM_4PSU
         }
 
     def tearDown(self):
@@ -42,6 +42,7 @@ class SystemAirflowConfigTest(unittest.TestCase):
     def get_pim_count(self):
         pim16q_count = 0
         pim8ddm_count = 0
+        pim8ddr_count = 0
         for pim in range(2, 10):
             cmd = "head -n 1 /sys/bus/i2c/devices/4-0023/pim{}_present"
             if "0x1" in run_shell_cmd(cmd.format(pim)):
@@ -51,9 +52,15 @@ class SystemAirflowConfigTest(unittest.TestCase):
                     pim16q_count += 1
                 elif pim_type.strip() == "16q":
                     pim16q_count += 1
+                elif pim_type.strip() == "8ddr":
+                    return (
+                        0,
+                        0,
+                        1,
+                    )  # Currently, as long as num of PIM8DDR >= 1, effect is the same
                 elif pim_type.strip() == "8ddm":
                     pim8ddm_count += 1
-        return pim16q_count, pim8ddm_count
+        return pim16q_count, pim8ddm_count, pim8ddr_count
 
     def get_psu_count(self):
         psu_count = 0
@@ -67,9 +74,15 @@ class SystemAirflowConfigTest(unittest.TestCase):
 
     @unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
     def test_system_airflow_config(self):
-        pim16q_count, pim8ddm_count = self.get_pim_count()
+        pim16q_count, pim8ddm_count, pim8ddr_count = self.get_pim_count()
         psu_count = self.get_psu_count()
-        exp_config = self.configs.get((pim16q_count, pim8ddm_count, psu_count), 4)
+        if pim8ddr_count >= 1:  # Any config involving 1+ PIM8DDR is currently the same
+            exp_config = 4
+        else:
+            exp_config = self.configs.get(
+                (pim16q_count, pim8ddm_count, 0, psu_count), 5
+            )
+
         cmd = "/usr/bin/kv get sys_airflow_cfg"
         reported_config = run_shell_cmd(cmd)
         self.assertEqual(int(reported_config), exp_config)

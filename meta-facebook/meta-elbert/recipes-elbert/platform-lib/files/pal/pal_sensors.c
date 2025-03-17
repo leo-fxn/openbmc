@@ -2086,6 +2086,11 @@ fan_sys_airflow_cfg_log(int curr_state) {
                "SYSTEM_AIRFLOW: 0 PIM16Q 8 PIM8DDM 4 PSU "
                "fan configuration detected");
         break;
+      case CONFIG_PIM8DDR_2PSU:
+        syslog(LOG_CRIT,
+               "SYSTEM_AIRFLOW: Fan configuration containing PIM8DDR detected, "
+               "assuming 8 PIM8DDR 2 PSU fan configuration");
+        break;
       case CONFIG_UNKNOWN:
       default:
         syslog(LOG_CRIT,
@@ -2104,7 +2109,7 @@ fan_sys_airflow_cfg_log(int curr_state) {
 static int
 fan_sys_airflow_cfg_check(void) {
   uint8_t fru, psu_prsnt, pim_type;
-  uint8_t num_pim8ddm = 0, num_pim16q = 0, num_psu = 0;
+  uint8_t num_pim8ddm = 0, num_pim16q = 0, num_psu = 0, num_pim8ddr = 0;
 
   for (fru = FRU_PIM2; fru <= FRU_PIM9; fru++) {
     pim_type = pal_get_pim_type_from_file(fru);
@@ -2112,6 +2117,8 @@ fan_sys_airflow_cfg_check(void) {
       num_pim16q++;
     } else if (pim_type == PIM_TYPE_8DDM) {
       num_pim8ddm++;
+    } else if (pim_type == PIM_TYPE_8DDR) {
+      num_pim8ddr++;
     }
   }
 
@@ -2122,6 +2129,7 @@ fan_sys_airflow_cfg_check(void) {
     }
   }
 
+  // PIM8DDR and PIM16Q assumed equivalent 
   if (num_pim16q == 8 && num_pim8ddm == 0 && num_psu == 2) {
     return CONFIG_8PIM16Q_0PIM8DDM_2PSU;
   } else if (num_pim16q == 5 && num_pim8ddm == 3 && num_psu == 2) {
@@ -2130,7 +2138,9 @@ fan_sys_airflow_cfg_check(void) {
     return CONFIG_2PIM16Q_6PIM8DDM_4PSU;
   } else if (num_pim16q == 0 && num_pim8ddm == 8 && num_psu == 4) {
     return CONFIG_0PIM16Q_8PIM8DDM_4PSU;
-  } else {
+  } else if (num_pim8ddr > 0) {
+    return CONFIG_PIM8DDR_2PSU;
+  } else {                      
     return CONFIG_UNKNOWN;
   }
 }
@@ -2156,6 +2166,9 @@ fan_sys_airflow_read(float *value) {
       break;
     case CONFIG_0PIM16Q_8PIM8DDM_4PSU:
       cfm_lookup = cfm_lookup_0pim16q_8pim8ddm_4psu;
+      break;
+    case CONFIG_PIM8DDR_2PSU:
+      cfm_lookup = cfm_lookup_8pim16q_0pim8ddm_2psu;
       break;
     case CONFIG_UNKNOWN:
     default:

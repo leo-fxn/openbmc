@@ -49,6 +49,7 @@ fi
 
 num_pim16q=0
 num_pim8ddm=0
+num_pim8ddr=0
 
 pim_list="2 3 4 5 6 7 8 9"
 for pim in ${pim_list}; do
@@ -56,8 +57,10 @@ for pim in ${pim_list}; do
      # PIM 16CD and 16CD2 are equivilant for FSCD
      if echo "$fru" | grep -q '88-16CD'; then
          num_pim16q=$((num_pim16q+1))
-     elif echo "$fru" | grep -q '88-8D'; then
+     elif echo "$fru" | grep -q '88-8DM'; then
          num_pim8ddm=$((num_pim8ddm+1))
+     elif echo "$fru" | grep -q '88-8DR'; then
+         num_pim8ddr=$((num_pim8ddr+1))
      fi
 done
 
@@ -68,6 +71,8 @@ elif [ $num_pim16q -eq 5 ] && [ $num_pim8ddm -eq 3 ]; then
     cp /etc/FSC-5-PIM16Q-3-PIM8DDM-config.json ${default_fsc_config}
 elif [ $num_pim16q -eq 2 ] && [ $num_pim8ddm -eq 6 ]; then
     cp /etc/FSC-2-PIM16Q-6-PIM8DDM-config.json ${default_fsc_config}
+elif [ $num_pim8ddr -ge 0 ]; then
+    cp /etc/FSC-8-PIM16Q-config.json ${default_fsc_config}
 else
     # Assume highest power configuration otherwise
     cp /etc/FSC-8-PIM8DDM-config.json ${default_fsc_config}
