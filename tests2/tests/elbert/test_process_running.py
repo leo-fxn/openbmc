@@ -34,6 +34,7 @@ class ProcessRunningTest(BaseProcessRunningTest, unittest.TestCase):
             "fscd",
             "kcsd",
             "ipmid",
+            "led-controld",
             "sensord",
             "mTerm_server",
             "rest.py",
