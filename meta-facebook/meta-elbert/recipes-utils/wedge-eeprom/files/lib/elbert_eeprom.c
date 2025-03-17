@@ -67,6 +67,7 @@
 #define ELBERT_PIM16CD2 "7388-16CD2"
 #define ELBERT_PIM16CD "7388-16CD"
 #define ELBERT_PIM8DDM "7388-8D"
+#define ELBERT_PIM8DDR "7388-8DR"
 
 // Map between PIM and SMBus channel
 static int pim_bus_p1[8] = {16, 17, 18, 23, 20, 21, 22, 19};
@@ -405,6 +406,13 @@ int elbert_eeprom_parse(const char *target, struct wedge_eeprom_st *eeprom)
                    ELBERT_PIM16CD,
                    strlen(ELBERT_PIM16CD))) {
             eeprom->fbw_product_asset[strlen(ELBERT_PIM16CD)] = '\0';
+          }
+          /* Remove garbage characters from the end of 7388-8DDR */
+          else if(!strncmp(
+                   eeprom->fbw_product_asset,
+                   ELBERT_PIM8DDR,
+                   strlen(ELBERT_PIM8DDR))) {
+             eeprom->fbw_product_asset[strlen(ELBERT_PIM8DDR)] = '\0';
           }
           /* Remove garbage characters from the end of 7388-8D */
           else if(!strncmp(

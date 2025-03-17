@@ -117,7 +117,8 @@ enum {
   PIM_TYPE_16Q = 1,
   PIM_TYPE_8DDM = 2,
   PIM_TYPE_16Q2 = 3,
-  PIM_TYPE_NONE = 4,
+  PIM_TYPE_8DDR = 4,
+  PIM_TYPE_NONE = 5,
 };
 
 enum

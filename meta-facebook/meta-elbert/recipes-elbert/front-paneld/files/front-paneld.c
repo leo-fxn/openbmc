@@ -340,7 +340,7 @@ add_pim_gpios(uint8_t num, uint8_t bus, uint8_t pim_type) {
     export_pim_gpio(num, chip, 8, "FULL_POWER_EN"); // GPIO1  PIN22
     export_pim_gpio(num, chip, 20, "FPGA_DONE"); // GPIO15 PIN24
     export_pim_gpio(num, chip, 21, "FPGA_INIT"); // GPIO16 PIN25
-  } else if (pim_type == PIM_TYPE_16Q2) {
+  } else if (pim_type == PIM_TYPE_16Q2 || pim_type == PIM_TYPE_8DDR) {
     syslog(LOG_INFO, "PIM %d has no GPIOs", num);
     return;
   } else {
@@ -361,6 +361,8 @@ add_pim_lmsensor_conf(uint8_t num, uint8_t bus, uint8_t pim_type) {
     sprintf(template_path, "/etc/sensors.d/.pim16q.conf" );
   } else if (pim_type == PIM_TYPE_16Q2) {
     sprintf(template_path, "/etc/sensors.d/.pim16q2.conf" );
+  } else if (pim_type == PIM_TYPE_8DDR) {
+     sprintf(template_path, "/etc/sensors.d/.pim8ddr.conf" );
   } else if (pim_type == PIM_TYPE_8DDM) {
     sprintf(template_path, "/etc/sensors.d/.pim8ddm.conf" );
   } else {
@@ -458,6 +460,14 @@ pim_monitor_handler(void *unused) {
               } else {
                 syslog(LOG_WARNING,
                        "pal_set_pim_type_to_file: PIM %d set 16Q failed", num);
+              }
+            } else if (pim_type == PIM_TYPE_8DDR) {
+              if (!pal_set_pim_type_to_file(fru, "8ddr")) {
+                syslog(LOG_INFO, "PIM %d type is 8DDR", num);
+                pim_type_old[num] = PIM_TYPE_8DDR;
+              } else {
+                syslog(LOG_WARNING,
+                       "pal_set_pim_type_to_file: PIM %d set 8DDR failed", num);
               }
             } else if (pim_type == PIM_TYPE_8DDM) {
               if (!pal_set_pim_type_to_file(fru, "8ddm")) {
