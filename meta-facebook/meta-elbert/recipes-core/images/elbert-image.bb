@@ -14,6 +14,7 @@ IMAGE_INSTALL += " \
   ast-mdio \
   cpldupdate \
   libcpldupdate-dll-ioctl \
+  fio \
   flashrom \
   fscd \
   front-paneld \
