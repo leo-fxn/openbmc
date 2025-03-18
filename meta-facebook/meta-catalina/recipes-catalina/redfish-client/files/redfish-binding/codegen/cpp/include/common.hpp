@@ -97,37 +97,22 @@ auto variant_cast(const std::variant<Args...>& v) -> variant_cast_proxy<Args...>
     return {v};
 }
 
-class JsonDeserializable
-{
-  public:
-    JsonDeserializable() = default;
-
-    virtual void fromJson(const nlohmann::json& json) = 0;
-
-    virtual ~JsonDeserializable() = default;
-
-    JsonDeserializable(const JsonDeserializable&) = default;
-
-    JsonDeserializable(JsonDeserializable&&) = default;
-
-    JsonDeserializable& operator=(const JsonDeserializable&) = default;
-
-    JsonDeserializable& operator=(JsonDeserializable&&) = default;
-};
-
-template <typename T, std::enable_if_t<std::is_base_of_v<JsonDeserializable, T>,
-                                       bool> = true>
-void from_json(const nlohmann::json& json, T& deserializable)
-{
-    deserializable.fromJson(json);
-}
-
-class ResourceBase : public JsonDeserializable
+class ResourceBase
 {
   public:
     ResourceBase() = default;
 
-    void fromJson(const nlohmann::json& json) override
+    ResourceBase(const ResourceBase&) = default;
+
+    ResourceBase(ResourceBase&&) = default;
+
+    ResourceBase& operator=(const ResourceBase&) = default;
+
+    ResourceBase& operator=(ResourceBase&&) = default;
+
+    virtual ~ResourceBase() = default;
+
+    void fromJson(const nlohmann::json& json)
     {
         for (const auto& [key, value] : json.items())
         {
@@ -153,6 +138,13 @@ class ResourceBase : public JsonDeserializable
   private:
     nlohmann::json leftover_ = nlohmann::json({});
 };
+
+template <typename T,
+          std::enable_if_t<std::is_base_of_v<ResourceBase, T>, bool> = true>
+void from_json(const nlohmann::json& json, T& resource)
+{
+    resource.fromJson(json);
+}
 
 class Error : public ResourceBase
 {

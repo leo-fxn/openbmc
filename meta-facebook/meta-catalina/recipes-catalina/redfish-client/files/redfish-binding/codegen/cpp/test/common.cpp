@@ -5,6 +5,9 @@
 namespace redfishlib
 {
 
+namespace
+{
+
 struct DummyObject
 {
     std::string field1;
@@ -33,6 +36,62 @@ void to_json(nlohmann::json& json, const DummyObject& object)
         {"field3", object.field3},
     };
 }
+
+class DummyResource : public ResourceBaseWithError
+{
+  public:
+    Property<int>& p1()
+    {
+        return p1_;
+    }
+
+    Property<std::string>& p2()
+    {
+        return p2_;
+    }
+
+    Property<std::variant<double, bool>>& p3()
+    {
+        return p3_;
+    }
+
+  protected:
+    IProperty* findProperty(const std::string& name) override
+    {
+        if (name == p1_.name())
+        {
+            return &p1_;
+        }
+        if (name == p2_.name())
+        {
+            return &p2_;
+        }
+        if (name == p3_.name())
+        {
+            return &p3_;
+        }
+        return ResourceBaseWithError::findProperty(name);
+    }
+
+  private:
+    Property<int> p1_{"p1"};
+    Property<std::string> p2_{"p2"};
+    Property<std::variant<double, bool>> p3_{"p3"};
+};
+
+enum class DummyEnum
+{
+    A,
+    B,
+    C,
+};
+NLOHMANN_JSON_SERIALIZE_ENUM(DummyEnum, {
+                                            {DummyEnum::A, "a"},
+                                            {DummyEnum::B, "b"},
+                                            {DummyEnum::C, "c"},
+                                        })
+
+} // namespace
 
 TEST(PropertyTest, PrimitiveTypeTest)
 {
@@ -139,47 +198,17 @@ TEST(PropertyTest, VariantTypeTest)
     EXPECT_EQ(variantProperty.hasValue(), false);
 }
 
-class DummyResource : public ResourceBaseWithError
+TEST(PropertyTest, EnumTypeTest)
 {
-  public:
-    Property<int>& p1()
-    {
-        return p1_;
-    }
-
-    Property<std::string>& p2()
-    {
-        return p2_;
-    }
-
-    Property<std::variant<double, bool>>& p3()
-    {
-        return p3_;
-    }
-
-  protected:
-    IProperty* findProperty(const std::string& name) override
-    {
-        if (name == p1_.name())
-        {
-            return &p1_;
-        }
-        if (name == p2_.name())
-        {
-            return &p2_;
-        }
-        if (name == p3_.name())
-        {
-            return &p3_;
-        }
-        return ResourceBaseWithError::findProperty(name);
-    }
-
-  private:
-    Property<int> p1_{"p1"};
-    Property<std::string> p2_{"p2"};
-    Property<std::variant<double, bool>> p3_{"p3"};
-};
+    Property<DummyEnum> enumProperty{"enum"};
+    EXPECT_EQ(enumProperty.hasValue(), false);
+    enumProperty.setValue(nlohmann::json("a"));
+    EXPECT_EQ(enumProperty.hasValue(), true);
+    EXPECT_EQ(enumProperty.value(), DummyEnum::A);
+    enumProperty.setValue(nlohmann::json("b"));
+    EXPECT_EQ(enumProperty.hasValue(), true);
+    EXPECT_EQ(enumProperty.value(), DummyEnum::B);
+}
 
 TEST(ResourceBaseTest, ResourceBaseTest)
 {

@@ -104,16 +104,16 @@ TEST(EventLogParserTests, WithEntriesTest)
                      member.getCreated().value().c_str());
         EXPECT_STREQ("2025-01-14T20:55:46+00:00",
                      member.getModified().value().c_str());
-        EXPECT_EQ(redfishlib::LogEntry::LogEntryType::Enum::Event,
-                  member.getEntryType().value().value());
+        EXPECT_EQ(redfishlib::LogEntry::LogEntryType::Event,
+                  member.getEntryType().value());
         EXPECT_STREQ("102", member.getId().value().c_str());
         EXPECT_STREQ("System Event Log Entry",
                      member.getName().value().c_str());
         EXPECT_STREQ("Some resolution.",
                      member.getResolution().value().c_str());
         EXPECT_FALSE(member.getResolved().value());
-        EXPECT_EQ(redfishlib::LogEntry::EventSeverity::Enum::Warning,
-                  member.getSeverity().value().value());
+        EXPECT_EQ(redfishlib::LogEntry::EventSeverity::Warning,
+                  member.getSeverity().value());
         EXPECT_STREQ("Some message id 1.",
                      member.getMessageId().value().c_str());
         EXPECT_STREQ("Some message 1.", member.getMessage().value().c_str());
@@ -136,8 +136,8 @@ TEST(EventLogParserTests, WithEntriesTest)
                      member.get_odata_type().value().c_str());
         EXPECT_STREQ("2025-01-14T21:12:42+00:00",
                      member.getCreated().value().c_str());
-        EXPECT_EQ(redfishlib::LogEntry::LogEntryType::Enum::Event,
-                  member.getEntryType().value().value());
+        EXPECT_EQ(redfishlib::LogEntry::LogEntryType::Event,
+                  member.getEntryType().value());
         EXPECT_STREQ("103", member.getId().value().c_str());
         EXPECT_STREQ("Some message id 2.",
                      member.getMessageId().value().c_str());
@@ -146,8 +146,8 @@ TEST(EventLogParserTests, WithEntriesTest)
         EXPECT_STREQ("Some resolution 2.",
                      member.getResolution().value().c_str());
         EXPECT_TRUE(member.getResolved().value());
-        EXPECT_EQ(redfishlib::LogEntry::EventSeverity::Enum::Critical,
-                  member.getSeverity().value().value());
+        EXPECT_EQ(redfishlib::LogEntry::EventSeverity::Critical,
+                  member.getSeverity().value());
         EXPECT_FALSE(member.getOem().hasValue());
         EXPECT_TRUE(member.getCPER().hasValue());
         auto& cperData = member.getCPER().value();

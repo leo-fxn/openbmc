@@ -16,11 +16,6 @@
 #include <${header}>
 % endfor
 % endif
-% if isinstance(cpp_def, cpp.CppEnumDef):
-
-#include <string>
-#include <unordered_map>
-% endif
 
 namespace redfishlib
 {
@@ -63,7 +58,7 @@ class ${cpp_def.identifier.id} : public ResourceBaseWithError
       % endfor
       return ResourceBaseWithError::findProperty(name);
     }
-    
+
   % if len(cpp_def.properties) > 0:
   private:
     % for property in cpp_def.properties:
@@ -72,37 +67,18 @@ class ${cpp_def.identifier.id} : public ResourceBaseWithError
   % endif
 };
 % elif isinstance(cpp_def, cpp.CppEnumDef):
-class ${cpp_def.identifier.id} : public JsonDeserializable
+enum class ${cpp_def.identifier.id}
 {
-  public:
-    enum class Enum
-    {
-      % for enum_key in cpp_def.enum:
-      ${enum_key},
-      % endfor
-    };
-
-    void fromJson(const nlohmann::json& json) override
-    {
-      static const std::unordered_map<std::string, Enum> kStrToEnumMap{
-        % for enum_key, enum_value in cpp_def.enum.items():
-        {"${enum_value}", Enum::${enum_key}},
-        % endfor
-      };
-      if (auto it = kStrToEnumMap.find(json.template get<std::string>()); it != kStrToEnumMap.end())
-      {
-        value_ = it->second;
-      }
-    }
-
-    Enum& value()
-    {
-      return value_;
-    }
-
-  private:
-    Enum value_;
+  % for enum_key in cpp_def.enum:
+  ${enum_key},
+  % endfor
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(${cpp_def.identifier.id}, {
+  % for enum_key, enum_value in cpp_def.enum.items():
+  {${cpp_def.identifier.id}::${enum_key},"${enum_value}"},
+  % endfor
+})
 % endif
 
 inline ${cpp_def.identifier.id} parse${cpp_def.identifier.id}(const std::string& json)

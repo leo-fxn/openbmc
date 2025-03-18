@@ -18,6 +18,6 @@ TEST(RedfishLibTest, ParseSensorTest)
     EXPECT_EQ(sensor.getReading().value(), 1.5);
     EXPECT_EQ(sensor.getReadingUnits().value(), "Cel");
     EXPECT_EQ(sensor.getName().value(), "Test_Sensor");
-    EXPECT_EQ(sensor.getStatus().value().getState().value().value(),
-              redfishlib::Resource::State::Enum::Enabled);
+    EXPECT_EQ(sensor.getStatus().value().getState().value(),
+              redfishlib::Resource::State::Enabled);
 }

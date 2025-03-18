@@ -302,17 +302,17 @@ struct EventsDbusObject : IEventsDbusObject
         sdbusplus::common::xyz::openbmc_project::logging::Entry::Level;
 
     static int
-        getLogEntrySeverity(redfishlib::LogEntry::EventSeverity::Enum severity)
+        getLogEntrySeverity(redfishlib::LogEntry::EventSeverity severity)
     {
         switch (severity)
         {
-            case redfishlib::LogEntry::EventSeverity::Enum::OK:
+            case redfishlib::LogEntry::EventSeverity::OK:
                 return (int)LoggingLevel::Informational;
 
-            case redfishlib::LogEntry::EventSeverity::Enum::Warning:
+            case redfishlib::LogEntry::EventSeverity::Warning:
                 return (int)LoggingLevel::Warning;
 
-            case redfishlib::LogEntry::EventSeverity::Enum::Critical:
+            case redfishlib::LogEntry::EventSeverity::Critical:
                 return (int)LoggingLevel::Critical;
 
             default:
@@ -360,7 +360,7 @@ struct EventsDbusObject : IEventsDbusObject
 
             int severity =
                 maybeRedfishSeverity.hasValue()
-                    ? getLogEntrySeverity(maybeRedfishSeverity.value().value())
+                    ? getLogEntrySeverity(maybeRedfishSeverity.value())
                     : (int)LoggingLevel::Critical;
             auto event = makeRedfishEvent(severity, additionalData);
 
