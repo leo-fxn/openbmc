@@ -29,3 +29,6 @@ i2c_device_add 1 0x35 scmcpld
 
 modprobe mcbcpld
 i2c_device_add 12 0x60 mcbcpld
+
+# FRU EEPROM
+i2c_device_add 6 0x53 24c64    # Chassis EEPROM
