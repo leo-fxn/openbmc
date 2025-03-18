@@ -124,6 +124,12 @@ SRC_URI:append = " \
 SRC_URI:append = " \
     file://0220-soc-aspeed-Add-Post-Code-Control.patch \
 "
+#
+# Aspeed watchdog drivers used by multiple OpenBMC platforms.
+#
+SRC_URI:append = " \
+    file://0230-watchdog-aspeed-Update-bootstatus-handling.patch \
+"
 
 #
 # Device drivers for OpenBMC platforms.
