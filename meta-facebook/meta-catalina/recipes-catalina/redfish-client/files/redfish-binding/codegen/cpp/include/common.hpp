@@ -16,6 +16,8 @@ class IProperty
 
     virtual bool setValue(const nlohmann::json& json) = 0;
 
+    virtual nlohmann::json toJson() const = 0;
+
     virtual std::string name() const = 0;
 
     virtual ~IProperty() = default;
@@ -66,6 +68,16 @@ class Property : public IProperty
                       << std::endl;
             return false;
         }
+    }
+
+    nlohmann::json toJson() const override
+    {
+        nlohmann::json json({});
+        if (hasValue())
+        {
+            json[name_] = *value_;
+        }
+        return json;
     }
 
     std::string name() const override
@@ -124,6 +136,15 @@ class ResourceBase
         }
     }
 
+    nlohmann::json toJson() const
+    {
+        nlohmann::json json(leftover_);
+        forEachProperty([&](const IProperty* property) {
+            json.update(property->toJson());
+        });
+        return json;
+    }
+
     nlohmann::json& leftover()
     {
         return leftover_;
@@ -135,6 +156,10 @@ class ResourceBase
         return nullptr;
     }
 
+    virtual void
+        forEachProperty(const std::function<void(const IProperty*)>&) const
+    {}
+
   private:
     nlohmann::json leftover_ = nlohmann::json({});
 };
@@ -144,6 +169,13 @@ template <typename T,
 void from_json(const nlohmann::json& json, T& resource)
 {
     resource.fromJson(json);
+}
+
+template <typename T,
+          std::enable_if_t<std::is_base_of_v<ResourceBase, T>, bool> = true>
+void to_json(nlohmann::json& json, const T& resource)
+{
+    json = resource.toJson();
 }
 
 class Error : public ResourceBase
@@ -173,6 +205,14 @@ class Error : public ResourceBase
         return ResourceBase::findProperty(name);
     }
 
+    void forEachProperty(
+        const std::function<void(const IProperty*)>& fn) const override
+    {
+        fn(&code_);
+        fn(&message_);
+        ResourceBase::forEachProperty(fn);
+    }
+
   private:
     Property<std::string> code_{"code"};
     Property<std::string> message_{"message"};
@@ -194,6 +234,13 @@ class ResourceBaseWithError : public ResourceBase
             return &error_;
         }
         return ResourceBase::findProperty(name);
+    }
+
+    void forEachProperty(
+        const std::function<void(const IProperty*)>& fn) const override
+    {
+        fn(&error_);
+        ResourceBase::forEachProperty(fn);
     }
 
   private:
@@ -226,6 +273,12 @@ struct adl_serializer<std::variant<T, Ts...>>
                     json.template get<std::variant<Ts...>>());
             }
         }
+    }
+
+    static void to_json(nlohmann::json& json,
+                        const std::variant<T, Ts...>& value)
+    {
+        std::visit([&](auto&& arg) { json = arg; }, value);
     }
 };
 } // namespace nlohmann

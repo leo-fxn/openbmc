@@ -73,6 +73,15 @@ class DummyResource : public ResourceBaseWithError
         return ResourceBaseWithError::findProperty(name);
     }
 
+    void forEachProperty(
+        const std::function<void(const IProperty*)>& fn) const override
+    {
+        fn(&p1_);
+        fn(&p2_);
+        fn(&p3_);
+        ResourceBaseWithError::forEachProperty(fn);
+    }
+
   private:
     Property<int> p1_{"p1"};
     Property<std::string> p2_{"p2"};
@@ -100,26 +109,31 @@ TEST(PropertyTest, PrimitiveTypeTest)
     intProperty.setValue(nlohmann::json(25));
     EXPECT_EQ(intProperty.hasValue(), true);
     EXPECT_EQ(intProperty.value(), 25);
+    EXPECT_EQ(intProperty.toJson(), nlohmann::json({{"int", 25}}));
     intProperty.setValue(nlohmann::json(nullptr));
     EXPECT_EQ(intProperty.hasValue(), false);
+    EXPECT_EQ(intProperty.toJson(), nlohmann::json({}));
 
     Property<double> doubleProperty{"double"};
     EXPECT_EQ(doubleProperty.hasValue(), false);
     doubleProperty.setValue(nlohmann::json(2.01));
     EXPECT_EQ(doubleProperty.hasValue(), true);
     EXPECT_EQ(doubleProperty.value(), 2.01);
+    EXPECT_EQ(doubleProperty.toJson(), nlohmann::json({{"double", 2.01}}));
 
     Property<bool> boolProperty{"bool"};
     EXPECT_EQ(boolProperty.hasValue(), false);
     boolProperty.setValue(nlohmann::json(false));
     EXPECT_EQ(boolProperty.hasValue(), true);
     EXPECT_EQ(boolProperty.value(), false);
+    EXPECT_EQ(boolProperty.toJson(), nlohmann::json({{"bool", false}}));
 
     Property<std::string> stringProperty{"string"};
     EXPECT_EQ(stringProperty.hasValue(), false);
     stringProperty.setValue(nlohmann::json("test"));
     EXPECT_EQ(stringProperty.hasValue(), true);
     EXPECT_EQ(stringProperty.value(), "test");
+    EXPECT_EQ(stringProperty.toJson(), nlohmann::json({{"string", "test"}}));
 }
 
 TEST(PropertyTest, ObjectTypeTest)
@@ -134,8 +148,10 @@ TEST(PropertyTest, ObjectTypeTest)
     objectProperty.setValue(nlohmann::json(object));
     EXPECT_EQ(objectProperty.hasValue(), true);
     EXPECT_EQ(objectProperty.value(), object);
+    EXPECT_EQ(objectProperty.toJson(), nlohmann::json({{"object", object}}));
     objectProperty.setValue(nlohmann::json(nullptr));
     EXPECT_EQ(objectProperty.hasValue(), false);
+    EXPECT_EQ(objectProperty.toJson(), nlohmann::json({}));
 }
 
 TEST(PropertyTest, ContainerTypeTest)
@@ -146,6 +162,8 @@ TEST(PropertyTest, ContainerTypeTest)
     intVectorProperty.setValue(nlohmann::json(intVector));
     EXPECT_EQ(intVectorProperty.hasValue(), true);
     EXPECT_EQ(intVectorProperty.value(), intVector);
+    EXPECT_EQ(intVectorProperty.toJson(),
+              nlohmann::json({{"intVector", intVector}}));
 
     std::vector<DummyObject> objectVector{
         {
@@ -169,6 +187,8 @@ TEST(PropertyTest, ContainerTypeTest)
     objectVectorProperty.setValue(nlohmann::json(objectVector));
     EXPECT_EQ(objectVectorProperty.hasValue(), true);
     EXPECT_EQ(objectVectorProperty.value(), objectVector);
+    EXPECT_EQ(objectVectorProperty.toJson(),
+              nlohmann::json({{"objectVector", objectVector}}));
 }
 
 TEST(PropertyTest, VariantTypeTest)
@@ -181,21 +201,26 @@ TEST(PropertyTest, VariantTypeTest)
     Property<std::variant<int, std::string, DummyObject>> variantProperty{
         "variant"};
     EXPECT_EQ(variantProperty.hasValue(), false);
+    EXPECT_EQ(variantProperty.toJson(), nlohmann::json({}));
 
     variantProperty.setValue(nlohmann::json(5));
     EXPECT_EQ(variantProperty.hasValue(), true);
     EXPECT_EQ(std::get<int>(variantProperty.value()), 5);
+    EXPECT_EQ(variantProperty.toJson(), nlohmann::json({{"variant", 5}}));
 
     variantProperty.setValue(nlohmann::json("test"));
     EXPECT_EQ(variantProperty.hasValue(), true);
     EXPECT_EQ(std::get<std::string>(variantProperty.value()), "test");
+    EXPECT_EQ(variantProperty.toJson(), nlohmann::json({{"variant", "test"}}));
 
     variantProperty.setValue(nlohmann::json(object));
     EXPECT_EQ(variantProperty.hasValue(), true);
     EXPECT_EQ(std::get<DummyObject>(variantProperty.value()), object);
+    EXPECT_EQ(variantProperty.toJson(), nlohmann::json({{"variant", object}}));
 
     variantProperty.setValue(nlohmann::json(nullptr));
     EXPECT_EQ(variantProperty.hasValue(), false);
+    EXPECT_EQ(variantProperty.toJson(), nlohmann::json({}));
 }
 
 TEST(PropertyTest, EnumTypeTest)
@@ -205,9 +230,11 @@ TEST(PropertyTest, EnumTypeTest)
     enumProperty.setValue(nlohmann::json("a"));
     EXPECT_EQ(enumProperty.hasValue(), true);
     EXPECT_EQ(enumProperty.value(), DummyEnum::A);
+    EXPECT_EQ(enumProperty.toJson(), nlohmann::json({{"enum", "a"}}));
     enumProperty.setValue(nlohmann::json("b"));
     EXPECT_EQ(enumProperty.hasValue(), true);
     EXPECT_EQ(enumProperty.value(), DummyEnum::B);
+    EXPECT_EQ(enumProperty.toJson(), nlohmann::json({{"enum", "b"}}));
 }
 
 TEST(ResourceBaseTest, ResourceBaseTest)
@@ -232,6 +259,9 @@ TEST(ResourceBaseTest, ResourceBaseTest)
     EXPECT_EQ(resource.error().value().message().hasValue(), false);
     EXPECT_EQ(resource.error().value().leftover(), nlohmann::json({}));
     EXPECT_EQ(resource.leftover(), nlohmann::json({{"unknown", "unknown"}}));
+    // toJson() will drop all keys with nullptr as value
+    json.erase("p2");
+    EXPECT_EQ(resource.toJson(), json);
 }
 
 } // namespace redfishlib
