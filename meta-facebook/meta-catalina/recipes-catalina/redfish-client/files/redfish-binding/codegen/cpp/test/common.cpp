@@ -142,13 +142,6 @@ TEST(PropertyTest, VariantTypeTest)
 class DummyResource : public ResourceBaseWithError
 {
   public:
-    DummyResource()
-    {
-        registerProperty(&p1_);
-        registerProperty(&p2_);
-        registerProperty(&p3_);
-    }
-
     Property<int>& p1()
     {
         return p1_;
@@ -164,13 +157,31 @@ class DummyResource : public ResourceBaseWithError
         return p3_;
     }
 
+  protected:
+    IProperty* findProperty(const std::string& name) override
+    {
+        if (name == p1_.name())
+        {
+            return &p1_;
+        }
+        if (name == p2_.name())
+        {
+            return &p2_;
+        }
+        if (name == p3_.name())
+        {
+            return &p3_;
+        }
+        return ResourceBaseWithError::findProperty(name);
+    }
+
   private:
     Property<int> p1_{"p1"};
     Property<std::string> p2_{"p2"};
     Property<std::variant<double, bool>> p3_{"p3"};
 };
 
-TEST(ResourceBaseTest, ParseTest)
+TEST(ResourceBaseTest, ResourceBaseTest)
 {
     nlohmann::json json;
     json["p1"] = 5;
@@ -178,17 +189,19 @@ TEST(ResourceBaseTest, ParseTest)
     json["error"] = {
         {"code", "404"},
     };
+    json["p3"] = 0.5;
     json["unknown"] = "unknown";
     auto resource = json.template get<DummyResource>();
     EXPECT_EQ(resource.p1().hasValue(), true);
     EXPECT_EQ(resource.p1().value(), 5);
     EXPECT_EQ(resource.p2().hasValue(), false);
-    EXPECT_EQ(resource.p3().hasValue(), false);
+    EXPECT_EQ(resource.p3().hasValue(), true);
+    EXPECT_EQ(std::get<double>(resource.p3().value()), 0.5);
     EXPECT_EQ(resource.error().hasValue(), true);
     EXPECT_EQ(resource.error().value().code().hasValue(), true);
     EXPECT_EQ(resource.error().value().code().value(), "404");
     EXPECT_EQ(resource.error().value().message().hasValue(), false);
-    EXPECT_EQ(resource.error().value().leftover(), nlohmann::json());
+    EXPECT_EQ(resource.error().value().leftover(), nlohmann::json({}));
     EXPECT_EQ(resource.leftover(), nlohmann::json({{"unknown", "unknown"}}));
 }
 

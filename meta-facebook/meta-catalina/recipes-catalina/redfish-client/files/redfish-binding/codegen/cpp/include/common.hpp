@@ -131,8 +131,8 @@ class ResourceBase : public JsonDeserializable
     {
         for (const auto& [key, value] : json.items())
         {
-            if (auto it = properties_.find(key);
-                it == properties_.end() || !it->second->setValue(value))
+            if (auto property = findProperty(key);
+                property == nullptr || !property->setValue(value))
             {
                 leftover_[key] = value;
             }
@@ -145,25 +145,18 @@ class ResourceBase : public JsonDeserializable
     }
 
   protected:
-    void registerProperty(IProperty* property)
+    virtual IProperty* findProperty(const std::string&)
     {
-        properties_.emplace(property->name(), property);
+        return nullptr;
     }
 
   private:
-    std::unordered_map<std::string, IProperty*> properties_{};
-    nlohmann::json leftover_{};
+    nlohmann::json leftover_ = nlohmann::json({});
 };
 
 class Error : public ResourceBase
 {
   public:
-    Error()
-    {
-        registerProperty(&code_);
-        registerProperty(&message_);
-    }
-
     Property<std::string>& code()
     {
         return code_;
@@ -174,6 +167,20 @@ class Error : public ResourceBase
         return message_;
     }
 
+  protected:
+    IProperty* findProperty(const std::string& name) override
+    {
+        if (name == code_.name())
+        {
+            return &code_;
+        }
+        if (name == message_.name())
+        {
+            return &message_;
+        }
+        return ResourceBase::findProperty(name);
+    }
+
   private:
     Property<std::string> code_{"code"};
     Property<std::string> message_{"message"};
@@ -182,14 +189,19 @@ class Error : public ResourceBase
 class ResourceBaseWithError : public ResourceBase
 {
   public:
-    ResourceBaseWithError()
-    {
-        registerProperty(&error_);
-    }
-
     Property<Error>& error()
     {
         return error_;
+    }
+
+  protected:
+    IProperty* findProperty(const std::string& name) override
+    {
+        if (name == error_.name())
+        {
+            return &error_;
+        }
+        return ResourceBase::findProperty(name);
     }
 
   private:

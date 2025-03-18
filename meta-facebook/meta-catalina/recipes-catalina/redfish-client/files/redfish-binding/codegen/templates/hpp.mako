@@ -45,13 +45,6 @@ using ${cpp_def.identifier.id} = ${cpp_def.type_alias.get_name(cpp_def.identifie
 class ${cpp_def.identifier.id} : public ResourceBaseWithError
 {
   public:
-    ${cpp_def.identifier.id}()
-    {
-      % for property in cpp_def.properties:
-      registerProperty(&${property.name_as_member}_);
-      % endfor
-    }
-
     % for property in cpp_def.properties:
     Property<${property.cpp_type.get_name(cpp_def.identifier.namespace)}>& get${property.name_as_member}()
     {
@@ -59,6 +52,18 @@ class ${cpp_def.identifier.id} : public ResourceBaseWithError
     }
 
     % endfor
+  protected:
+    IProperty* findProperty(const std::string& name) override
+    {
+      % for property in cpp_def.properties:
+      if (name == ${property.name_as_member}_.name())
+      {
+        return &${property.name_as_member}_;
+      }
+      % endfor
+      return ResourceBaseWithError::findProperty(name);
+    }
+    
   % if len(cpp_def.properties) > 0:
   private:
     % for property in cpp_def.properties:
