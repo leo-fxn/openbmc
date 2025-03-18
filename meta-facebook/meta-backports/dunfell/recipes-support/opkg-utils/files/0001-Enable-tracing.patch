@@ -1,0 +1,28 @@
+From 6fa0a0db691dd87f8adc4025aa234e31aa246659 Mon Sep 17 00:00:00 2001
+From: Amithash Prasad <amithash@meta.com>
+Date: Wed, 12 Feb 2025 14:55:53 -0800
+Subject: [PATCH] tEnable tracing
+
+---
+ opkg-build | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/opkg-build b/opkg-build
+index 0582958..36d6406 100755
+--- a/opkg-build
++++ b/opkg-build
+@@ -12,6 +12,11 @@ opkg-build - construct an .opk from a directory
+ #   Updated to work on Familiar Pre0.7rc1, with busybox tar.
+ #   Note it Requires: binutils-ar (since the busybox ar can't create)
+ set -e
++# There seems to be a bug in either bash or glibc which causes
++# build to arbitrarily fail. Enabling tracing seems to magically "fix"
++# it. Add this here, as a temporary measure to unblock builds
++# while we figure out whats going on.
++set -x
+ set -o pipefail
+ 
+ version=1.0
+-- 
+2.43.5
+
