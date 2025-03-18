@@ -11,13 +11,13 @@ if the COMe is boots up after BMC.
 Till a proper root-cause is found,
 as temporary patch the above patch is reverted.
 ---
- drivers/usb/gadget/function/f_ecm.c   | 22 ----------
- drivers/usb/gadget/function/u_ether.c | 63 ---------------------------
- drivers/usb/gadget/function/u_ether.h |  4 --
+ drivers/usb/gadget/function/f_ecm.c   | 22 ------------
+ drivers/usb/gadget/function/u_ether.c | 63 -----------------------------------
+ drivers/usb/gadget/function/u_ether.h |  4 ---
  3 files changed, 89 deletions(-)
 
 diff --git a/drivers/usb/gadget/function/f_ecm.c b/drivers/usb/gadget/function/f_ecm.c
-index f55f60639e42..d1b9e3831578 100644
+index f55f60639..d1b9e3831 100644
 --- a/drivers/usb/gadget/function/f_ecm.c
 +++ b/drivers/usb/gadget/function/f_ecm.c
 @@ -872,26 +872,6 @@ static struct usb_function_instance *ecm_alloc_inst(void)
@@ -57,7 +57,7 @@ index f55f60639e42..d1b9e3831578 100644
  	return &ecm->port.func;
  }
 diff --git a/drivers/usb/gadget/function/u_ether.c b/drivers/usb/gadget/function/u_ether.c
-index 4bb0553da658..74222f1788f8 100644
+index 2da2db5e1..74222f178 100644
 --- a/drivers/usb/gadget/function/u_ether.c
 +++ b/drivers/usb/gadget/function/u_ether.c
 @@ -437,20 +437,6 @@ static inline int is_promisc(u16 cdc_filter)
@@ -114,8 +114,8 @@ index 4bb0553da658..74222f1788f8 100644
 -		 * There is a transfer in progress. So we trigger a remote
 -		 * wakeup to inform the host.
 -		 */
--		ether_wakeup_host(dev->port_usb);
--		return;
+-		if (!ether_wakeup_host(dev->port_usb))
+-			return;
 -	}
 -	spin_lock_irqsave(&dev->lock, flags);
 -	link->is_suspend = true;
@@ -152,7 +152,7 @@ index 4bb0553da658..74222f1788f8 100644
  }
  EXPORT_SYMBOL_GPL(gether_disconnect);
 diff --git a/drivers/usb/gadget/function/u_ether.h b/drivers/usb/gadget/function/u_ether.h
-index 34be220cef77..d8df29b31fd7 100644
+index 34be220ce..d8df29b31 100644
 --- a/drivers/usb/gadget/function/u_ether.h
 +++ b/drivers/usb/gadget/function/u_ether.h
 @@ -79,7 +79,6 @@ struct gether {
@@ -173,6 +173,3 @@ index 34be220cef77..d8df29b31fd7 100644
  /* connect/disconnect is handled by individual functions */
  struct net_device *gether_connect(struct gether *);
  void gether_disconnect(struct gether *);
--- 
-2.44.2
-
