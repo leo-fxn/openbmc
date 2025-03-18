@@ -7,4 +7,5 @@ EXTRA_OEMESON:append = " \
 
 SRC_URI += " \
     file://0001-Also-allow-power-policy-when-watchdog-flag-is-raised.patch \
+    file://0002-Add-bmc-reboot-event-log.patch \
 "
