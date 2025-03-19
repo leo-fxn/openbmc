@@ -1,7 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 EXTRA_OEMESON:append = " \
-     -Dconfig-prefix=yosemite4,brcm,cx7,terminus \
+     -Dconfig-prefix=yosemite4,brcm,cx7,terminus,bmc \
  "
 
 SRC_URI += " \
