@@ -1,0 +1,137 @@
+From ded4ccbf9160fc793c7fc97f3d280db09771c9b8 Mon Sep 17 00:00:00 2001
+From: Patrick Williams <patrick@stwcx.xyz>
+Date: Thu, 27 Feb 2025 22:13:03 -0500
+Subject: [PATCH 204/206] registries: generate from phosphor-dbus-interfaces
+
+Add meson.build support for generating message registry headers from
+phosphor-dbus-interfaces supplied registries.  Add wrap file for
+stand-alone building.
+
+Tested:
+
+Built with a phosphor-dbus-interfaces subproject and observed
+registries:
+```
+$ curl --silent -k https://localhost:18080/redfish/v1/Registries/ | jq '.Members | .[]."@odata.id"' | grep OpenBMC_
+"/redfish/v1/Registries/OpenBMC_StateSMC"
+"/redfish/v1/Registries/OpenBMC_StatePower"
+"/redfish/v1/Registries/OpenBMC_StateCable"
+"/redfish/v1/Registries/OpenBMC_StateLeakDetectorGroup"
+"/redfish/v1/Registries/OpenBMC_Logging"
+"/redfish/v1/Registries/OpenBMC_StateLockOut"
+```
+
+Signed-off-by: Patrick Williams <patrick@stwcx.xyz>
+Change-Id: I069d3086954d4d439759f4acfdddc84466237012
+---
+ meson.build                               | 52 ++++++++++++++++++++---
+ src/pdi_hello.cpp                         |  6 +++
+ subprojects/phosphor-dbus-interfaces.wrap |  3 ++
+ 3 files changed, 54 insertions(+), 7 deletions(-)
+ create mode 100644 src/pdi_hello.cpp
+ create mode 100644 subprojects/phosphor-dbus-interfaces.wrap
+
+diff --git a/meson.build b/meson.build
+index 186c92c7..24938273 100644
+--- a/meson.build
++++ b/meson.build
+@@ -232,15 +232,27 @@ if not nghttp2.found()
+ endif
+ bmcweb_dependencies += nghttp2
+ 
+-sdbusplus = dependency('sdbusplus', required: false, include_type: 'system')
+-if not sdbusplus.found()
+-    sdbusplus_proj = subproject('sdbusplus', required: true)
+-    sdbusplus = sdbusplus_proj.get_variable('sdbusplus_dep')
+-    sdbusplus = sdbusplus.as_system('system')
+-endif
++sdbusplus = dependency(
++    'sdbusplus',
++    include_type: 'system',
++    default_options: ['cpp_rtti=true'],
++)
+ bmcweb_dependencies += sdbusplus
+ bmcweb_cli_dependencies += sdbusplus
+ 
++pdi_dep = dependency('phosphor-dbus-interfaces', include_type: 'system')
++registry_dir = pdi_dep.get_variable('registry_dir')
++# The PDI registry_dir is a raw path on the target, but since we are processing
++# these at build time we need the sys_root prefix prepended.  You can't just
++# use the slash operator because the preceeding slash in registry_dir will
++# reset the path to root.
++if pdi_dep.type_name() != 'internal'
++    registry_dir = ''.join(
++        [meson.get_external_property('sys_root', ''), '/', registry_dir],
++    )
++endif
++bmcweb_dependencies += pdi_dep
++
+ cli11 = dependency('CLI11', required: false, include_type: 'system')
+ if not cli11.found()
+     cli11_proj = subproject('cli11', required: true)
+@@ -361,6 +373,29 @@ bmcweb_cli_dependencies += conf_h_dep
+ # Source files
+ fs = import('fs')
+ 
++# This is a bogus executable that "links" against PDI just for dependency
++# ordering.  The registry generation requires PDI to have been fully built,
++# if it is built as a subproject, so that the registry directory is populated.
++# Meson only lets custom_target's depend on [local] build-targets, so this
++# bogus executable satisfies that.
++pdi_registry_dep = executable(
++    'pdi-hello',
++    'src/pdi_hello.cpp',
++    dependencies: pdi_dep,
++)
++gen_registry = custom_target(
++    'gen_registry',
++    command: [
++        'scripts/parse_registries.py',
++        '--with-registry',
++        registry_dir,
++        '--output-dir',
++        meson.current_build_dir(),
++    ],
++    depends: pdi_registry_dep,
++    output: ['external_registries_map.hpp', 'external_registries.hpp'],
++)
++
+ srcfiles_bmcweb = files(
+     'http/mutual_tls.cpp',
+     'http/routing/sserule.cpp',
+@@ -396,7 +431,10 @@ bmcweblib = static_library(
+     'bmcweblib',
+     srcfiles_bmcweb,
+     include_directories: incdir,
+-    dependencies: bmcweb_dependencies,
++    dependencies: [
++        bmcweb_dependencies,
++        declare_dependency(sources: gen_registry),
++    ],
+ )
+ 
+ # Generate the bmcwebd daemon
+diff --git a/src/pdi_hello.cpp b/src/pdi_hello.cpp
+new file mode 100644
+index 00000000..78e77765
+--- /dev/null
++++ b/src/pdi_hello.cpp
+@@ -0,0 +1,6 @@
++// This is an empty executable that is just used to link against PDI for meson
++// dependency ordering.
++int main()
++{
++    return 0;
++}
+diff --git a/subprojects/phosphor-dbus-interfaces.wrap b/subprojects/phosphor-dbus-interfaces.wrap
+new file mode 100644
+index 00000000..935a8b25
+--- /dev/null
++++ b/subprojects/phosphor-dbus-interfaces.wrap
+@@ -0,0 +1,3 @@
++[wrap-git]
++url = https://github.com/openbmc/phosphor-dbus-interfaces.git
++revision = HEAD
+-- 
+2.45.3
+

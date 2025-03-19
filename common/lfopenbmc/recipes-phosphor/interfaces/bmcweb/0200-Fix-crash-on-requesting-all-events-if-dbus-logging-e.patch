@@ -1,0 +1,321 @@
+From 1cb1d2998e3e2350c85513470f3ae1d5f33421ed Mon Sep 17 00:00:00 2001
+From: Igor Kanyuka <ifelmail@gmail.com>
+Date: Thu, 13 Mar 2025 08:52:38 +0000
+Subject: [PATCH 200/206] Fix crash on requesting all events if dbus logging
+ enabled
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+afterLogEntriesGetManagedObjects prepares members array (all the
+LogEntry objects) to be used in response to the /EventLog/Entries
+requests. It calls the fillEventLogLogEntryFromPropertyMap for every
+event passing the dbus properties map and json object, expecting
+the function to translate the properties map to JSON. It stores all
+the json objects in an array. It uses .emplace_back on the array
+to create an empty instance of JSON object which it immediately
+passes to be filled.
+If something fails in fillEventLogLogEntryFromPropertyMap (like DBus
+property map is malformed), it fires an internal error and return
+immediately without filling any fields in JSON object.
+As a result, in case of earlier return from the function, the array will
+have objects with no data. After collecting all the objects, it reorders
+the elements by Id, however as some of them have no Id fields populated,
+accessing to non-existent fields causes service to crash.
+
+Testing:
+Before the command [1] resulted with [2].
+
+After, the same command [1] works [3].
+Requesting individual entries keeps working [4].
+
+[1] Command to fetch all EventLog Entries:
+```
+curl -ks -H "Content-Type: application/json" -H "X-Auth-Token: $token" https://${bmc}/redfish/v1/Systems/system/LogServices/EventLog/Entries
+```
+
+[2] Crash output
+```
+Mar 12 10:10:30 bmc systemd-coredump[6305]: [🡕] Process 3447 (bmcwebd) of user 0 dumped core.
+░░ Subject: Process 3447 (bmcwebd) dumped core
+░░ Defined-By: systemd
+░░ Support: https://lists.freedesktop.org/mailman/listinfo/systemd-devel
+░░ Documentation: man:core(5)
+░░
+░░ Process 3447 (bmcwebd) crashed and dumped core.
+░░
+░░ This usually indicates a programming error in the crashing program and
+░░ should be reported to its vendor as a bug.
+Mar 12 10:10:30 bmc systemd[1]: bmcweb.service: Main process exited, code=dumped, status=6/ABRT
+░░ Subject: Unit process exited
+░░ Defined-By: systemd
+░░ Support: https://lists.freedesktop.org/mailman/listinfo/systemd-devel
+░░
+░░ An ExecStart= process belonging to unit bmcweb.service has exited.
+░░
+░░ The process' exit code is 'dumped' and its exit status is 6.
+Mar 12 10:10:30 bmc systemd[1]: bmcweb.service: Failed with result 'core-dump'.
+░░ Subject: Unit failed
+░░ Defined-By: systemd
+░░ Support: https://lists.freedesktop.org/mailman/listinfo/systemd-devel
+░░
+░░ The unit bmcweb.service has entered the 'failed' state with result 'core-dump'.
+Mar 12 10:10:30 bmc systemd[1]: bmcweb.service: Consumed 3.783s CPU time.
+░░ Subject: Resources consumed by unit runtime
+░░ Defined-By: systemd
+░░ Support: https://lists.freedesktop.org/mailman/listinfo/systemd-devel
+░░
+░░ The unit bmcweb.service completed and consumed the indicated resources.
+```
+
+[3] Result from the server after fixing
+```
+{
+  "@odata.id": "/redfish/v1/Systems/system/LogServices/EventLog/Entries",
+  "@odata.type": "#LogEntryCollection.LogEntryCollection",
+  "Description": "Collection of System Event Log Entries",
+  "Members": [
+    {
+      "@odata.id": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/15",
+      "@odata.type": "#LogEntry.v1_9_0.LogEntry",
+      "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/15/attachment",
+      "Created": "2025-03-13T11:32:24.436+00:00",
+      "EntryType": "Event",
+      "Id": "15",
+      "Message": "Sensor 'BIC_JI_SENSOR_MB_RETIMER_TEMP_C' reading of 10.2 (xyz.openbmc_project.Sensor.Value.Unit.DegreesC) is below the 15.5 lower critical threshold.",
+      "MessageArgs": [
+        "BIC_JI_SENSOR_MB_RETIMER_TEMP_C",
+        "10.2",
+        "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
+        "15.5"
+      ],
+      "MessageId": "SensorEvent.1.0.ReadingBelowLowerCriticalThreshold",
+      "Modified": "2025-03-13T11:32:24.436+00:00",
+      "Name": "System Event Log Entry",
+      "Resolution": "Check the condition of the resources listed in RelatedItem.",
+      "Resolved": false,
+      "Severity": "Critical"
+    }
+  ],
+  "Members@odata.count": 1,
+  "Name": "System Event Log Entries",
+  "error": {
+    "@Message.ExtendedInfo": [
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      },
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      }
+    ],
+    "code": "Base.1.19.0.GeneralError",
+    "message": "A general error has occurred. See Resolution for information on how to resolve the error."
+  }
+}
+```
+
+[4] Fetching a single entry correct and failing
+```
+root@bmc:~# curl -ks -H "Content-Type: application/json" -H "X-Auth-Token: $token" https://${bmc}/redfish/v1/Systems/system/LogServices/EventLog/Entries/14
+{
+  "error": {
+    "@Message.ExtendedInfo": [
+      {
+        "@odata.type": "#Message.v1_1_1.Message",
+        "Message": "The request failed due to an internal service error.  The service is still operational.",
+        "MessageArgs": [],
+        "MessageId": "Base.1.19.InternalError",
+        "MessageSeverity": "Critical",
+        "Resolution": "Resubmit the request.  If the problem persists, consider resetting the service."
+      }
+    ],
+    "code": "Base.1.19.InternalError",
+    "message": "The request failed due to an internal service error.  The service is still operational."
+  }
+}
+
+root@bmc:~# curl -ks -H "Content-Type: application/json" -H "X-Auth-Token: $token" https://${bmc}/redfish/v1/Systems/system/LogServices/EventLog/Entries/15
+{
+  "@odata.id": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/15",
+  "@odata.type": "#LogEntry.v1_9_0.LogEntry",
+  "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/15/attachment",
+  "Created": "2025-03-13T11:32:24.436+00:00",
+  "EntryType": "Event",
+  "Id": "15",
+  "Message": "Sensor 'BIC_JI_SENSOR_MB_RETIMER_TEMP_C' reading of 10.2 (xyz.openbmc_project.Sensor.Value.Unit.DegreesC) is below the 15.5 lower critical threshold.",
+  "MessageArgs": [
+    "BIC_JI_SENSOR_MB_RETIMER_TEMP_C",
+    "10.2",
+    "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
+    "15.5"
+  ],
+  "MessageId": "SensorEvent.1.0.ReadingBelowLowerCriticalThreshold",
+  "Modified": "2025-03-13T11:32:24.436+00:00",
+  "Name": "System Event Log Entry",
+  "Resolution": "Check the condition of the resources listed in RelatedItem.",
+  "Resolved": false,
+  "Severity": "Critical"
+}
+```
+
+Change-Id: I231b2266ccee27e83363cd1363c130d3fe8f1ed3
+Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
+---
+ redfish-core/lib/log_services.hpp | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
+index fd76da51..2db5d208 100644
+--- a/redfish-core/lib/log_services.hpp
++++ b/redfish-core/lib/log_services.hpp
+@@ -1426,7 +1426,7 @@ static LogParseError fillEventLogEntryJson(
+     return LogParseError::success;
+ }
+ 
+-inline void fillEventLogLogEntryFromPropertyMap(
++inline bool fillEventLogLogEntryFromPropertyMap(
+     const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
+     const dbus::utility::DBusPropertiesMap& resp,
+     nlohmann::json& objectToFillOut)
+@@ -1437,7 +1437,7 @@ inline void fillEventLogLogEntryFromPropertyMap(
+     if (!optEntry.has_value())
+     {
+         messages::internalError(asyncResp->res);
+-        return;
++        return false;
+     }
+     DbusEventLogEntry entry = optEntry.value();
+ 
+@@ -1472,6 +1472,7 @@ inline void fillEventLogLogEntryFromPropertyMap(
+             "/redfish/v1/Systems/{}/LogServices/EventLog/Entries/{}/attachment",
+             BMCWEB_REDFISH_SYSTEM_URI_NAME, std::to_string(entry.Id));
+     }
++    return true;
+ }
+ 
+ inline void afterLogEntriesGetManagedObjects(
+@@ -1507,8 +1508,13 @@ inline void afterLogEntriesGetManagedObjects(
+                                             propertyMap.second);
+             }
+         }
+-        fillEventLogLogEntryFromPropertyMap(asyncResp, propsFlattened,
+-                                            entriesArray.emplace_back());
++        nlohmann::json objectToFillOut;
++        bool success = fillEventLogLogEntryFromPropertyMap(
++            asyncResp, propsFlattened, objectToFillOut);
++        if (success)
++        {
++            entriesArray.push_back(objectToFillOut);
++        }
+     }
+ 
+     std::ranges::sort(entriesArray, [](const nlohmann::json& left,
+-- 
+2.45.3
+

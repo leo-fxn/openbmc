@@ -1,0 +1,70 @@
+From d85d8887153bc8ea61e10179d5a29932365d5beb Mon Sep 17 00:00:00 2001
+From: Igor Kanyuka <ifelmail@gmail.com>
+Date: Tue, 11 Mar 2025 12:10:57 +0000
+Subject: [PATCH 205/206] Add required MemberId to the EventRecord definition
+
+The EventRecord definition requires MemberId [1]. It's suggested to be
+a 0 based index [2] for Redfish 1.6 and above. The Event v1_4_0 we use
+is part of the 2019.1 release [3]. While Redfish 1.6 is dated by
+2018-08-23 [4]. So, add the required property and fill it out in a way
+the standard suggests.
+
+It's not being populated in the formatEventLogEntry, as it's possible,
+that the built event will be filtered, so the MemberId will be a zero
+based index in the array before filtering.
+
+[1] MemberId is a required property for EventRecord
+```
+$ curl -s https://redfish.dmtf.org/schemas/v1/Event.v1_4_0.json | jq .definitions.EventRecord.required
+[
+  "EventType",
+  "MessageId",
+  "MemberId"
+]
+```
+[2] MemberId description:
+```
+ curl -s https://redfish.dmtf.org/schemas/v1/Event.v1_4_0.json | jq .definitions.EventRecord.properties.MemberId
+{
+  "description": "This is the identifier for the member within the collection.",
+  "longDescription": "The value of this string shall uniquely identify the member within the collection.  For services supporting Redfish v1.6 or higher, this value shall be the zero-based array index.",
+  "readonly": true,
+  "type": "string"
+}
+```
+[3] Release
+```
+ curl -s https://redfish.dmtf.org/schemas/v1/Event.v1_4_0.json | jq .release
+"2019.1"
+```
+[4] https://www.dmtf.org/sites/default/files/standards/documents/DSP0266_1.6.0.pdf
+
+Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
+Change-Id: I99fcdcdccc97bfa39581d3e42ef407a8cfadaa83
+---
+ redfish-core/src/subscription.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/redfish-core/src/subscription.cpp b/redfish-core/src/subscription.cpp
+index f35a8e90..1ba27f5d 100644
+--- a/redfish-core/src/subscription.cpp
++++ b/redfish-core/src/subscription.cpp
+@@ -222,6 +222,7 @@ void Subscription::filterAndSendEventLogs(
+             logEntry.messageArgs.begin(), logEntry.messageArgs.end());
+ 
+         nlohmann::json::object_t bmcLogEntry;
++        uint64_t memberId = 0;
+         if (event_log::formatEventLogEntry(
+                 eventId, logEntry.id, logEntry.messageId, messageArgsView,
+                 logEntry.timestamp, userSub->customText, bmcLogEntry) != 0)
+@@ -246,6 +247,7 @@ void Subscription::filterAndSendEventLogs(
+             }
+         }
+ 
++        bmcLogEntry["MemberId"] = std::to_string(memberId++);
+         logEntryArray.emplace_back(std::move(bmcLogEntry));
+         eventId++;
+     }
+-- 
+2.45.3
+

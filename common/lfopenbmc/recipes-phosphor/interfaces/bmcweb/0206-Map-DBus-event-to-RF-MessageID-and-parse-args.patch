@@ -1,0 +1,962 @@
+From 5fe2044249940d1a71492e494a2fb34b8e1c27ce Mon Sep 17 00:00:00 2001
+From: Igor Kanyuka <ifelmail@gmail.com>
+Date: Mon, 24 Feb 2025 15:59:10 +0000
+Subject: [PATCH 206/206] Map DBus event to RF MessageID and parse args
+
+There is a generated map that contains DBus event name and corresponding
+RF info - Registry, MessageID within the registry and names of arguments
+to be translated from DBus and passed to the RF MessageArgs.
+Use the map to map DBus events to translate DBus to corresponding
+Redfish event to send it according to subscriptions and in LogServices
+to populate MessageId and MessageArgs in LogEntry structure.
+
+Current behavior of building LogEntries from DBus events is to use DBus
+message as Redfish message and not populate MessageId and MessageArgs.
+To preserve this behavior, the
+BMCWEB_REDFISH_ALLOW_LOG_ENTRY_FROM_DBUS_WO_MAPPING option added to
+meson and enabled by default. So the code will first try to map DBus
+event to redfish event, if it can do that, MessageId, Resolution and
+Severity from the registry will be used, and it will also use a message
+from the registry replacing placeholders with values from the
+MessageArgs. If it cannot be mapped, the message will either be dropped
+if the option is disabled (needs to be disabled explicitly) or build the
+message in the way it did before this change.
+
+Binary size change (note, it's for the branch that includes several
+upstream registries, and not only this change):
+4152836->4263932 bytes. Delta is 111096 bytes, or 2.67% increase.
+
+Testing:
+- Unit tests
+- Built an image with my code, ran it in QEMU:
+1. Setup a subscription pointing to my receiver service.
+2. Injected an entry with the command: [1]. It injected a DBus log entry
+   with a name that has a corresponding RF message ID in the map. Note
+the output contains ID of the event - 17.
+3. BMCWeb sent event to the receiver. See [2] it's a debug from the
+   receiver web service it logged raw payload.
+4. Ran command to see pull the entry from the LogService using the event
+   ID: [3]
+5. Ran the same command for ID, which does not have mapping.
+   See the output [4], you can see that the fields are populated for
+the message that has mapping (#17) and missing for one that does not
+have mapping (#14).
+6. Ran rf_service_validator against running in QEMU instance.
+
+[1] Command to inject a log entry and its output:
+```
+log-create xyz.openbmc_project.Sensor.Threshold.ReadingBelowLowerCriticalThreshold --json '{ "SENSOR_NAME": "BIC_JI_SENSOR_MB_RETIMER_TEMP_C", "READING_VALUE": 10.2, "UNITS": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC", "THRESHOLD_VALUE": 15.5 }'
+
+/xyz/openbmc_project/logging/entry/1
+```
+
+[2] Raw payload received by the web service:
+```
+2025-03-13T12:00:43.342623Z DEBUG redfish_events_receiver::event_handler: Received request: "{\n  \"@odata.type\": \"#Event.v1_4_0.Event\",\n  \"Events\": [\n    {\n      \"Context\": \"rmc006.nao5.facebook.com\",\n      \"EventId\": \"2\",\n      \"EventTimestamp\": \"2025-03-13T12:00:35+00:00\",\n      \"MemberId\": \"0\",\n      \"Message\": \"Sensor 'BIC_JI_SENSOR_MB_RETIMER_TEMP_C' reading of 10.2 (xyz.openbmc_project.Sensor.Value.Unit.DegreesC) is below the 15.5 lower critical threshold.\",\n      \"MessageArgs\": [\n        \"BIC_JI_SENSOR_MB_RETIMER_TEMP_C\",\n        \"10.2\",\n        \"xyz.openbmc_project.Sensor.Value.Unit.DegreesC\",\n        \"15.5\"\n      ],\n      \"MessageId\": \"SensorEvent.1.0.ReadingBelowLowerCriticalThreshold\",\n      \"Severity\": \"Critical\"\n    }\n  ],\n  \"Id\": \"3\",\n  \"Name\": \"Event Log\"\n}"
+```
+[3] `curl -ks -H "Content-Type: application/json" -H "X-Auth-Token: $token" https://${bmc}/redfish/v1/Systems/system/LogServices/EventLog/Entries/1`
+[4] Output of the LogServices requests:
+```
+curl -ks -H "Content-Type: application/json" -H "X-Auth-Token: $token" https://${bmc}/redfish/v1/Systems/system/LogServices/EventLog/Entries/1
+{
+  "@odata.id": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/1",
+  "@odata.type": "#LogEntry.v1_9_0.LogEntry",
+  "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/1/attachment",
+  "Created": "2025-03-13T12:00:35.672+00:00",
+  "EntryType": "Event",
+  "Id": "1",
+  "Message": "Sensor 'BIC_JI_SENSOR_MB_RETIMER_TEMP_C' reading of 10.2 (xyz.openbmc_project.Sensor.Value.Unit.DegreesC) is below the 15.5 lower critical threshold.",
+  "MessageArgs": [
+    "BIC_JI_SENSOR_MB_RETIMER_TEMP_C",
+    "10.2",
+    "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
+    "15.5"
+  ],
+  "MessageId": "SensorEvent.1.0.ReadingBelowLowerCriticalThreshold",
+  "Modified": "2025-03-13T12:00:35.672+00:00",
+  "Name": "System Event Log Entry",
+  "Resolution": "Check the condition of the resources listed in RelatedItem.",
+  "Resolved": false,
+  "Severity": "Critical"
+}
+```
+
+Change-Id: Ia4d9aab8ba65d4debda0b2ca135a796f817f5e2b
+Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
+---
+ config/meson.build                            |   1 +
+ include/dbus_utility.hpp                      |   4 +-
+ meson.build                                   |   2 +
+ meson.options                                 |  15 ++
+ redfish-core/include/event_log.hpp            |  11 +-
+ .../include/event_logs_object_type.hpp        |   5 +-
+ .../include/utils/dbus_event_log_entry.hpp    |   4 +
+ .../utils/dbus_registries_map_utils.hpp       |  27 ++++
+ redfish-core/lib/log_services.hpp             |  48 ++++--
+ redfish-core/src/dbus_log_watcher.cpp         |  27 +---
+ redfish-core/src/event_log.cpp                |  39 ++---
+ redfish-core/src/filesystem_log_watcher.cpp   |  23 ++-
+ redfish-core/src/subscription.cpp             |   9 +-
+ .../src/utils/dbus_registries_map_utils.cpp   | 118 +++++++++++++++
+ .../include/dbus_log_watcher_test.cpp         |  39 +++--
+ test/redfish-core/include/event_log_test.cpp  |  30 +---
+ test/redfish-core/lib/log_services_test.cpp   | 137 ++++++++++++++++++
+ 17 files changed, 429 insertions(+), 110 deletions(-)
+ create mode 100644 redfish-core/include/utils/dbus_registries_map_utils.hpp
+ create mode 100644 redfish-core/src/utils/dbus_registries_map_utils.cpp
+ create mode 100644 test/redfish-core/lib/log_services_test.cpp
+
+diff --git a/config/meson.build b/config/meson.build
+index efa9cca9..dd841479 100644
+--- a/config/meson.build
++++ b/config/meson.build
+@@ -24,6 +24,7 @@ feature_options = [
+     'redfish',
+     'redfish-aggregation',
+     'redfish-allow-deprecated-power-thermal',
++    'redfish-allow-dbus-messages-mapping',
+     'redfish-allow-simple-update',
+     'redfish-bmc-journal',
+     'redfish-cpu-log',
+diff --git a/include/dbus_utility.hpp b/include/dbus_utility.hpp
+index d1f4a841..5a19607e 100644
+--- a/include/dbus_utility.hpp
++++ b/include/dbus_utility.hpp
+@@ -18,6 +18,7 @@
+ #include <string>
+ #include <string_view>
+ #include <tuple>
++#include <unordered_map>
+ #include <utility>
+ #include <variant>
+ #include <vector>
+@@ -56,7 +57,8 @@ using DbusVariantType = std::variant<
+       std::string, std::string, uint64_t>>,
+     std::vector<std::pair<sdbusplus::message::object_path, std::string>>,
+     std::vector<std::tuple<std::string, uint64_t, std::string, double>>,
+-    std::vector<std::tuple<std::string, std::string, uint64_t, std::string>>
++    std::vector<std::tuple<std::string, std::string, uint64_t, std::string>>,
++    std::unordered_map<std::string, std::string>
+  >;
+ 
+ // clang-format on
+diff --git a/meson.build b/meson.build
+index 24938273..9b43c434 100644
+--- a/meson.build
++++ b/meson.build
+@@ -413,6 +413,7 @@ srcfiles_bmcweb = files(
+     'redfish-core/src/resource_messages.cpp',
+     'redfish-core/src/subscription.cpp',
+     'redfish-core/src/task_messages.cpp',
++    'redfish-core/src/utils/dbus_registries_map_utils.cpp',
+     'redfish-core/src/utils/dbus_utils.cpp',
+     'redfish-core/src/utils/json_utils.cpp',
+     'redfish-core/src/utils/time_utils.cpp',
+@@ -508,6 +509,7 @@ srcfiles_unittest = files(
+     'test/redfish-core/lib/chassis_test.cpp',
+     'test/redfish-core/lib/ethernet_test.cpp',
+     'test/redfish-core/lib/log_services_dump_test.cpp',
++    'test/redfish-core/lib/log_services_test.cpp',
+     'test/redfish-core/lib/manager_diagnostic_data_test.cpp',
+     'test/redfish-core/lib/metadata_test.cpp',
+     'test/redfish-core/lib/power_subsystem_test.cpp',
+diff --git a/meson.options b/meson.options
+index 981fa8b8..75834230 100644
+--- a/meson.options
++++ b/meson.options
+@@ -315,6 +315,21 @@ option(
+                     will be disabled by default June 2024. ''',
+ )
+ 
++# BMCWEB_REDFISH_ALLOW_DBUS_MESSAGES_MAPPING
++option(
++    'redfish-allow-dbus-messages-mapping',
++    type: 'feature',
++    value: 'disabled',
++    description: '''
++        Allows LogServices to map DBus messages to Redfish registry messages.
++        When it's enabled, the DBus messages get converted to Redfish messages
++        using Registry data. If there is no entry on the map, the DBus message
++        is dropped. When the option is disabled the message gets presented to
++        the user as is - message property contains the raw DBus message,
++        and it does not contain Redfish MessageId and MessageArgs.
++    ''',
++)
++
+ # BMCWEB_REDFISH_OEM_MANAGER_FAN_DATA
+ option(
+     'redfish-oem-manager-fan-data',
+diff --git a/redfish-core/include/event_log.hpp b/redfish-core/include/event_log.hpp
+index c902a09d..e30abc1c 100644
+--- a/redfish-core/include/event_log.hpp
++++ b/redfish-core/include/event_log.hpp
+@@ -1,5 +1,7 @@
+ #pragma once
+ 
++#include "event_logs_object_type.hpp"
++
+ #include <nlohmann/json.hpp>
+ 
+ #include <cstdint>
+@@ -20,11 +22,10 @@ int getEventLogParams(const std::string& logEntry, std::string& timestamp,
+                       std::string& messageID,
+                       std::vector<std::string>& messageArgs);
+ 
+-int formatEventLogEntry(uint64_t eventId, const std::string& logEntryID,
+-                        const std::string& messageID,
+-                        std::span<std::string_view> messageArgs,
+-                        std::string timestamp, const std::string& customText,
+-                        nlohmann::json::object_t& logEntryJson);
++void formatEventLogEntry(uint64_t eventId,
++                         const redfish::EventLogObjectsType& logEntry,
++                         const std::string& customText,
++                         nlohmann::json::object_t& logEntryJson);
+ 
+ } // namespace event_log
+ 
+diff --git a/redfish-core/include/event_logs_object_type.hpp b/redfish-core/include/event_logs_object_type.hpp
+index e97e5519..2810382d 100644
+--- a/redfish-core/include/event_logs_object_type.hpp
++++ b/redfish-core/include/event_logs_object_type.hpp
+@@ -18,8 +18,11 @@ namespace redfish
+ struct EventLogObjectsType
+ {
+     std::string id;
+-    std::string timestamp;
++    std::string message;
+     std::string messageId;
+     std::vector<std::string> messageArgs;
++    std::string resolution;
++    std::string severity;
++    std::string timestamp;
+ };
+ } // namespace redfish
+diff --git a/redfish-core/include/utils/dbus_event_log_entry.hpp b/redfish-core/include/utils/dbus_event_log_entry.hpp
+index 5ce3b6ff..7c2f4f27 100644
+--- a/redfish-core/include/utils/dbus_event_log_entry.hpp
++++ b/redfish-core/include/utils/dbus_event_log_entry.hpp
+@@ -8,14 +8,17 @@
+ #include <cstdint>
+ #include <optional>
+ #include <string>
++#include <unordered_map>
+ 
+ namespace redfish
+ {
++
+ struct DbusEventLogEntry
+ {
+     // represents a subset of an instance of dbus interface
+     // xyz.openbmc_project.Logging.Entry
+ 
++    std::unordered_map<std::string, std::string> AdditionalData;
+     uint32_t Id = 0;
+     std::string Message;
+     const std::string* Path = nullptr;
+@@ -35,6 +38,7 @@ inline std::optional<DbusEventLogEntry> fillDbusEventLogEntryFromPropertyMap(
+     // clang-format off
+     bool success = sdbusplus::unpackPropertiesNoThrow(
+         dbus_utils::UnpackErrorPrinter(), resp,
++        "AdditionalData", entry.AdditionalData,
+         "Id", entry.Id,
+         "Message", entry.Message,
+         "Path", entry.Path,
+diff --git a/redfish-core/include/utils/dbus_registries_map_utils.hpp b/redfish-core/include/utils/dbus_registries_map_utils.hpp
+new file mode 100644
+index 00000000..11517fbd
+--- /dev/null
++++ b/redfish-core/include/utils/dbus_registries_map_utils.hpp
+@@ -0,0 +1,27 @@
++#pragma once
++
++#include "event_logs_object_type.hpp"
++#include "utils/dbus_event_log_entry.hpp"
++
++#include <optional>
++#include <string>
++#include <vector>
++
++namespace redfish
++{
++namespace dbus_registries_map
++{
++struct MappedInfo
++{
++    std::string registryName;
++    std::string registryEntryName;
++    std::vector<std::string> messageArgs;
++};
++
++std::optional<MappedInfo> getMappedInfo(const DbusEventLogEntry& entry);
++
++bool DbusEventLogEntryToEventLogObjectsType(const DbusEventLogEntry& entry,
++                                            EventLogObjectsType& event);
++
++} // namespace dbus_registries_map
++} // namespace redfish
+diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
+index 2db5d208..6c5cbbe8 100644
+--- a/redfish-core/lib/log_services.hpp
++++ b/redfish-core/lib/log_services.hpp
+@@ -25,6 +25,7 @@
+ #include "task.hpp"
+ #include "task_messages.hpp"
+ #include "utils/dbus_event_log_entry.hpp"
++#include "utils/dbus_registries_map_utils.hpp"
+ #include "utils/dbus_utils.hpp"
+ #include "utils/json_utils.hpp"
+ #include "utils/query_param.hpp"
+@@ -1436,18 +1437,51 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+ 
+     if (!optEntry.has_value())
+     {
++        BMCWEB_LOG_ERROR(
++            "Could not construct event log entry from dbus properties");
+         messages::internalError(asyncResp->res);
+         return false;
+     }
+     DbusEventLogEntry entry = optEntry.value();
+ 
++    if constexpr (BMCWEB_REDFISH_ALLOW_DBUS_MESSAGES_MAPPING)
++    {
++        EventLogObjectsType eventLogObjectsType;
++        auto success =
++            dbus_registries_map::DbusEventLogEntryToEventLogObjectsType(
++                entry, eventLogObjectsType);
++        if (!success)
++        {
++            messages::internalError(asyncResp->res);
++            return false;
++        }
++        objectToFillOut["Message"] = std::move(eventLogObjectsType.message);
++        objectToFillOut["MessageId"] = std::move(eventLogObjectsType.messageId);
++        objectToFillOut["MessageArgs"] =
++            std::move(eventLogObjectsType.messageArgs);
++        objectToFillOut["Resolution"] =
++            std::move(eventLogObjectsType.resolution);
++        objectToFillOut["Severity"] = std::move(eventLogObjectsType.severity);
++    }
++    else
++    {
++        objectToFillOut["Message"] = entry.Message;
++        if ((entry.Resolution != nullptr) && !entry.Resolution->empty())
++        {
++            objectToFillOut["Resolution"] = *entry.Resolution;
++        }
++        objectToFillOut["Severity"] =
++            translateSeverityDbusToRedfish(entry.Severity);
++    }
++
++    auto logEntryID = std::to_string(entry.Id);
++
+     objectToFillOut["@odata.type"] = "#LogEntry.v1_9_0.LogEntry";
+     objectToFillOut["@odata.id"] = boost::urls::format(
+         "/redfish/v1/Systems/{}/LogServices/EventLog/Entries/{}",
+-        BMCWEB_REDFISH_SYSTEM_URI_NAME, std::to_string(entry.Id));
++        BMCWEB_REDFISH_SYSTEM_URI_NAME, logEntryID);
+     objectToFillOut["Name"] = "System Event Log Entry";
+-    objectToFillOut["Id"] = std::to_string(entry.Id);
+-    objectToFillOut["Message"] = entry.Message;
++    objectToFillOut["Id"] = logEntryID;
+     objectToFillOut["Resolved"] = entry.Resolved;
+     std::optional<bool> notifyAction =
+         getProviderNotifyAction(entry.ServiceProviderNotify);
+@@ -1455,13 +1489,7 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+     {
+         objectToFillOut["ServiceProviderNotified"] = *notifyAction;
+     }
+-    if ((entry.Resolution != nullptr) && !entry.Resolution->empty())
+-    {
+-        objectToFillOut["Resolution"] = *entry.Resolution;
+-    }
+     objectToFillOut["EntryType"] = "Event";
+-    objectToFillOut["Severity"] =
+-        translateSeverityDbusToRedfish(entry.Severity);
+     objectToFillOut["Created"] =
+         redfish::time_utils::getDateTimeUintMs(entry.Timestamp);
+     objectToFillOut["Modified"] =
+@@ -1470,7 +1498,7 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+     {
+         objectToFillOut["AdditionalDataURI"] = boost::urls::format(
+             "/redfish/v1/Systems/{}/LogServices/EventLog/Entries/{}/attachment",
+-            BMCWEB_REDFISH_SYSTEM_URI_NAME, std::to_string(entry.Id));
++            BMCWEB_REDFISH_SYSTEM_URI_NAME, logEntryID);
+     }
+     return true;
+ }
+diff --git a/redfish-core/src/dbus_log_watcher.cpp b/redfish-core/src/dbus_log_watcher.cpp
+index c6ca3811..00e04687 100644
+--- a/redfish-core/src/dbus_log_watcher.cpp
++++ b/redfish-core/src/dbus_log_watcher.cpp
+@@ -7,13 +7,14 @@
+ #include "logging.hpp"
+ #include "metric_report.hpp"
+ #include "utils/dbus_event_log_entry.hpp"
+-#include "utils/time_utils.hpp"
++#include "utils/dbus_registries_map_utils.hpp"
+ 
+ #include <sdbusplus/bus/match.hpp>
+ #include <sdbusplus/message.hpp>
+ #include <sdbusplus/message/native_types.hpp>
+ 
+ #include <algorithm>
++#include <format>
+ #include <optional>
+ #include <string>
+ #include <variant>
+@@ -34,25 +35,11 @@ bool DbusEventLogMonitor::eventLogObjectFromDBus(
+             "Could not construct event log entry from dbus properties");
+         return false;
+     }
+-    DbusEventLogEntry& entry = optEntry.value();
+-    event.id = std::to_string(entry.Id);
+-    event.timestamp = redfish::time_utils::getDateTimeUintMs(entry.Timestamp);
+-
+-    // This dbus property is not documented to contain the Redfish Message Id,
+-    // but can be used as such. As a temporary solution that is sufficient,
+-    // the event filtering code will drop the event anyways if event.messageId
+-    // is not valid.
+-    //
+-    // This will need resolved before
+-    // experimental-redfish-dbus-log-subscription is stabilized
+-    event.messageId = entry.Message;
+-
+-    // The order of 'AdditionalData' is not what's specified in an e.g.
+-    // busctl call to create the Event Log Entry. So it cannot be used
+-    // to map to the message args. Leaving this branch here for it to be
+-    // implemented when the mapping is available
+-
+-    return true;
++
++    const DbusEventLogEntry& entry = optEntry.value();
++
++    return dbus_registries_map::DbusEventLogEntryToEventLogObjectsType(
++        entry, event);
+ }
+ 
+ static void dbusEventLogMatchHandlerSingleEntry(
+diff --git a/redfish-core/src/event_log.cpp b/redfish-core/src/event_log.cpp
+index a4e78507..0c117bb9 100644
+--- a/redfish-core/src/event_log.cpp
++++ b/redfish-core/src/event_log.cpp
+@@ -121,35 +121,15 @@ int getEventLogParams(const std::string& logEntry, std::string& timestamp,
+     return 0;
+ }
+ 
+-int formatEventLogEntry(uint64_t eventId, const std::string& logEntryID,
+-                        const std::string& messageID,
+-                        const std::span<std::string_view> messageArgs,
+-                        std::string timestamp, const std::string& customText,
+-                        nlohmann::json::object_t& logEntryJson)
++void formatEventLogEntry(uint64_t eventId,
++                         const redfish::EventLogObjectsType& logEntry,
++                         const std::string& customText,
++                         nlohmann::json::object_t& logEntryJson)
+ {
+-    // Get the Message from the MessageRegistry
+-    const registries::Message* message = registries::getMessage(messageID);
+-
+-    if (message == nullptr)
+-    {
+-        BMCWEB_LOG_DEBUG(
+-            "{}: could not find messageID '{}' for log entry {} in registry",
+-            __func__, messageID, logEntryID);
+-        return -1;
+-    }
+-
+-    std::string msg =
+-        redfish::registries::fillMessageArgs(messageArgs, message->message);
+-    if (msg.empty())
+-    {
+-        BMCWEB_LOG_DEBUG("{}: message is empty after filling fillMessageArgs",
+-                         __func__);
+-        return -1;
+-    }
+-
+     // Get the Created time from the timestamp. The log timestamp is in
+     // RFC3339 format which matches the Redfish format except for the
+     // fractional seconds between the '.' and the '+', so just remove them.
++    std::string timestamp = logEntry.timestamp;
+     std::size_t dot = timestamp.find_first_of('.');
+     std::size_t plus = timestamp.find_first_of('+', dot);
+     if (dot != std::string::npos && plus != std::string::npos)
+@@ -160,13 +140,12 @@ int formatEventLogEntry(uint64_t eventId, const std::string& logEntryID,
+     // Fill in the log entry with the gathered data
+     logEntryJson["EventId"] = std::to_string(eventId);
+ 
+-    logEntryJson["Severity"] = message->messageSeverity;
+-    logEntryJson["Message"] = std::move(msg);
+-    logEntryJson["MessageId"] = messageID;
+-    logEntryJson["MessageArgs"] = messageArgs;
++    logEntryJson["Severity"] = logEntry.severity;
++    logEntryJson["Message"] = logEntry.message;
++    logEntryJson["MessageId"] = logEntry.messageId;
++    logEntryJson["MessageArgs"] = logEntry.messageArgs;
+     logEntryJson["EventTimestamp"] = std::move(timestamp);
+     logEntryJson["Context"] = customText;
+-    return 0;
+ }
+ 
+ } // namespace event_log
+diff --git a/redfish-core/src/filesystem_log_watcher.cpp b/redfish-core/src/filesystem_log_watcher.cpp
+index 41f2c6a4..9950a2d8 100644
+--- a/redfish-core/src/filesystem_log_watcher.cpp
++++ b/redfish-core/src/filesystem_log_watcher.cpp
+@@ -4,6 +4,7 @@
+ #include "event_logs_object_type.hpp"
+ #include "event_service_manager.hpp"
+ #include "logging.hpp"
++#include "registries.hpp"
+ 
+ #include <sys/inotify.h>
+ 
+@@ -92,7 +93,27 @@ void FilesystemLogWatcher::readEventLogsFromFile()
+             continue;
+         }
+ 
+-        eventRecords.emplace_back(idStr, timestamp, messageID, messageArgs);
++        std::vector<std::string_view> messageArgsView(messageArgs.begin(),
++                                                      messageArgs.end());
++        const registries::Message* message = registries::getMessage(messageID);
++        if (message == nullptr)
++        {
++            BMCWEB_LOG_DEBUG("Could not find messageID '{}' in registry",
++                             messageID);
++            continue;
++        }
++        std::string msg = redfish::registries::fillMessageArgs(
++            messageArgsView, message->message);
++        if (msg.empty())
++        {
++            BMCWEB_LOG_DEBUG("Read eventLog could not build message {}",
++                             logEntry);
++            continue;
++        }
++
++        eventRecords.emplace_back(idStr, msg, messageID, messageArgs,
++                                  message->resolution, message->messageSeverity,
++                                  timestamp);
+     }
+ 
+     if (eventRecords.empty())
+diff --git a/redfish-core/src/subscription.cpp b/redfish-core/src/subscription.cpp
+index 1ba27f5d..7c61426f 100644
+--- a/redfish-core/src/subscription.cpp
++++ b/redfish-core/src/subscription.cpp
+@@ -223,13 +223,8 @@ void Subscription::filterAndSendEventLogs(
+ 
+         nlohmann::json::object_t bmcLogEntry;
+         uint64_t memberId = 0;
+-        if (event_log::formatEventLogEntry(
+-                eventId, logEntry.id, logEntry.messageId, messageArgsView,
+-                logEntry.timestamp, userSub->customText, bmcLogEntry) != 0)
+-        {
+-            BMCWEB_LOG_WARNING("Read eventLog entry failed");
+-            continue;
+-        }
++        event_log::formatEventLogEntry(eventId, logEntry, userSub->customText,
++                                       bmcLogEntry);
+ 
+         if (!eventMatchesFilter(*userSub, bmcLogEntry, ""))
+         {
+diff --git a/redfish-core/src/utils/dbus_registries_map_utils.cpp b/redfish-core/src/utils/dbus_registries_map_utils.cpp
+new file mode 100644
+index 00000000..b88e2e87
+--- /dev/null
++++ b/redfish-core/src/utils/dbus_registries_map_utils.cpp
+@@ -0,0 +1,118 @@
++#include "utils/dbus_registries_map_utils.hpp"
++
++#include "event_log.hpp"
++#include "external_registries_map.hpp"
++#include "logging.hpp"
++#include "utils/dbus_event_log_entry.hpp"
++#include "utils/time_utils.hpp"
++
++#include <algorithm>
++#include <cstddef>
++#include <cstring>
++#include <format>
++#include <optional>
++#include <string_view>
++#include <vector>
++
++namespace redfish
++{
++namespace dbus_registries_map
++{
++std::optional<MappedInfo> getMappedInfo(const DbusEventLogEntry& entry)
++{
++    const auto* it = std::find_if(
++        dbusToRedfishMessageId.begin(), dbusToRedfishMessageId.end(),
++        [&entry](const DbusMessageEntry& element) {
++            return entry.Message == element.first;
++        });
++
++    if (it == dbusToRedfishMessageId.end())
++    {
++        return std::nullopt;
++    }
++
++    auto dbusToRfInfo = it->second;
++    std::vector<std::string> args;
++
++    for (size_t index = 0; index < dbusToRfInfo.numberOfArgs; index++)
++    {
++        auto additionalDataElement = entry.AdditionalData.find(
++            std::string(dbusToRfInfo.argsInfo[index].name));
++
++        if (additionalDataElement == entry.AdditionalData.end())
++        {
++            BMCWEB_LOG_WARNING(
++                "Could not find expected arg '{}' in additional data",
++                dbusToRfInfo.argsInfo[index].name);
++            continue;
++        }
++        args.push_back(additionalDataElement->second);
++    }
++    return MappedInfo{dbusToRfInfo.registryName, dbusToRfInfo.redfishMessageId,
++                      args};
++}
++
++bool DbusEventLogEntryToEventLogObjectsType(const DbusEventLogEntry& entry,
++                                            EventLogObjectsType& event)
++{
++    auto optDBusToRfInfo = getMappedInfo(entry);
++    if (!optDBusToRfInfo.has_value())
++    {
++        BMCWEB_LOG_ERROR(
++            "Could not find entry for the '{}' message in the DBusToRedfish map",
++            entry.Message);
++        return false;
++    }
++
++    // Get the Message from the MessageRegistry
++    const auto registry =
++        registries::getRegistryFromPrefix(optDBusToRfInfo->registryName);
++    if (!registry)
++    {
++        BMCWEB_LOG_WARNING("Could not find registry '{}' for log entry {}",
++                           optDBusToRfInfo->registryName, entry.Id);
++        return false;
++    }
++
++    const auto registryEntry = registry->get();
++    const registries::Message* message = registries::getMessageFromRegistry(
++        optDBusToRfInfo->registryEntryName, registryEntry.entries);
++    if (message == nullptr)
++    {
++        BMCWEB_LOG_WARNING(
++            "Could not find message '{}' for log entry {} in registry '{}'",
++            optDBusToRfInfo->registryEntryName, entry.Id,
++            optDBusToRfInfo->registryName);
++        return false;
++    }
++
++    std::string messageId = std::format(
++        "{}.{}.{}.{}", std::string_view(optDBusToRfInfo->registryName),
++        registryEntry.header.versionMajor, registryEntry.header.versionMinor,
++        std::string_view(optDBusToRfInfo->registryEntryName));
++
++    std::vector<std::string_view> messageArgsView(
++        optDBusToRfInfo->messageArgs.begin(),
++        optDBusToRfInfo->messageArgs.end());
++    std::string msg =
++        redfish::registries::fillMessageArgs(messageArgsView, message->message);
++    if (msg.empty())
++    {
++        BMCWEB_LOG_WARNING(
++            "Message is empty after filling fillMessageArgs for log entry {}",
++            entry.Id);
++        return false;
++    }
++
++    event.id = std::to_string(entry.Id);
++    event.message = std::move(msg);
++    event.messageId = std::move(messageId);
++    event.messageArgs = optDBusToRfInfo->messageArgs;
++    event.resolution = message->resolution;
++    event.severity = message->messageSeverity;
++    event.timestamp = redfish::time_utils::getDateTimeUintMs(entry.Timestamp);
++
++    return true;
++}
++} // namespace dbus_registries_map
++} // namespace redfish
+diff --git a/test/redfish-core/include/dbus_log_watcher_test.cpp b/test/redfish-core/include/dbus_log_watcher_test.cpp
+index c2a33dff..48b90236 100644
+--- a/test/redfish-core/include/dbus_log_watcher_test.cpp
++++ b/test/redfish-core/include/dbus_log_watcher_test.cpp
+@@ -4,7 +4,7 @@
+ 
+ #include <cstdint>
+ #include <string>
+-#include <vector>
++#include <unordered_map>
+ 
+ #include <gtest/gtest.h>
+ 
+@@ -13,17 +13,24 @@ namespace redfish
+ 
+ using namespace dbus::utility;
+ 
+-TEST(DBusLogWatcher, EventLogObjectFromDBusSuccess)
++TEST(DBusLogWatcher, EventLogObjectFromDBusWithMappingSuccess)
+ {
++    const DbusVariantType additionalData =
++        DbusVariantType(std::unordered_map<std::string, std::string>{
++            {"READING_VALUE", "10.2"},
++            {"SENSOR_NAME", "BIC_JI_SENSOR_MB_RETIMER_TEMP_C"},
++            {"THRESHOLD_VALUE", "15.5"},
++            {"UNITS", "xyz.openbmc_project.Sensor.Value.Unit.DegreesC"}});
+     const DBusPropertiesMap propMapStub = {
+-        {"AdditionalData",
+-         DbusVariantType(std::vector<std::string>{"KEY=VALUE"})},
++        {"AdditionalData", additionalData},
+         {"EventId", DbusVariantType("")},
+         {"Id", DbusVariantType(static_cast<uint32_t>(1838))},
+ 
+         // use 'Message' for MessageId as per the design
+         // https://github.com/openbmc/docs/blob/d886ce89fe66c128b3ab492e530ad48fa0c1b4eb/designs/event-logging.md?plain=1#L448
+-        {"Message", DbusVariantType("OpenBMC.0.1.PowerButtonPressed")},
++        {"Message",
++         DbusVariantType(
++             "xyz.openbmc_project.Sensor.Threshold.ReadingBelowLowerCriticalThreshold")},
+         {"Resolution", DbusVariantType("")},
+         {"Resolved", DbusVariantType(true)},
+         {"ServiceProviderNotify", DbusVariantType("")},
+@@ -43,18 +50,28 @@ TEST(DBusLogWatcher, EventLogObjectFromDBusSuccess)
+ 
+     EXPECT_EQ(event.timestamp, "2021-11-30T22:41:35.123+00:00");
+ 
+-    EXPECT_EQ(event.messageId, "OpenBMC.0.1.PowerButtonPressed");
+-
+-    // dbus event subscriptions currently do not support message args
+-    EXPECT_TRUE(event.messageArgs.empty());
++    EXPECT_EQ(event.messageId,
++              "SensorEvent.1.0.ReadingBelowLowerCriticalThreshold");
++
++    ASSERT_EQ(event.messageArgs.size(), 4);
++    // SENSOR_NAME
++    EXPECT_EQ(event.messageArgs[0], "BIC_JI_SENSOR_MB_RETIMER_TEMP_C");
++    // READING_VALUE
++    EXPECT_EQ(event.messageArgs[1], "10.2");
++    // UNITS
++    EXPECT_EQ(event.messageArgs[2],
++              "xyz.openbmc_project.Sensor.Value.Unit.DegreesC");
++    // THRESHOLD_VALUE
++    EXPECT_EQ(event.messageArgs[3], "15.5");
+ }
+ 
+ TEST(DBusLogWatcher, EventLogObjectFromDBusFailMissingProperty)
+ {
++    const DbusVariantType additionalData = DbusVariantType(
++        std::unordered_map<std::string, std::string>{{"KEY", "VALUE"}});
+     // missing 'Resolved'
+     const DBusPropertiesMap propMapWrong = {
+-        {"AdditionalData",
+-         DbusVariantType(std::vector<std::string>{"KEY=VALUE"})},
++        {"AdditionalData", additionalData},
+         {"EventId", DbusVariantType("")},
+         {"Id", DbusVariantType(static_cast<uint32_t>(1838))},
+         {"Message", DbusVariantType("")},
+diff --git a/test/redfish-core/include/event_log_test.cpp b/test/redfish-core/include/event_log_test.cpp
+index c51eee6e..a9ffd3d0 100644
+--- a/test/redfish-core/include/event_log_test.cpp
++++ b/test/redfish-core/include/event_log_test.cpp
+@@ -126,19 +126,19 @@ TEST(RedfishEventLog, GetEventLogParamsFailNoComma)
+ 
+ TEST(RedfishEventLog, FormatEventLogEntrySuccess)
+ {
+-    int status = 0;
+     uint64_t eventId = 0;
+     std::string logEntryID = "23849423_3";
++    std::string message = "Power supply PSU 1 fan FAN 2 failed.";
+     std::string messageID = "OpenBMC.0.1.PowerSupplyFanFailed";
+-    std::vector<std::string_view> messageArgs = {"PSU 1", "FAN 2"};
++    std::vector<std::string> messageArgs = {"PSU 1", "FAN 2"};
+     std::string timestamp = "my-timestamp";
+     std::string customText = "customText";
+ 
+-    nlohmann::json::object_t logEntryJson;
+-    status = formatEventLogEntry(eventId, logEntryID, messageID, messageArgs,
+-                                 timestamp, customText, logEntryJson);
++    const redfish::EventLogObjectsType& logEntry{
++        logEntryID, message, messageID, messageArgs, "", "", timestamp};
+ 
+-    ASSERT_EQ(status, 0);
++    nlohmann::json::object_t logEntryJson;
++    formatEventLogEntry(eventId, logEntry, customText, logEntryJson);
+ 
+     ASSERT_TRUE(logEntryJson.contains("EventId"));
+     ASSERT_EQ(logEntryJson["EventId"], "0");
+@@ -162,23 +162,5 @@ TEST(RedfishEventLog, FormatEventLogEntrySuccess)
+     ASSERT_TRUE(logEntryJson.contains("Context"));
+     ASSERT_EQ(logEntryJson["Context"], "customText");
+ }
+-
+-TEST(RedfishEventLog, FormatEventLogEntryFail)
+-{
+-    int status = 0;
+-    uint64_t eventId = 0;
+-    std::string logEntryID = "malformed";
+-    std::string messageID;
+-    std::vector<std::string_view> messageArgs;
+-    std::string timestamp;
+-    std::string customText;
+-
+-    nlohmann::json::object_t logEntryJson;
+-    status = formatEventLogEntry(eventId, logEntryID, messageID, messageArgs,
+-                                 timestamp, customText, logEntryJson);
+-
+-    ASSERT_EQ(status, -1);
+-}
+-
+ } // namespace
+ } // namespace redfish::event_log
+diff --git a/test/redfish-core/lib/log_services_test.cpp b/test/redfish-core/lib/log_services_test.cpp
+new file mode 100644
+index 00000000..a70b33bd
+--- /dev/null
++++ b/test/redfish-core/lib/log_services_test.cpp
+@@ -0,0 +1,137 @@
++#include "dbus_utility.hpp"
++#include "redfish-core/lib/log_services.hpp"
++
++#include <nlohmann/json.hpp>
++
++#include <cstdint>
++#include <string>
++#include <unordered_map>
++
++#include <gtest/gtest.h>
++
++namespace redfish
++{
++using namespace dbus::utility;
++TEST(LogServices, fillEventLogLogEntryFromPropertyMapSuccess)
++{
++    if constexpr (BMCWEB_REDFISH_ALLOW_DBUS_MESSAGES_MAPPING)
++    {
++        const DBusPropertiesMap propMapStub = {
++            {"AdditionalData",
++             DbusVariantType(std::unordered_map<std::string, std::string>{
++                 {"READING_VALUE", "10.2"},
++                 {"SENSOR_NAME", "BIC_JI_SENSOR_MB_RETIMER_TEMP_C"},
++                 {"THRESHOLD_VALUE", "15.5"},
++                 {"UNITS", "xyz.openbmc_project.Sensor.Value.Unit.DegreesC"}})},
++            {"EventId", DbusVariantType("")},
++            {"Id", DbusVariantType(static_cast<uint32_t>(1838))},
++
++            // use 'Message' for MessageId as per the design
++            // https://github.com/openbmc/docs/blob/d886ce89fe66c128b3ab492e530ad48fa0c1b4eb/designs/event-logging.md?plain=1#L448
++            {"Message",
++             DbusVariantType(
++                 "xyz.openbmc_project.Sensor.Threshold.ReadingBelowLowerCriticalThreshold")},
++            {"Resolution", DbusVariantType("")},
++            {"Resolved", DbusVariantType(true)},
++            {"ServiceProviderNotify", DbusVariantType("")},
++            {"Severity", DbusVariantType("")},
++            {"Timestamp",
++             DbusVariantType(static_cast<uint64_t>(1638312095123))},
++            {"UpdateTimestamp",
++             DbusVariantType(static_cast<uint64_t>(1638312099123))},
++        };
++
++        auto asyncResp = std::make_shared<bmcweb::AsyncResp>();
++        nlohmann::json objectToFillOut;
++
++        fillEventLogLogEntryFromPropertyMap(asyncResp, propMapStub,
++                                            objectToFillOut);
++
++        auto logEntryID = std::to_string(1838);
++        EXPECT_EQ(objectToFillOut["@odata.type"], "#LogEntry.v1_9_0.LogEntry");
++        EXPECT_EQ(
++            objectToFillOut["@odata.id"],
++            "/redfish/v1/Systems/system/LogServices/EventLog/Entries/1838");
++        EXPECT_EQ(objectToFillOut["Name"], "System Event Log Entry");
++        EXPECT_EQ(objectToFillOut["Id"], logEntryID.c_str());
++        EXPECT_EQ(objectToFillOut["EntryType"], "Event");
++        EXPECT_TRUE(objectToFillOut["Resolved"]);
++        EXPECT_EQ(objectToFillOut["Created"], "2021-11-30T22:41:35.123+00:00");
++        EXPECT_EQ(objectToFillOut["Modified"], "2021-11-30T22:41:39.123+00:00");
++        EXPECT_FALSE(objectToFillOut.contains("AdditionalDataURI"));
++
++        EXPECT_EQ(objectToFillOut["MessageId"],
++                  "SensorEvent.1.0.ReadingBelowLowerCriticalThreshold");
++        ASSERT_EQ(objectToFillOut["MessageArgs"].size(), 4);
++        // SENSOR_NAME
++        EXPECT_EQ(objectToFillOut["MessageArgs"][0],
++                  "BIC_JI_SENSOR_MB_RETIMER_TEMP_C");
++        // READING_VALUE
++        EXPECT_EQ(objectToFillOut["MessageArgs"][1], "10.2");
++        // UNITS
++        EXPECT_EQ(objectToFillOut["MessageArgs"][2],
++                  "xyz.openbmc_project.Sensor.Value.Unit.DegreesC");
++        // THRESHOLD_VALUE
++        EXPECT_EQ(objectToFillOut["MessageArgs"][3], "15.5");
++        EXPECT_EQ(objectToFillOut["Severity"], "Critical");
++        EXPECT_EQ(
++            objectToFillOut["Message"],
++            "Sensor 'BIC_JI_SENSOR_MB_RETIMER_TEMP_C' reading of 10.2 (xyz.openbmc_project.Sensor.Value.Unit.DegreesC) is below the 15.5 lower critical threshold.");
++        EXPECT_EQ(
++            objectToFillOut["Resolution"],
++            "Check the condition of the resources listed in RelatedItem.");
++    }
++}
++
++TEST(LogServices, fillEventLogLogEntryFromPropertyMapWOMappingSuccess)
++{
++    if constexpr (!BMCWEB_REDFISH_ALLOW_DBUS_MESSAGES_MAPPING)
++    {
++        const DBusPropertiesMap propMapStub = {
++            {"AdditionalData",
++             DbusVariantType(std::unordered_map<std::string, std::string>{})},
++            {"EventId", DbusVariantType("")},
++            {"Id", DbusVariantType(static_cast<uint32_t>(1838))},
++            {"Message",
++             DbusVariantType("xyz.openbmc_project.Something.Is.Wrong")},
++            {"Resolution", DbusVariantType("Resolution instructions")},
++            {"Resolved", DbusVariantType(false)},
++            {"ServiceProviderNotify", DbusVariantType("")},
++            {"Severity",
++             DbusVariantType(
++                 "xyz.openbmc_project.Logging.Entry.Level.Warning")},
++            {"Timestamp",
++             DbusVariantType(static_cast<uint64_t>(1638312095123))},
++            {"UpdateTimestamp",
++             DbusVariantType(static_cast<uint64_t>(1638312099123))},
++        };
++
++        auto asyncResp = std::make_shared<bmcweb::AsyncResp>();
++        nlohmann::json objectToFillOut;
++
++        fillEventLogLogEntryFromPropertyMap(asyncResp, propMapStub,
++                                            objectToFillOut);
++
++        auto logEntryID = std::to_string(1838);
++        EXPECT_EQ(objectToFillOut["@odata.type"], "#LogEntry.v1_9_0.LogEntry");
++        EXPECT_EQ(
++            objectToFillOut["@odata.id"],
++            "/redfish/v1/Systems/system/LogServices/EventLog/Entries/1838");
++        EXPECT_EQ(objectToFillOut["Name"], "System Event Log Entry");
++        EXPECT_EQ(objectToFillOut["Id"], logEntryID.c_str());
++        EXPECT_EQ(objectToFillOut["EntryType"], "Event");
++        EXPECT_FALSE(objectToFillOut["Resolved"]);
++        EXPECT_FALSE(objectToFillOut.contains("ServiceProviderNotified"));
++        EXPECT_EQ(objectToFillOut["Created"], "2021-11-30T22:41:35.123+00:00");
++        EXPECT_EQ(objectToFillOut["Modified"], "2021-11-30T22:41:39.123+00:00");
++        EXPECT_FALSE(objectToFillOut.contains("AdditionalDataURI"));
++
++        EXPECT_FALSE(objectToFillOut.contains("MessageId"));
++        EXPECT_FALSE(objectToFillOut.contains("MessageArgs"));
++        EXPECT_EQ(objectToFillOut["Severity"], "Warning");
++        EXPECT_EQ(objectToFillOut["Message"],
++                  "xyz.openbmc_project.Something.Is.Wrong");
++        EXPECT_EQ(objectToFillOut["Resolution"], "Resolution instructions");
++    }
++}
++} // namespace redfish
+-- 
+2.45.3
+
