@@ -1,5 +1,7 @@
 #pragma once
 
+#include <curl/curl.h>
+
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -40,6 +42,7 @@ class HttpClient
         int64_t id;
         std::string url;
         HttpResponse response;
+        CURLcode errorCode;
     };
 
     void eventLoop();

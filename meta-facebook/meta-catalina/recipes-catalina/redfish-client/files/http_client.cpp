@@ -1,7 +1,5 @@
 #include "http_client.hpp"
 
-#include <curl/curl.h>
-
 #include <vector>
 
 static void throwUnless(bool condition, const char* message)
@@ -66,6 +64,7 @@ HttpResponse HttpClient::get(const char* url)
                     completedRequests.end());
         });
         THROW_UNLESS(running);
+        THROW_UNLESS(CURLE_OK == wrappedRequest->errorCode);
         rv = std::move(wrappedRequest->response);
         completedRequests.erase(requestId);
     }
@@ -264,21 +263,20 @@ void HttpClient::eventLoop()
                 handleToWrappedRequestMap[doneHandle];
             handleToWrappedRequestMap.erase(doneHandle);
 
+            wrappedRequest->errorCode = msg->data.result;
             rc = curl_easy_getinfo(doneHandle, CURLINFO_RESPONSE_CODE,
                                    &wrappedRequest->response.responseCode);
-            THROW_UNLESS(CURLE_OK == rc);
-
-            struct curl_header* prev = nullptr;
-            struct curl_header* h = nullptr;
-            while (
-                (h = curl_easy_nextheader(doneHandle, CURLH_HEADER, 0, prev)))
+            if (CURLE_OK == rc)
             {
-                wrappedRequest->response.headers[h->name] = h->value;
-                prev = h;
+                struct curl_header* prev = nullptr;
+                struct curl_header* h = nullptr;
+                while ((h = curl_easy_nextheader(doneHandle, CURLH_HEADER, 0,
+                                                 prev)))
+                {
+                    wrappedRequest->response.headers[h->name] = h->value;
+                    prev = h;
+                }
             }
-
-            CURLcode result = msg->data.result;
-            THROW_UNLESS(CURLE_OK == result);
 
             aggregatedResponseReceivedIds.push_back(wrappedRequest->id);
 
