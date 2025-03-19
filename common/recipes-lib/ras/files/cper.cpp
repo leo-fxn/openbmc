@@ -386,6 +386,53 @@ static int nvidiaSectionHandler(const ordered_json& sectionDescriptor,
       != procSignatures.end())
   {
     errorMsg = formatProcessorSEL(0x00, signature, severity);
+
+    if (signature == "CCPLEXSCF")
+    {
+      std::string unit = "Unknown";
+      std::string ierr = "Unknown";
+      auto instanceBase = sectionData["instanceBase"].get<uint64_t>();;
+
+      struct RangeMapping
+      {
+          uint64_t start;
+          uint64_t end;
+          std::string unit;
+      };
+
+      static const std::vector<RangeMapping> instanceMappings = {
+        {0x18100000, 0x181a5fff, "CLUSTER"},
+        {0x18200000, 0x183a5fff, "SCC"},
+        {0x18400000, 0x184a4fff, "CSN"},
+        {0x19000000, 0x19000fff, "CMU_IOB"},
+        {0x19080000, 0x190f0fff, "MCF"},
+        {0x19010000, 0x19010fff, "ABU_UP"},
+        {0x19100000, 0x19130fff, "SOC"},
+        {0x19020000, 0x19020fff, "CMU_CLOCKS"},
+        {0x19030000, 0x19030fff, "CCPMU"},
+      };
+
+      auto it = std::find_if(instanceMappings.begin(), instanceMappings.end(),
+        [instanceBase](const RangeMapping& mapping)
+        {
+            return instanceBase >= mapping.start && instanceBase <= mapping.end;
+        });
+
+      if (it != instanceMappings.end())
+      {
+          unit = it->unit;
+      }
+
+      if (unit != "Unknown")
+      {
+        // The IERR value is the bit[15:8] of the first register value.
+        auto ierrValue = static_cast<uint8_t>(
+          (sectionData["registers"][0]["value"].get<uint64_t>() >> 8) & 0xff);
+        ierr = std::to_string(ierrValue);
+      }
+
+      errorMsg += ", Unit: " + unit + ", IERR: " + ierr;
+    }
   }
   else if (std::find(pcieSignatures.begin(), pcieSignatures.end(), signature)
           != pcieSignatures.end())
