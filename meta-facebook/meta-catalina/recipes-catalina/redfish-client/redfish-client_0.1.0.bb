@@ -13,6 +13,7 @@ DEPENDS = " \
 	phosphor-dbus-interfaces \
 	phosphor-logging \
 	sdbusplus \
+	gtest \
 "
 
 S = "${WORKDIR}/sources"

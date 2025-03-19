@@ -72,7 +72,7 @@ redfish_client_library = static_library(
     dependencies: base_deps,
 )
 
-executable(
+redfish_client = executable(
     'redfish-client',
     'daemon_main.cpp',
     dependencies: base_deps,
@@ -82,6 +82,35 @@ executable(
     install: true,
 )
 
-if get_option('tests').allowed()
-  subdir('test')
-endif
+cc = meson.get_compiler('cpp')
+
+test_deps = [
+    cc.find_library('gmock'),
+    cc.find_library('gtest'),
+    cc.find_library('gtest_main'),
+]
+
+test_srcs = [
+    'test/eventlog_parser_tests.cpp',
+    'test/daemon_tests.cpp',
+    'test/dbus_server_tests.cpp',
+    'test/http_client_tests.cpp',
+    'test/logentry_tests.cpp',
+    'test/redfishlib_tests.cpp',
+    'test/sensor_tests.cpp',
+    'test/source_tests.cpp',
+]
+
+redfish_client_test = executable(
+    'test-redfish-client',
+    test_srcs,
+    dependencies: [
+                test_deps,
+                base_deps,
+            ],
+    cpp_args: cpp_args,
+    link_args: link_args,
+    link_with: redfish_client_library,
+)
+
+test('redfish-client-tests', redfish_client_test)
