@@ -590,6 +590,7 @@ func tryPetWatchdog(wait bool) bool {
 //   - When /dev/watchdog it NOT busy and there are no concurrent instances of
 //     wdtcli, the watchdog timeout will be extended and the watchdog petted.
 var PetWatchdog = func() {
+	// S368275: Don't open /dev/watchdog on BMC Lite platforms
 	if IsBMCLite() {
 		log.Printf("Watchdog not petted; BMC Lite")
 		return
@@ -606,6 +607,12 @@ var PetWatchdog = func() {
 }
 
 var PetWatchdogLoop = func() {
+	// S368275: Don't open /dev/watchdog on BMC Lite platforms
+	if IsBMCLite() {
+		log.Printf("Not starting PetWatchdogLoop; BMC Lite")
+		return
+	}
+
 	log.Printf("PetWatchdogLoop started")
 	for {
 		if tryPetWatchdog(true) {
