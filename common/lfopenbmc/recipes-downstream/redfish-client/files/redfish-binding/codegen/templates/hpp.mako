@@ -59,6 +59,16 @@ class ${cpp_def.identifier.id} : public ResourceBaseWithError
       return ResourceBaseWithError::findProperty(name);
     }
 
+    void forEachProperty(
+        const std::function<void(const IProperty*)>& fn) const override
+    {
+      % for property in cpp_def.properties:
+      fn(&${property.name_as_member}_);
+      % endfor
+      ResourceBaseWithError::forEachProperty(fn);
+    }
+
+
   % if len(cpp_def.properties) > 0:
   private:
     % for property in cpp_def.properties:
