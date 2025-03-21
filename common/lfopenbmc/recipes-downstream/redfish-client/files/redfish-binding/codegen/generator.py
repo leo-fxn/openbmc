@@ -90,7 +90,6 @@ def generate_cpp_files(
     cpp_include_dir: str,
 ) -> None:
     hpp_template = template_lookup.get_template("hpp.mako")
-    shutil.copytree(cpp_include_dir, output_dir, dirs_exist_ok=True)
     cpp_object_identifiers = {
         cpp_def.identifier for cpp_def in cpp_defs if isinstance(cpp_def, CppObjectDef)
     }

@@ -8,7 +8,7 @@
 % endif
 % if isinstance(cpp_def, cpp.CppObjectDef) or isinstance(cpp_def, cpp.CppEnumDef):
 
-#include "common.hpp"
+#include "redfish-binding/common.hpp"
 % endif
 % if len(cpp_def.include_headers) > 0:
 

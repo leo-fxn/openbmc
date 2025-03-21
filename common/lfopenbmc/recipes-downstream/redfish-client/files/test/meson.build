@@ -21,11 +21,12 @@ endif
 
 
 daemon_test_files = [
-    'eventlog_parser_tests.cpp',
     'daemon_tests.cpp',
     #'dbus_server_tests.cpp', (patrickw3): Testcase fails with timing issue.
+    'eventlog_parser_tests.cpp',
     'http_client_tests.cpp',
     'logentry_tests.cpp',
+    'redfish_binding_common_tests.cpp',
     'redfishlib_tests.cpp',
     'sensor_tests.cpp',
     'source_tests.cpp',

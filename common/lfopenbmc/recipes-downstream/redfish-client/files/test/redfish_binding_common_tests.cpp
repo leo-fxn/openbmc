@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "redfish-binding/common.hpp"
 
 #include <gtest/gtest.h>
 
