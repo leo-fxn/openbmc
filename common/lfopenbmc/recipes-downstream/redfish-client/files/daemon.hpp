@@ -103,9 +103,6 @@ class ISensorDbusObject
 std::shared_ptr<ISensorDbusObject> createSensorDbusObjectForTest(
     sdbusplus::async::context& ctx, const char* metricPath);
 
-std::unique_ptr<sdbusplus::exception::generated_event_base> makeRedfishEvent(
-    int severity, const std::map<std::string, std::string>& additionalData);
-
 // EventsDbusObject interface
 class IEventsDbusObject
 {

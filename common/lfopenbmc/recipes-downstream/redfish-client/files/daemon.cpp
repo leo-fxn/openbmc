@@ -5,6 +5,7 @@
 #include <phosphor-logging/commit.hpp>
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/Logging/Create/client.hpp>
+#include <xyz/openbmc_project/State/CPER/event.hpp>
 
 #include <csignal>
 
@@ -193,21 +194,13 @@ const char* getSensorRootPath()
     return PathIntf::value;
 }
 
-class ManualException : public sdbusplus::exception::generated_event_base
+class UnhandledException : public sdbusplus::exception::generated_event_base
 {
   public:
-    nlohmann::json parsed;
-
-    explicit ManualException(
-        int eventSeverity,
-        const std::map<std::string, std::string>& additionalData) :
-        eventSeverity(eventSeverity)
-    {
-        for (const auto& [k, v] : additionalData)
-        {
-            parsed[kExceptionName][k] = v;
-        }
-    }
+    explicit UnhandledException(int eventSeverity,
+                                const nlohmann::json& eventData) :
+        eventSeverity(eventSeverity), eventData(eventData)
+    {}
 
     const char* name() const noexcept override
     {
@@ -216,17 +209,20 @@ class ManualException : public sdbusplus::exception::generated_event_base
 
     const char* description() const noexcept override
     {
-        return "Description for ManualException";
+        return "Unhandled Exception from Satellite MC";
     }
 
     int get_errno() const noexcept override
     {
-        return -1;
+        return EIO;
     }
 
     nlohmann::json to_json() const override
     {
-        return parsed;
+        nlohmann::json j = {};
+        j["REDFISH_EVENT"] = eventData.dump();
+
+        return nlohmann::json{{kExceptionName, std::move(j)}};
     }
 
     int severity() const noexcept override
@@ -236,15 +232,10 @@ class ManualException : public sdbusplus::exception::generated_event_base
 
   private:
     int eventSeverity;
+    nlohmann::json eventData;
     static constexpr const char* kExceptionName =
-        "xyz.openbmc_project.Logging.ManualException";
+        "com.meta.RedfishClient.UnexpectedException";
 };
-
-std::unique_ptr<sdbusplus::exception::generated_event_base> makeRedfishEvent(
-    int severity, const std::map<std::string, std::string>& additionalData)
-{
-    return std::make_unique<ManualException>(severity, additionalData);
-}
 
 struct EventsDbusObject : IEventsDbusObject
 {
@@ -298,29 +289,34 @@ struct EventsDbusObject : IEventsDbusObject
     }
 
   private:
-    using LoggingLevel =
-        sdbusplus::common::xyz::openbmc_project::logging::Entry::Level;
-
     static int getLogEntrySeverity(redfishlib::LogEntry::EventSeverity severity)
     {
         switch (severity)
         {
             case redfishlib::LogEntry::EventSeverity::OK:
-                return (int)LoggingLevel::Informational;
+                return LOG_INFO;
 
             case redfishlib::LogEntry::EventSeverity::Warning:
-                return (int)LoggingLevel::Warning;
+                return LOG_WARNING;
 
             case redfishlib::LogEntry::EventSeverity::Critical:
-                return (int)LoggingLevel::Critical;
+                return LOG_CRIT;
 
             default:
-                return (int)LoggingLevel::Error;
+                return LOG_ERR;
         }
+    }
+    template <typename T>
+    static T makeCPER(const auto& source, const auto& cper)
+    {
+        return T("SOURCE", sdbusplus::message::object_path(source), "CPER",
+                 cper.toJson().dump());
     }
 
     void applyLogEntry(redfishlib::LogEntry::LogEntry& entry)
     {
+        namespace CPER = sdbusplus::error::xyz::openbmc_project::state::CPER;
+
         if (!entry.getId().hasValue())
         {
             return;
@@ -334,47 +330,58 @@ struct EventsDbusObject : IEventsDbusObject
         try
         {
             auto& maybeRedfishSeverity = entry.getSeverity();
-            auto& maybeMessage = entry.getMessage();
-            auto& maybeMessageId = entry.getMessageId();
-            auto& maybeMessageArgs = entry.getMessageArgs();
+            auto& maybeCPER = entry.getCPER();
+            auto& maybeLinks = entry.getLinks();
 
-            std::map<std::string, std::string> additionalData;
-            if (maybeMessage.hasValue())
-            {
-                additionalData["Message"] = maybeMessage.value();
-            }
-            if (maybeMessageId.hasValue())
-            {
-                additionalData["MessageID"] = maybeMessageId.value();
-            }
-            if (maybeMessageArgs.hasValue())
-            {
-                size_t index = 0;
-                for (auto& argValue : maybeMessageArgs.value())
-                {
-                    std::string argKey = std::format("MessageArgs_{}", index++);
-                    additionalData[argKey] = argValue;
-                }
-            }
-
-            int severity =
+            auto severity =
                 maybeRedfishSeverity.hasValue()
                     ? getLogEntrySeverity(maybeRedfishSeverity.value())
-                    : (int)LoggingLevel::Critical;
-            auto event = makeRedfishEvent(severity, additionalData);
+                    : LOG_CRIT;
 
-            if (LG2_COMMIT_ALLOWED)
+            // If the event has a CPER section, it must be a CPER.  Translate
+            // it into the GenericCPER* exceptions.
+            if (maybeCPER.hasValue())
             {
-                auto path = lg2::commit(std::move(*event));
-                debug("Committed new event log entry at path: {PATH}", "PATH",
-                      path.str.c_str());
+                auto source = [&]() -> std::string {
+                    auto unknownSource = "Unknown Source";
+
+                    if (!maybeLinks.hasValue())
+                    {
+                        return unknownSource;
+                    }
+                    auto& origin = maybeLinks.value().getOriginOfCondition();
+                    if (!origin.hasValue())
+                    {
+                        return unknownSource;
+                    }
+                    auto& id = origin.value().get_odata_id();
+                    if (!id.hasValue())
+                    {
+                        return unknownSource;
+                    }
+                    return id.value();
+                }();
+
+                if (severity == LOG_CRIT)
+                {
+                    lg2::commit(makeCPER<CPER::GenericCPERFault>(
+                        source, maybeCPER.value()));
+                }
+                else
+                {
+                    lg2::commit(makeCPER<CPER::GenericCPERWarning>(
+                        source, maybeCPER.value()));
+                }
+                return;
             }
+
+            lg2::commit(UnhandledException(severity, entry.toJson()));
         }
-        catch (const std::exception& exn)
+        catch (const std::exception& e)
         {
             error(
-                "Could not commit event log entry for entry id {ENTRY_ID}: {EXCEPTION_WHAT}",
-                "ENTRY_ID", entryId.c_str(), "EXCEPTION_WHAT", exn.what());
+                "Could not commit event log entry for entry id {ENTRY_ID}: {ERROR}",
+                "ENTRY_ID", entryId.c_str(), "ERROR", e);
             return;
         }
     }

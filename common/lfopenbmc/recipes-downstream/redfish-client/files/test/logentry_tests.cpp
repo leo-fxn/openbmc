@@ -190,157 +190,64 @@ class LogEntryTests : public ::testing::Test
         logManager.stop();
     }
 
-    std::unique_ptr<sdbusplus::exception::generated_event_base>
-        makeTestRedfishEvent()
-    {
-        using LoggingLevel =
-            sdbusplus::common::xyz::openbmc_project::logging::Entry::Level;
-        int severity = (int)LoggingLevel::Informational;
-        std::map<std::string, std::string> additionalData;
-        additionalData["SomeKey"] =
-            std::string("Test exception value for SomeKey.");
-        return makeRedfishEvent(severity, additionalData);
-    }
-
     bool testBodyExecuted = false;
     FakeLogManager logManager;
     sdbusplus::async::context ctx;
 };
 
-TEST_F(LogEntryTests, BasicCommit)
-{
-    using LoggingCleared =
-        sdbusplus::event::xyz::openbmc_project::Logging::Cleared;
-
-    logManager.performDebugDump = true;
-    ctx.spawn([this]() -> sdbusplus::async::task<> {
-        auto testEvent1 = LoggingCleared("NUMBER_OF_LOGS", 3);
-        auto path = lg2::commit(std::move(testEvent1));
-        EXPECT_EQ(path.str,
-                  std::string("/xyz/openbmc_project/logging/entry/1"));
-        {
-            EXPECT_EQ(1, logManager.callLogs->size());
-            auto& lastCallLog = logManager.callLogs->back();
-
-            EXPECT_EQ(LoggingLevel::Informational, lastCallLog.severity);
-            EXPECT_EQ(std::string("xyz.openbmc_project.Logging.Cleared"),
-                      lastCallLog.message);
-            EXPECT_EQ(std::string("3"),
-                      lastCallLog.additionalData["NUMBER_OF_LOGS"]);
-        }
-
-        path = lg2::commit(LoggingCleared("NUMBER_OF_LOGS", 3));
-        EXPECT_EQ(path.str,
-                  std::string("/xyz/openbmc_project/logging/entry/2"));
-        {
-            EXPECT_EQ(2, logManager.callLogs->size());
-            auto& lastCallLog = logManager.callLogs->back();
-
-            EXPECT_EQ(LoggingLevel::Informational, lastCallLog.severity);
-            EXPECT_EQ(std::string("xyz.openbmc_project.Logging.Cleared"),
-                      lastCallLog.message);
-            EXPECT_EQ(std::string("3"),
-                      lastCallLog.additionalData["NUMBER_OF_LOGS"]);
-        }
-        testBodyExecuted = true;
-        co_return;
-    }());
-}
-
-TEST_F(LogEntryTests, CommitRedfishEvent)
-{
-    logManager.performDebugDump = true;
-    ctx.spawn([this]() -> sdbusplus::async::task<> {
-        auto testEvent = makeTestRedfishEvent();
-        EXPECT_STREQ("xyz.openbmc_project.Logging.ManualException",
-                     testEvent->name());
-        auto path = lg2::commit(std::move(*testEvent));
-        EXPECT_EQ(path.str,
-                  std::string("/xyz/openbmc_project/logging/entry/1"));
-        {
-            EXPECT_EQ(1, logManager.callLogs->size());
-            auto& lastCallLog = logManager.callLogs->back();
-
-            EXPECT_EQ(LoggingLevel::Informational, lastCallLog.severity);
-            EXPECT_EQ(
-                std::string("xyz.openbmc_project.Logging.ManualException"),
-                lastCallLog.message);
-            EXPECT_EQ(std::string("Test exception value for SomeKey."),
-                      lastCallLog.additionalData["SomeKey"]);
-        }
-
-        testBodyExecuted = true;
-        co_return;
-    }());
-}
-
-TEST_F(LogEntryTests, CommitLoop)
-{
-    // No need for verbose debug output in "loop" test.
-    logManager.performDebugDump = false;
-    for (int i = 0; i < 100; i++)
-    {
-        ctx.spawn([this](int index) -> sdbusplus::async::task<> {
-            auto testEvent = makeTestRedfishEvent();
-            (void)lg2::commit(std::move(*testEvent));
-            EXPECT_EQ(index + 1, logManager.callLogs->size());
-            co_return;
-        }(i));
-    }
-    ctx.spawn([this]() -> sdbusplus::async::task<> {
-        testBodyExecuted = true;
-        co_return;
-    }());
-}
-
 static constexpr const char* kEventlogEntryCollectionJson = R"(
-    {
-        "@odata.id": "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries",
-        "@odata.type": "#LogEntryCollection.LogEntryCollection",
-        "Members@odata.count": 2,
-        "Members": [
-            {
-                "@odata.id": "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries/102",
-                "@odata.type": "#LogEntry.v1_15_0.LogEntry",
-                "Created": "2025-01-09T06:32:02+00:00",
-                "Modified": "2025-01-14T20:55:46+00:00",
-                "EntryType": "Event",
-                "Id": "102",
-                "MessageId": "Some message id 1.",
-                "Message": "Some message 1.",
-                "MessageArgs": [
-                    "message args 0",
-                    "message args 1"
-                ],
-                "Name": "System Event Log Entry",
-                "Resolution": "Some resolution.",
-                "Resolved": false,
-                "Severity": "Warning"
+{
+    "@odata.id": "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries",
+    "@odata.type": "#LogEntryCollection.LogEntryCollection",
+    "Members@odata.count": 2,
+    "Members": [
+        {
+            "@odata.id": "/redfish/v1/Managers/System0/LogServices/EventLog/Entries/101",
+            "@odata.type": "#LogEntry.v1_15_0.LogEntry",
+            "Created": "2025-01-01T12:00:00+00:00",
+            "EntryType": "Event",
+            "Id": "101",
+            "Message": "CPU sensor crossed a warning high threshold going high. Reading=100.123456 Threshold=80.000000.",
+            "MessageArgs": [
+                "CPU",
+                "100.123456",
+                "80.000000"
+            ],
+            "MessageId": "OpenBMC.0.4.SensorThresholdWarningHighGoingHigh",
+            "Name": "Manager Event Log Entry",
+            "Resolution": "None",
+            "Resolved": false,
+            "Severity": "Warning"
+        },
+        {
+            "@odata.id": "/redfish/v1/Systems/System0/LogServices/EventLog/Entries/102",
+            "@odata.type": "#LogEntry.v1_15_0.LogEntry",
+            "CPER": {
+                "NotificationType": "3d61a466-ab40-409a-a698-f362d464b38f",
+                "SectionType": "6d5244f2-2712-11ec-bea7-cb3fdb95c786"
             },
-            {
-                "@odata.id": "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries/103",
-                "@odata.type": "#LogEntry.v1_15_0.LogEntry",
-                "Created": "2025-01-14T21:12:42+00:00",
-                "EntryType": "Event",
-                "Id": "103",
-                "MessageId": "Some message id 2.",
-                "Message": "Some message 2.",
-                "Resolved": true,
-                "Resolution": "Some resolution 2.",
-                "Severity": "Critical",
-                "CPER": {
-                    "NotificationType": "some notification type",
-                    "SectionType": "some section type",
-                    "Oem": {
-                    "some_key": "some_value"
-                    }
+            "Created": "2025-01-01T12:00:00+00:00",
+            "DiagnosticDataType": "CPERSection",
+            "EntryType": "Event",
+            "Id": "102",
+            "Links": {
+                "OriginOfCondition": {
+                    "@odata.id": "/redfish/v1/Systems/System0/Processors/CPU_1"
                 }
-            }
-        ]
-    }
+            },
+            "Message": "A platform error occurred.",
+            "MessageArgs": [],
+            "MessageId": "Platform.1.0.PlatformError",
+            "Name": "System Event Log Entry",
+            "Resolution": "Check additional diagnostic data if available.",
+            "Resolved": false,
+            "Severity": "Critical"
+        }
+    ]
+}
 )";
 
-TEST_F(LogEntryTests, EventsDbusObject)
+TEST_F(LogEntryTests, ParseEventsCorrectly)
 {
     logManager.performDebugDump = true;
     ctx.spawn([this]() -> sdbusplus::async::task<> {
@@ -349,40 +256,41 @@ TEST_F(LogEntryTests, EventsDbusObject)
         auto coll = redfishlib::LogEntryCollection::parseLogEntryCollection(
             kEventlogEntryCollectionJson);
 
+        using namespace std::string_literals;
+
         // Apply collection once.
         eventsDbusObject->applyLogEntryCollection(coll);
         EXPECT_EQ(2, logManager.callLogs->size());
 
-        // Validate record at index 0.
+        // Validate record at index 0 (Unexpected Exception).
         {
             auto& currentCallLog = (*logManager.callLogs)[0];
             EXPECT_EQ(LoggingLevel::Warning, currentCallLog.severity);
-            EXPECT_EQ(
-                std::string("xyz.openbmc_project.Logging.ManualException"),
-                currentCallLog.message);
-            EXPECT_EQ(std::string("Some message id 1."),
-                      currentCallLog.additionalData["MessageID"]);
-            EXPECT_EQ(std::string("Some message 1."),
-                      currentCallLog.additionalData["Message"]);
-            EXPECT_EQ(std::string("message args 0"),
-                      currentCallLog.additionalData["MessageArgs_0"]);
-            EXPECT_EQ(std::string("message args 1"),
-                      currentCallLog.additionalData["MessageArgs_1"]);
+            EXPECT_EQ("com.meta.RedfishClient.UnexpectedException"s,
+                      currentCallLog.message);
+
+            auto js = nlohmann::json::parse(
+                currentCallLog.additionalData["REDFISH_EVENT"]);
+
+            EXPECT_EQ("OpenBMC.0.4.SensorThresholdWarningHighGoingHigh"s,
+                      js.at("MessageId").get<std::string>());
         }
 
-        // Validate record at index 1.
+        // Validate record at index 1 (CPER event).
         {
             auto& currentCallLog = (*logManager.callLogs)[1];
             EXPECT_EQ(LoggingLevel::Critical, currentCallLog.severity);
-            EXPECT_EQ(
-                std::string("xyz.openbmc_project.Logging.ManualException"),
-                currentCallLog.message);
-            EXPECT_EQ(std::string("Some message 2."),
-                      currentCallLog.additionalData["Message"]);
-            EXPECT_EQ(std::string("Some message id 2."),
-                      currentCallLog.additionalData["MessageID"]);
-            EXPECT_EQ(currentCallLog.additionalData.find("MessageArgs_0"),
-                      currentCallLog.additionalData.end());
+            EXPECT_EQ("xyz.openbmc_project.State.CPER.GenericCPERFault"s,
+                      currentCallLog.message);
+
+            EXPECT_EQ("/redfish/v1/Systems/System0/Processors/CPU_1"s,
+                      currentCallLog.additionalData["SOURCE"]);
+
+            auto js =
+                nlohmann::json::parse(currentCallLog.additionalData["CPER"]);
+
+            EXPECT_EQ("3d61a466-ab40-409a-a698-f362d464b38f"s,
+                      js.at("NotificationType").get<std::string>());
         }
 
         // Apply again, there should be no changes (object is idempotent).
