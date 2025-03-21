@@ -1,3 +1,1 @@
-configurations = [
-    'catalina.json'
-]
+configurations = ['catalina.json']

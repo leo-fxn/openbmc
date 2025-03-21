@@ -8,13 +8,13 @@ if not gtest_dep.found() or not gmock_dep.found()
                 dependency('threads'),
                 gtest_proj.dependency('gtest'),
                 gtest_proj.dependency('gtest_main'),
-            ]
+            ],
         )
         gmock_dep = gtest_proj.dependency('gmock')
     else
         assert(
             not get_option('tests').enabled(),
-            'Googletest is required if tests are enabled'
+            'Googletest is required if tests are enabled',
         )
     endif
 endif
@@ -37,16 +37,11 @@ foreach t : daemon_test_files
         executable(
             'test-' + t.underscorify(),
             t,
-            dependencies: [
-                gtest_dep,
-                gmock_dep,
-                base_deps,
-            ],
+            dependencies: [gtest_dep, gmock_dep, base_deps],
             cpp_args: cpp_args,
             link_args: link_args,
             link_with: redfish_client_library,
             include_directories: '../',
-
-        )
+        ),
     )
 endforeach

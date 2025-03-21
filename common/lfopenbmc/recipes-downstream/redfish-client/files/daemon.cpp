@@ -301,8 +301,7 @@ struct EventsDbusObject : IEventsDbusObject
     using LoggingLevel =
         sdbusplus::common::xyz::openbmc_project::logging::Entry::Level;
 
-    static int
-        getLogEntrySeverity(redfishlib::LogEntry::EventSeverity severity)
+    static int getLogEntrySeverity(redfishlib::LogEntry::EventSeverity severity)
     {
         switch (severity)
         {
@@ -567,13 +566,15 @@ class DbusServer
     ~DbusServer()
     {
         ctx.request_stop();
-        if (sensorThread.joinable()) {
+        if (sensorThread.joinable())
+        {
             sensorThread.join();
         }
     }
 
   private:
-    std::optional<Sensor> readWithRetries(const SensorConfigValue& sensorConfigValue)
+    std::optional<Sensor> readWithRetries(
+        const SensorConfigValue& sensorConfigValue)
     {
         for (int i = 0; i < daemonConfig.retries; ++i)
         {
@@ -649,8 +650,8 @@ class DbusServer
             {
                 for (const auto& [metricKey, metric] : metrics)
                 {
-                    auto maybeSensor = readWithRetries(
-                        metric->sensorConfigValue);
+                    auto maybeSensor =
+                        readWithRetries(metric->sensorConfigValue);
                     if (!maybeSensor.has_value())
                     {
                         continue;

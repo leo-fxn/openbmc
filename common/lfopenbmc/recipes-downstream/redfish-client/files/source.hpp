@@ -22,7 +22,7 @@ class IRedfishSource
     virtual std::string getBody(const std::string& url) = 0;
 };
 
-std::shared_ptr<IRedfishSource>
-    createHttpClientRedfishSource(std::unique_ptr<HttpClient> httpClient);
+std::shared_ptr<IRedfishSource> createHttpClientRedfishSource(
+    std::unique_ptr<HttpClient> httpClient);
 
 } // namespace redfish_client_daemon

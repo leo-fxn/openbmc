@@ -31,8 +31,8 @@ class HttpClientRedfishSource : public IRedfishSource
 
 } // namespace
 
-std::shared_ptr<IRedfishSource>
-    createHttpClientRedfishSource(std::unique_ptr<HttpClient> httpClient)
+std::shared_ptr<IRedfishSource> createHttpClientRedfishSource(
+    std::unique_ptr<HttpClient> httpClient)
 {
     return std::make_shared<HttpClientRedfishSource>(std::move(httpClient));
 }

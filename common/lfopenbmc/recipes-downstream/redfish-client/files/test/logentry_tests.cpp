@@ -136,9 +136,9 @@ class FakeLogManager
 
         virtual ~Create() {}
 
-        sdbusplus::message::object_path
-            create(std::string message, LoggingLevel severity,
-                   std::map<std::string, std::string> additionalData) override
+        sdbusplus::message::object_path create(
+            std::string message, LoggingLevel severity,
+            std::map<std::string, std::string> additionalData) override
         {
             callLogs->emplace_back(performDebugDump, message, severity,
                                    additionalData);

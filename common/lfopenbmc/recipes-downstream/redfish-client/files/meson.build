@@ -2,9 +2,7 @@ project(
     'redfish-client',
     'cpp',
     version: '1.0',
-    default_options: [
-        'cpp_std=c++23',
-    ],
+    default_options: ['cpp_std=c++23'],
     meson_version: '>=1.1.1',
 )
 
@@ -31,10 +29,7 @@ packagedir = join_paths(
 foreach conf : configurations
     install_data(
         join_paths('configurations', conf),
-        install_dir: join_paths(
-            packagedir,
-            'configurations',
-        )
+        install_dir: join_paths(packagedir, 'configurations'),
     )
 endforeach
 
@@ -46,23 +41,14 @@ base_deps = [
     phosphor_logging_dep,
     phosphor_dbus_interfaces_dep,
     redfish_binding_dep,
-    sdbusplus_dep
+    sdbusplus_dep,
 ]
 
-cpp_args = [
-  '-DBOOST_STACKTRACE_USE_ADDR2LINE',
-  '-ggdb',
-  '-fPIC',
-]
+cpp_args = ['-DBOOST_STACKTRACE_USE_ADDR2LINE', '-ggdb', '-fPIC']
 
 link_args = ['-rdynamic']
 
-srcs = [
-    'daemon.cpp',
-    'http_client.cpp',
-    'sensor.cpp',
-    'source.cpp',
-]
+srcs = ['daemon.cpp', 'http_client.cpp', 'sensor.cpp', 'source.cpp']
 
 redfish_client_library = static_library(
     'redfish-client-lib',
@@ -83,5 +69,5 @@ executable(
 )
 
 if get_option('tests').allowed()
-  subdir('test')
+    subdir('test')
 endif

@@ -156,8 +156,8 @@ class ResourceBase
         return nullptr;
     }
 
-    virtual void
-        forEachProperty(const std::function<void(const IProperty*)>&) const
+    virtual void forEachProperty(
+        const std::function<void(const IProperty*)>&) const
     {}
 
   private:
