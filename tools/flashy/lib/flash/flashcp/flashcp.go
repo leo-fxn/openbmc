@@ -177,13 +177,11 @@ var runFlashProcess = func(
 		return err
 	}
 
-	utils.PetWatchdog()
 	err = eraseFlashDevice(deviceFile, m, imFile, roOffset)
 	if err != nil {
 		return err
 	}
 
-	utils.PetWatchdog()
 	err = flashImage(deviceFile, m, imFile, roOffset)
 	if err != nil {
 		return err
@@ -196,7 +194,6 @@ var runFlashProcess = func(
 			deviceFilePath, err)
 	}
 
-	utils.PetWatchdog()
 	err = verifyFlash(deviceFilePath, m, imFile, roOffset)
 	if err != nil {
 		return err

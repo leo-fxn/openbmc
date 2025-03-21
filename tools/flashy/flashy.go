@@ -25,11 +25,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/facebook/openbmc/tools/flashy/install"
 	"github.com/facebook/openbmc/tools/flashy/lib/fileutils"
 	"github.com/facebook/openbmc/tools/flashy/lib/logger"
 	"github.com/facebook/openbmc/tools/flashy/lib/step"
+	"github.com/facebook/openbmc/tools/flashy/lib/utils"
 	"github.com/facebook/openbmc/tools/flashy/lib/validate/image"
 )
 
@@ -74,9 +76,18 @@ func main() {
 
 	binName := fileutils.SanitizeBinaryName(os.Args[0])
 
+	// Keep petting the watchdog on the background
+	go utils.PetWatchdogLoop()
+
+	// S493813: Set oom_score_adj and avoid OOMs mid-flash
+	err := fileutils.WriteFileWithTimeout("/proc/self/oom_score_adj", []byte("-500"), 0644, 5*time.Second)
+	if err != nil {
+		log.Fatalf("Failed to set /proc/self/oom_score_adj: %v", err)
+	}
+
 	// check if it's a utilities function
 	if _, exists := step.UtilitiesMap[binName]; exists {
-		err := step.UtilitiesMap[binName](os.Args)
+		err = step.UtilitiesMap[binName](os.Args)
 		if err != nil {
 			log.Fatalf("%v failed: %v", binName, err)
 		}
@@ -136,9 +147,9 @@ WARRANTIES OFF`)
 	}
 
 	log.Printf("Starting: %v", binName)
-	err := step.StepMap[binName](stepParams)
-	if err != nil {
-		step.HandleStepError(err)
+	stepErr := step.StepMap[binName](stepParams)
+	if stepErr != nil {
+		step.HandleStepError(stepErr)
 	}
 	log.Printf("Finished: %v", binName)
 }

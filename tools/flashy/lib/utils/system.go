@@ -539,16 +539,30 @@ var IsDataPartitionMounted = func() (bool, error) {
 	return len(regExMap) != 0, nil
 }
 
-func tryPetWatchdog() bool {
+func tryPetWatchdog(wait bool) bool {
 	var WDIOC_KEEPALIVE = ioctl.IOR('W', 5, 4)
 	var WDIOC_SETTIMEOUT = ioctl.IOWR('W', 6, 4)
 
-	f, err := os.OpenFile("/dev/watchdog", os.O_RDWR, 0)
-	if err != nil {
+	var f *os.File
+	var err error
+
+	// Try opening watchdog file
+	for {
+		f, err = os.OpenFile("/dev/watchdog", os.O_RDWR, 0)
+		if err == nil {
+			defer f.Close()
+			break
+		}
+
+		// if wait = true, keep waiting until /dev/watchdog is available
+		if wait {
+			time.Sleep(300 * time.Millisecond)
+			continue
+		}
+
 		log.Printf("Not petting watchdog: unable to open /dev/watchdog: %v", err)
 		return false
 	}
-	defer f.Close()
 
 	// Extend the timeout.  The kernel may adjust the timeout downward
 	// if a hardware watchdog is in use.  In any case, don't arrange to
@@ -582,13 +596,23 @@ var PetWatchdog = func() {
 	}
 
 	for i := 0; i < 10; i++ {
-		if tryPetWatchdog() {
+		if tryPetWatchdog(false) {
 			log.Printf("Watchdog petted")
 			return
 		}
 		time.Sleep(1 * time.Second)
 	}
 	log.Printf("Watchdog not petted; yielded CPU instead")
+}
+
+var PetWatchdogLoop = func() {
+	log.Printf("PetWatchdogLoop started")
+	for {
+		if tryPetWatchdog(true) {
+			log.Printf("Watchdog petted")
+		}
+		time.Sleep(5 * time.Second)
+	}
 }
 
 var GetMachine = func() (string, error) {
