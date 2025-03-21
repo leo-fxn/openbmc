@@ -97,7 +97,7 @@ class ISensorDbusObject
     ISensorDbusObject& operator=(const ISensorDbusObject&) = delete;
     ISensorDbusObject& operator=(ISensorDbusObject&&) = delete;
 
-    virtual sdbusplus::async::task<> update(const Sensor& sensor) = 0;
+    virtual sdbusplus::async::task<> update(Sensor sensor) = 0;
 };
 
 std::shared_ptr<ISensorDbusObject> createSensorDbusObjectForTest(

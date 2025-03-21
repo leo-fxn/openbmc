@@ -22,7 +22,7 @@ endif
 
 daemon_test_files = [
     'daemon_tests.cpp',
-    #'dbus_server_tests.cpp', (patrickw3): Testcase fails with timing issue.
+    'dbus_server_tests.cpp',
     'eventlog_parser_tests.cpp',
     'http_client_tests.cpp',
     'logentry_tests.cpp',

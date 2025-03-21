@@ -407,7 +407,7 @@ struct SensorDbusObject
         ctx(ctx), metricPath(metricPath), sensorConfigValue(sensorConfigValue)
     {}
 
-    auto update(Sensor&& sensor) -> sdbusplus::async::task<>
+    auto update(Sensor sensor) -> sdbusplus::async::task<>
     {
         // Uncomment this to debug. If we leave this uncommented in the code
         // then phosphor logging always prints these in TTY mode and that makes
@@ -466,6 +466,7 @@ struct SensorDbusObject
         }
 
         double current = sensor.getReading();
+
         const bool emitSignal = !shouldSkipSignal(current);
         if (emitSignal)
         {
@@ -663,11 +664,7 @@ class DbusServer
                     {
                         continue;
                     }
-                    // Sensor object is only a few bytes. Lets explicitly copy
-                    // the values to a movable object so that ownership &
-                    // destruction happen once the task is processed.
-                    Sensor sensor = maybeSensor.value();
-                    ctx.spawn(metric->update(std::move(sensor)));
+                    ctx.spawn(metric->update(maybeSensor.value()));
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(
                     daemonConfig.intervalMilliseconds));
@@ -731,11 +728,9 @@ struct SensorDbusObjectForTest : public ISensorDbusObject
                       ctx, metricPath, sensorConfigValue))
     {}
 
-    sdbusplus::async::task<> update(const Sensor& sensor) override
+    sdbusplus::async::task<> update(Sensor sensor) override
     {
-        Sensor sensorCopy = sensor;
-        co_await innerObject->update(std::move(sensorCopy));
-        co_return;
+        return innerObject->update(sensor);
     }
 
     sdbusplus::async::context& ctx;
