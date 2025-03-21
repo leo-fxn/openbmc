@@ -1,0 +1,107 @@
+From 354052c00fe548dcc7cc7444854e9b4a63b29275 Mon Sep 17 00:00:00 2001
+From: Chin-Ting Kuo <chin-ting_kuo@aspeedtech.com>
+Date: Fri, 21 Mar 2025 18:38:11 +0800
+Subject: [PATCH 1/1] mtd: spi: Add support for W25Q01JVSFIN
+
+For write status register, there exists a limitation
+when W25Q01JVSFIN is used. The status programming time
+of the die 1 will be longer than die 0 which will lead
+to abnormnal behavior of die 1. Thus, 50h command should
+be used before 01h command instead of 06h.
+
+Signed-off-by: Chin-Ting Kuo <chin-ting_kuo@aspeedtech.com>
+Change-Id: I74a073e73bcf6110cd742403cf13dec5f2e36d61
+---
+ drivers/mtd/spi/spi-nor-core.c | 20 +++++++++++++++++++-
+ include/linux/mtd/spi-nor.h    |  2 ++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mtd/spi/spi-nor-core.c b/drivers/mtd/spi/spi-nor-core.c
+index 2ccf37d9c8..32206d4c33 100644
+--- a/drivers/mtd/spi/spi-nor-core.c
++++ b/drivers/mtd/spi/spi-nor-core.c
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <common.h>
++#include <linux/delay.h>
+ #include <linux/err.h>
+ #include <linux/errno.h>
+ #include <linux/log2.h>
+@@ -297,7 +298,7 @@ static int write_winbond_sr2(struct spi_nor *nor, u8 val)
+  */
+ static int write_enable(struct spi_nor *nor)
+ {
+-	return nor->write_reg(nor, SPINOR_OP_WREN, NULL, 0);
++	return nor->write_reg(nor, nor->wren_opcode, NULL, 0);
+ }
+ 
+ /*
+@@ -2781,6 +2782,17 @@ static int spi_nor_init(struct spi_nor *nor)
+ 	return 0;
+ }
+ 
++void spi_nor_pre_fixups(struct spi_nor *nor, const struct flash_info *info)
++{
++	if (JEDEC_MFR(info) == SNOR_MFR_WINBOND) {
++		if ((info->id[1] == 0x40 && info->id[2] == 0x21) ||
++		    (info->id[1] == 0x70 && info->id[2] == 0x21) ||
++		    (info->id[1] == 0x70 && info->id[2] == 0x22) ||
++		    (info->id[1] == 0x80 && info->id[2] == 0x22))
++			nor->wren_opcode = SPINOR_OP_VSR_WREN;
++	}
++}
++
+ int spi_nor_scan(struct spi_nor *nor)
+ {
+ 	struct spi_nor_flash_parameter params;
+@@ -2804,6 +2816,7 @@ int spi_nor_scan(struct spi_nor *nor)
+ 	nor->write_reg = spi_nor_write_reg;
+ 	nor->flash_lock_by_host_ctrl = spi_nor_wlock_by_host_ctrl;
+ 	nor->flash_unlock_by_host_ctrl = spi_nor_wunlock_by_host_ctrl;
++	nor->wren_opcode = SPINOR_OP_WREN;
+ 
+ 	if (spi->mode & SPI_RX_QUAD) {
+ 		hwcaps.mask |= SNOR_HWCAPS_READ_1_1_4;
+@@ -2822,6 +2835,9 @@ int spi_nor_scan(struct spi_nor *nor)
+ 	info = spi_nor_read_id(nor);
+ 	if (IS_ERR_OR_NULL(info))
+ 		return -ENOENT;
++
++	spi_nor_pre_fixups(nor, info);
++
+ 	/* Parse the Serial Flash Discoverable Parameters table. */
+ 	ret = spi_nor_init_params(nor, info, &params);
+ 	if (ret)
+@@ -2945,6 +2961,8 @@ int spi_nor_scan(struct spi_nor *nor)
+ 	nor->erase_size = mtd->erasesize;
+ 	nor->sector_size = mtd->erasesize;
+ 
++	nor->wren_opcode = SPINOR_OP_WREN;
++
+ #ifndef CONFIG_SPL_BUILD
+ 	printf("SF: Detected %s with page size ", nor->name);
+ 	print_size(nor->page_size, ", erase size ");
+diff --git a/include/linux/mtd/spi-nor.h b/include/linux/mtd/spi-nor.h
+index c3f607044a..8a236c5532 100644
+--- a/include/linux/mtd/spi-nor.h
++++ b/include/linux/mtd/spi-nor.h
+@@ -39,6 +39,7 @@
+ 
+ /* Flash opcodes. */
+ #define SPINOR_OP_WREN		0x06	/* Write enable */
++#define SPINOR_OP_VSR_WREN	0x50	/* Write enable for voatile register */
+ #define SPINOR_OP_RDSR		0x05	/* Read status register */
+ #define SPINOR_OP_WRSR		0x01	/* Write status register 1 byte */
+ #define SPINOR_OP_RDSR2		0x3f	/* Read status register 2 */
+@@ -351,6 +352,7 @@ struct spi_nor {
+ 	u32 size;
+ 	u32 sector_size;
+ 	u32 erase_size;
++	u8  wren_opcode;
+ };
+ 
+ static inline void spi_nor_set_flash_node(struct spi_nor *nor,
+-- 
+2.25.1
+
