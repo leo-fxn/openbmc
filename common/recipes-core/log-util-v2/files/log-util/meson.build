@@ -40,11 +40,11 @@ exe = executable(
     install: true,
 )
 
-test_srcs = [
-    'tests/test_logutil.cpp',
-    'tests/test_rsyslogd.cpp',
-    'tests/test_selformat.cpp',
-    'tests/test_selstream.cpp',
+tests = [
+    'logutil',
+    'rsyslogd',
+    'selformat',
+    'selstream',
 ]
 
 test_deps = [
@@ -53,10 +53,14 @@ test_deps = [
     cc.find_library('gtest_main'),
 ]
 
-test_exe = executable(
-    'test-log-util',
-    test_srcs,
-    link_with: common_lib,
-    dependencies: [deps, test_deps],
-)
-test('log-util-tests', test_exe)
+foreach t : tests
+    test(
+        'test_' + t.underscorify(),
+        executable(
+            'test-' + t.underscorify(),
+            'tests/test_' + t + '.cpp',
+            link_with: common_lib,
+            dependencies: [deps, test_deps],
+        )
+    )
+endforeach
