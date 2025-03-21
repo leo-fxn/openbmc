@@ -1,7 +1,8 @@
-From 5d6cb50d0751c7bd6bccca503a48827ed510ec18 Mon Sep 17 00:00:00 2001
+From 2d8d318a1591c3a581c12047afbdd79f7f410d98 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
-Subject: [PATCH] Support OEM-META write file request for post code history
+Subject: [PATCH 03/17] Support OEM-META write file request for post code
+ history
 
 Support write file req when multiple hosts send postcode to BMC
 and store its post code history.
@@ -69,7 +70,7 @@ index e2efb11..4c78d06 100644
      '-include',
      '@0@'.format(meson.current_build_dir() / 'config.h'),
 diff --git a/meson.options b/meson.options
-index 531f9d4..b95b3ac 100644
+index 0ada2a0..1ebeff3 100644
 --- a/meson.options
 +++ b/meson.options
 @@ -161,6 +161,14 @@ option(
@@ -474,3 +475,6 @@ index 8e7a285..84e30d6 100644
      auto fruHandler = std::make_unique<fru::Handler>(
          FRU_JSONS_DIR, FRU_MASTER_JSON, pdrRepo.get(), entityTree.get(),
          bmcEntityTree.get());
+-- 
+2.47.1
+

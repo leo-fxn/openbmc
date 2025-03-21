@@ -21,8 +21,7 @@ SRC_URI:append:openbmc-fb-lf = " \
     file://0015-Support-OEM-META-command-for-crashdump-from-BIC.patch \
     file://0016-platform-mc-Add-MCTP-recovery-option.patch \
     file://0017-platform-mc-Add-option-for-discovering-FRU-data.patch \
-    file://0018-requester-Fix-error-handling-in-registerRequest.patch \
-    file://0019-platform-mc-Ensure-independent-terminus-init-flow.patch \
+    file://0018-platform-mc-Ensure-independent-terminus-init-flow.patch \
 "
 
 SYSTEMD_AUTO_ENABLE:${PN}:openbmc-fb-lf = "enable"

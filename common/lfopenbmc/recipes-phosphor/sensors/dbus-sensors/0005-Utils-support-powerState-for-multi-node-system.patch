@@ -1,7 +1,7 @@
-From 9c5f4dff919ab11bc318785ec38ba66f706c29d6 Mon Sep 17 00:00:00 2001
+From 10af1dd7109704cf6884da227876c86e7c2da374 Mon Sep 17 00:00:00 2001
 From: Bright Cheng <bright_cheng@wiwynn.com>
 Date: Mon, 26 Aug 2024 11:37:53 +0800
-Subject: [PATCH] Utils: support powerState for multi-node system
+Subject: [PATCH 5/8] Utils: support powerState for multi-node system
 
 The current code of dbus-sensors only get powerState values for Chassis0
 and Host0 which cannot be used for the system with multiple server
@@ -737,10 +737,10 @@ index be96877..4fcfc94 100644
  
      void getPath(const std::string& path, const std::string& interface,
 diff --git a/src/hwmon-temp/HwmonTempMain.cpp b/src/hwmon-temp/HwmonTempMain.cpp
-index 1ec199f..4b32d2e 100644
+index 0074900..342502f 100644
 --- a/src/hwmon-temp/HwmonTempMain.cpp
 +++ b/src/hwmon-temp/HwmonTempMain.cpp
-@@ -590,7 +590,11 @@ static void powerStateChanged(
+@@ -593,7 +593,11 @@ static void powerStateChanged(
          {
              if (sensor != nullptr && sensor->readState == type)
              {
@@ -754,7 +754,7 @@ index 1ec199f..4b32d2e 100644
          }
      }
 diff --git a/src/psu/PSUSensor.cpp b/src/psu/PSUSensor.cpp
-index ca77edf..3c7c6f1 100644
+index 9e43f52..ea5ddda 100644
 --- a/src/psu/PSUSensor.cpp
 +++ b/src/psu/PSUSensor.cpp
 @@ -44,23 +44,22 @@ static constexpr const char* sensorPathPrefix = "/xyz/openbmc_project/sensors/";
@@ -828,10 +828,10 @@ index c4f3a38..127145c 100644
      ~PSUProperty() = default;
  
 diff --git a/src/psu/PSUSensorMain.cpp b/src/psu/PSUSensorMain.cpp
-index 29b93bc..46a277d 100644
+index 465958c..6065c37 100644
 --- a/src/psu/PSUSensorMain.cpp
 +++ b/src/psu/PSUSensorMain.cpp
-@@ -522,6 +522,7 @@ static void createSensorsCallback(
+@@ -524,6 +524,7 @@ static void createSensorsCallback(
          checkGroupEvent(directory.string(), groupEventPathList);
  
          PowerState readState = getPowerState(*baseConfig);
@@ -839,7 +839,7 @@ index 29b93bc..46a277d 100644
  
          /* Check if there are more sensors in the same interface */
          int i = 1;
-@@ -974,7 +975,8 @@ static void createSensorsCallback(
+@@ -987,7 +988,8 @@ static void createSensorsCallback(
                      readState, findSensorUnit->second, factor,
                      psuProperty.maxReading, psuProperty.minReading,
                      psuProperty.sensorOffset, labelHead, thresholdConfSize,
@@ -849,7 +849,7 @@ index 29b93bc..46a277d 100644
                  sensors[sensorName]->setupRead();
                  ++numCreated;
                  if constexpr (debug)
-@@ -1153,7 +1155,11 @@ static void powerStateChanged(
+@@ -1165,7 +1167,11 @@ static void powerStateChanged(
          {
              if (sensor != nullptr && sensor->readState == type)
              {
@@ -902,5 +902,5 @@ index 2eab853..d649ab2 100644
  
      void markFunctional(bool isFunctional)
 -- 
-2.43.5
+2.47.1
 

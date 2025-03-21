@@ -1,7 +1,7 @@
-From 5fe2044249940d1a71492e494a2fb34b8e1c27ce Mon Sep 17 00:00:00 2001
+From b364e6ecd13752bed40ee297d837b24fd0b37617 Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Mon, 24 Feb 2025 15:59:10 +0000
-Subject: [PATCH 206/206] Map DBus event to RF MessageID and parse args
+Subject: [PATCH 11/11] Map DBus event to RF MessageID and parse args
 
 There is a generated map that contains DBus event name and corresponding
 RF info - Registry, MessageID within the registry and names of arguments
@@ -958,5 +958,5 @@ index 00000000..a70b33bd
 +}
 +} // namespace redfish
 -- 
-2.45.3
+2.47.1
 

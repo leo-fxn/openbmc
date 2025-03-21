@@ -1,7 +1,7 @@
-From bcd32d547b0925ad09b50093aec0e10ee0355de1 Mon Sep 17 00:00:00 2001
+From beb0ee58b62125a5d4402dae24c3aa809edfb97e Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 18 Dec 2023 18:40:23 +0800
-Subject: [PATCH] requester: support multi-host MCTP devices hot plug
+Subject: [PATCH 01/17] requester: support multi-host MCTP devices hot plug
 
 Currently, pldmd listens for new MCTP endpoint exposed by mctpd, but
 they only shows their EID, Network Id, and SupportedMessageTypes, which
@@ -73,10 +73,10 @@ index 3c3613d..0d3c297 100644
  using PropertyMap = std::map<Property, Value>;
  using InterfaceMap = std::map<Interface, PropertyMap>;
 diff --git a/common/utils.cpp b/common/utils.cpp
-index 11ce064..0972194 100644
+index 59b5d23..88f887e 100644
 --- a/common/utils.cpp
 +++ b/common/utils.cpp
-@@ -431,6 +431,23 @@ PropertyMap DBusHandler::getDbusPropertiesVariant(
+@@ -429,6 +429,23 @@ PropertyMap DBusHandler::getDbusPropertiesVariant(
      return bus.call(method, dbusTimeout).unpack<PropertyMap>();
  }
  
@@ -676,3 +676,6 @@ index f269561..d30d884 100644
  
  foreach t : tests
      test(
+-- 
+2.47.1
+

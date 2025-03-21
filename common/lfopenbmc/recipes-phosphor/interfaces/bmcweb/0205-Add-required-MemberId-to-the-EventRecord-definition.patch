@@ -1,7 +1,7 @@
-From d85d8887153bc8ea61e10179d5a29932365d5beb Mon Sep 17 00:00:00 2001
+From 133e593fcfae04379605bbe65e10b9ceb3faee1e Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Tue, 11 Mar 2025 12:10:57 +0000
-Subject: [PATCH 205/206] Add required MemberId to the EventRecord definition
+Subject: [PATCH 10/11] Add required MemberId to the EventRecord definition
 
 The EventRecord definition requires MemberId [1]. It's suggested to be
 a 0 based index [2] for Redfish 1.6 and above. The Event v1_4_0 we use
@@ -66,5 +66,5 @@ index f35a8e90..1ba27f5d 100644
          eventId++;
      }
 -- 
-2.45.3
+2.47.1
 

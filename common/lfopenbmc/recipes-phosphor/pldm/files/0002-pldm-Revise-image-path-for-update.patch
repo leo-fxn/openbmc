@@ -1,7 +1,7 @@
-From 345b012e07ad698d6596c30e3c2a892bd0800d4e Mon Sep 17 00:00:00 2001
+From 0398b44cdc23ae825abf639e3fc395d47896c4d6 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <delphine_cc_chiu@wiwynn.com>
 Date: Tue, 25 Jun 2024 14:51:37 +0800
-Subject: [PATCH] pldm: Revise image path for update
+Subject: [PATCH 02/17] pldm: Revise image path for update
 
 Revise image path from /tmp/images to /tmp/pldm_images to prevent image
 been removed by SoftwareManager due to both service are watching the
@@ -46,3 +46,6 @@ index 60f18fc..56a0e5a 100644
              auto rc = static_cast<Watch*>(userdata)->imageCallback(tarballPath);
              if (rc < 0)
              {
+-- 
+2.47.1
+

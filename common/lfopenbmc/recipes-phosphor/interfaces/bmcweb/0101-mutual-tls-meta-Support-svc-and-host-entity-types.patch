@@ -1,37 +1,36 @@
-From 67a80ad61c82e5b7e4afe9478f38a71b6c176b99 Mon Sep 17 00:00:00 2001
+From 4ccc678d8df15b359baa8e80387459dc680d7189 Mon Sep 17 00:00:00 2001
 From: Marco Kawajiri <kawajiri@meta.com>
 Date: Fri, 19 Jul 2024 16:07:49 -0700
-Subject: [PATCH 101/102] mutual-tls-meta: Support "svc" and "host" entity
- types
+Subject: [PATCH 02/11] mutual-tls-meta: Support "svc" and "host" entity types
 
 Change-Id: I9aa157f34f8f7ba11706ef0c07fbb1a1e1243c13
 ---
- http/mutual_tls.cpp           |  2 +-
+ http/mutual_tls.cpp           |  5 ++-
  http/mutual_tls_meta.hpp      | 64 ++++++++++++++++++++++++++++-------
  test/http/mutual_tls_meta.cpp | 35 ++++++++++++++++---
- 3 files changed, 83 insertions(+), 18 deletions(-)
+ 3 files changed, 86 insertions(+), 18 deletions(-)
 
 diff --git a/http/mutual_tls.cpp b/http/mutual_tls.cpp
-index 0074711c..3c31c211 100644
+index 209c929..d11c269 100644
 --- a/http/mutual_tls.cpp
 +++ b/http/mutual_tls.cpp
-@@ -47,7 +47,7 @@ std::string getUsernameFromCommonName(std::string_view commonName)
-         case persistent_data::MTLSCommonNameParseMode::Meta:
-         {
-             // Meta Inc. CommonName parsing
--            std::optional<std::string_view> sslUserMeta =
-+            std::optional<std::string> sslUserMeta =
-                 mtlsMetaParseSslUser(commonName);
-             if (!sslUserMeta)
-             {
+@@ -148,7 +148,7 @@ std::string getUPNFromCert(X509* peerCert, std::string_view hostname)
+ std::string getMetaUserNameFromCert(X509* cert)
+ {
+     // Meta Inc. CommonName parsing
+-    std::optional<std::string_view> sslUserMeta =
++    std::optional<std::string> sslUserMeta =
+         mtlsMetaParseSslUser(getCommonNameFromCert(cert));
+     if (!sslUserMeta)
+     {
 diff --git a/http/mutual_tls_meta.hpp b/http/mutual_tls_meta.hpp
-index 861c2096..bac6aa59 100644
+index 861c209..bac6aa5 100644
 --- a/http/mutual_tls_meta.hpp
 +++ b/http/mutual_tls_meta.hpp
 @@ -10,17 +10,17 @@
  #include <string>
  #include <string_view>
- 
+
 -inline std::optional<std::string_view> mtlsMetaParseSslUser(
 -    std::string_view sslUser)
 +inline std::optional<std::string> mtlsMetaParseSslUser(std::string_view sslUser)
@@ -50,11 +49,11 @@ index 861c2096..bac6aa59 100644
 +    // "svc:an_internal_service_name" -> "svc_an_internal_service_name"
 +    // "host:/hostname.facebook.com" -> "host_hostname" (note the stripped
 +    // hostname suffix)
- 
+
      // Parse entityType
      size_t colonIndex = sslUser.find(':');
 @@ -33,16 +33,17 @@ inline std::optional<std::string_view> mtlsMetaParseSslUser(
- 
+
      std::string_view entityType = sslUser.substr(0, colonIndex);
      sslUser.remove_prefix(colonIndex + 1);
 -    if (entityType != "user")
@@ -66,7 +65,7 @@ index 861c2096..bac6aa59 100644
              entityType, sslUser);
          return std::nullopt;
      }
- 
+
 -    // Parse entity
 +    // Parse entity and hostname
      size_t slashIndex = sslUser.find('/');
@@ -118,7 +117,7 @@ index 861c2096..bac6aa59 100644
 +    {
 +        entity = hostname;
      }
- 
+
 -    if (entity.empty())
 +    if (entityType.empty() || entity.empty())
      {
@@ -126,12 +125,12 @@ index 861c2096..bac6aa59 100644
                           sslUser);
          return std::nullopt;
      }
- 
+
 -    return entity;
 +    return std::format("{}_{}", entityType, entity);
  }
 diff --git a/test/http/mutual_tls_meta.cpp b/test/http/mutual_tls_meta.cpp
-index daff3beb..985e906f 100644
+index daff3be..985e906 100644
 --- a/test/http/mutual_tls_meta.cpp
 +++ b/test/http/mutual_tls_meta.cpp
 @@ -16,14 +16,35 @@ namespace
@@ -141,7 +140,7 @@ index daff3beb..985e906f 100644
 -    EXPECT_EQ(mtlsMetaParseSslUser(sslUser), "kawajiri");
 +    EXPECT_EQ(mtlsMetaParseSslUser(sslUser), "user_kawajiri");
  }
- 
+
 -TEST(MetaParseSslUser, userNohostnameTest)
 +TEST(MetaParseSslUser, svcTest)
  {
@@ -173,7 +172,7 @@ index daff3beb..985e906f 100644
 +        EXPECT_EQ(mtlsMetaParseSslUser(sslUser), "host_hostname");
 +    }
  }
- 
+
  TEST(MetaParseSslUser, invalidUsers)
 @@ -37,7 +58,11 @@ TEST(MetaParseSslUser, invalidUsers)
          "user:/",
@@ -187,6 +186,5 @@ index daff3beb..985e906f 100644
          "svc:",
          "svc:/",
          "svc:/hostname.facebook.com",
--- 
-2.44.2
-
+--
+2.47.1

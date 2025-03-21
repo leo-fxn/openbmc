@@ -1,7 +1,7 @@
-From 1cb1d2998e3e2350c85513470f3ae1d5f33421ed Mon Sep 17 00:00:00 2001
+From b1cc90c3da8eb012d83c3421ade22586ce3f4210 Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Thu, 13 Mar 2025 08:52:38 +0000
-Subject: [PATCH 200/206] Fix crash on requesting all events if dbus logging
+Subject: [PATCH 05/11] Fix crash on requesting all events if dbus logging
  enabled
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -317,5 +317,5 @@ index fd76da51..2db5d208 100644
  
      std::ranges::sort(entriesArray, [](const nlohmann::json& left,
 -- 
-2.45.3
+2.47.1
 

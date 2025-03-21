@@ -1,24 +1,30 @@
-commit 064d61b9779caa18b81dda537ec55b04858ed021
-Author: Pete O_o <pmb@meta.com>
-Date:   Wed Feb 19 19:55:56 2025 -0800
+From 0ef152b2de2b1b1122d7bf573317afd0c907779f Mon Sep 17 00:00:00 2001
+From: Pete O_o <pmb@meta.com>
+Date: Wed, 19 Feb 2025 19:55:56 -0700
+Subject: [PATCH 04/11] [bmcweb] Up the max connections from 200 to 1000
+
 
     [bmcweb] Up the max connections from 200 to 1000
     Summary:
-    
+
     biggerboat
-    
+
     Test Plan: it builds
-    
+
     Reviewers:
-    
+
     Subscribers:
-    
+
     Tasks: T215749840
-    
+
     Tags:
 
+---
+ http/http_connection.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/http/http_connection.hpp b/http/http_connection.hpp
-index 23c1106..b24bf16 100644
+index d4016199..da79c295 100644
 --- a/http/http_connection.hpp
 +++ b/http/http_connection.hpp
 @@ -205,7 +205,7 @@ class Connection :
@@ -30,3 +36,6 @@ index 23c1106..b24bf16 100644
          {
              BMCWEB_LOG_CRITICAL("{} Max connection count exceeded.",
                                  logPtr(this));
+-- 
+2.47.1
+

@@ -1,7 +1,7 @@
-From a2f65071d7253de56de4cc3228ee3fe17dce04d5 Mon Sep 17 00:00:00 2001
+From e118e4834fc58d848c285f37d2e6560deb469423 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
-Subject: [PATCH] platform-mc: Add OEM Meta event handler
+Subject: [PATCH 04/17] platform-mc: Add OEM Meta event handler
 
 Add OEM Meta handler with event type 0xFB. It will print the logs
 with prefix "BIOS_IPMI_SEL", so the user can utilize it to filter
@@ -58,12 +58,12 @@ Upstream-Status: Pending
  meson.build                             |   1 +
  oem/meta/platform-mc/event_oem_meta.cpp | 915 ++++++++++++++++++++++++
  oem/meta/platform-mc/event_oem_meta.hpp |  21 +
- platform-mc/event_manager.cpp           |  36 +
+ platform-mc/event_manager.cpp           |  42 +-
  platform-mc/event_manager.hpp           |  15 +-
- platform-mc/manager.hpp                 |  27 +-
+ platform-mc/manager.hpp                 |  26 +-
  platform-mc/test/meson.build            |   2 +
  pldmd/pldmd.cpp                         |  17 +-
- 8 files changed, 1024 insertions(+), 10 deletions(-)
+ 8 files changed, 1026 insertions(+), 13 deletions(-)
  create mode 100644 oem/meta/platform-mc/event_oem_meta.cpp
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
@@ -1028,15 +1028,20 @@ index 0000000..55822a8
 +} // namespace platform_mc
 +} // namespace pldm
 diff --git a/platform-mc/event_manager.cpp b/platform-mc/event_manager.cpp
-index 80ee6fc..cb97523 100644
+index 625771f..cb97523 100644
 --- a/platform-mc/event_manager.cpp
 +++ b/platform-mc/event_manager.cpp
-@@ -3,8 +3,10 @@
- #include "libpldm/platform.h"
- #include "libpldm/utils.h"
+@@ -1,10 +1,12 @@
+ #include "event_manager.hpp"
  
+-#include "terminus_manager.hpp"
++#include "libpldm/platform.h"
++#include "libpldm/utils.h"
+ 
+-#include <libpldm/platform.h>
+-#include <libpldm/utils.h>
 +#include "requester/configuration_discovery_handler.hpp"
- #include "terminus_manager.hpp"
++#include "terminus_manager.hpp"
  
 +#include <oem/meta/platform-mc/event_oem_meta.hpp>
  #include <phosphor-logging/lg2.hpp>
@@ -1098,10 +1103,10 @@ index 80ee6fc..cb97523 100644
  
      return PLDM_ERROR;
 diff --git a/platform-mc/event_manager.hpp b/platform-mc/event_manager.hpp
-index 21199e0..3ccec55 100644
+index b1461d7..f2f75c1 100644
 --- a/platform-mc/event_manager.hpp
 +++ b/platform-mc/event_manager.hpp
-@@ -6,6 +6,7 @@
+@@ -3,6 +3,7 @@
  #include "common/types.hpp"
  #include "numeric_sensor.hpp"
  #include "pldmd/dbus_impl_requester.hpp"
@@ -1145,10 +1150,10 @@ index 21199e0..3ccec55 100644
  } // namespace platform_mc
  } // namespace pldm
 diff --git a/platform-mc/manager.hpp b/platform-mc/manager.hpp
-index 45a311a..6dc89aa 100644
+index de7bb28..3264a2c 100644
 --- a/platform-mc/manager.hpp
 +++ b/platform-mc/manager.hpp
-@@ -6,11 +6,14 @@
+@@ -4,12 +4,14 @@
  #include "common/types.hpp"
  #include "event_manager.hpp"
  #include "platform_manager.hpp"
@@ -1158,12 +1163,12 @@ index 45a311a..6dc89aa 100644
  #include "sensor_manager.hpp"
  #include "terminus_manager.hpp"
  
+ #include <libpldm/pldm.h>
 +#include <oem/meta/platform-mc/event_oem_meta.hpp>
-+
+ 
  namespace pldm
  {
- namespace platform_mc
-@@ -35,13 +38,17 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -35,13 +37,17 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
      Manager& operator=(Manager&&) = delete;
      ~Manager() = default;
  
@@ -1184,7 +1189,7 @@ index 45a311a..6dc89aa 100644
      {}
  
      /** @brief Helper function to do the actions before discovering terminus
-@@ -199,6 +206,18 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -199,6 +205,18 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
          return PLDM_SUCCESS;
      }
  
@@ -1203,7 +1208,7 @@ index 45a311a..6dc89aa 100644
      /** @brief The function to trigger the event polling
       *
       *  @param[in] tid - Terminus ID
-@@ -284,6 +303,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -284,6 +302,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
  
      /** @brief map of PLDM event type to EventHandlers */
      PollHandlers pollHandlers;
@@ -1268,3 +1273,6 @@ index 84e30d6..4c74666 100644
           }}}};
  
      auto platformHandler = std::make_unique<platform::Handler>(
+-- 
+2.47.1
+

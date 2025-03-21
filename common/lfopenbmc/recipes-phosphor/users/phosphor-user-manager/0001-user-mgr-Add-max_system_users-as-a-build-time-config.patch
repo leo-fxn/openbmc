@@ -1,4 +1,4 @@
-From 8cece2a16b2cd1f4b3633c61405fb2deb58c74cb Mon Sep 17 00:00:00 2001
+From 596dc88f7ba6c463d3199e5a8f2fec7f8ff0e23b Mon Sep 17 00:00:00 2001
 From: Marco Kawajiri <kawajiri@meta.com>
 Date: Wed, 27 Mar 2024 09:54:11 -0700
 Subject: [PATCH 1/2] user-mgr: Add max_system_users as a build-time config
@@ -31,11 +31,11 @@ Signed-off-by: Marco Kawajiri <kawajiri@meta.com>
 ---
  meson.build   | 6 ++++++
  meson.options | 6 ++++++
- user_mgr.hpp  | 4 +++-
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ user_mgr.hpp  | 3 ++-
+ 3 files changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/meson.build b/meson.build
-index cbe0e81..aa13a63 100644
+index 6bbea64..627278c 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -23,6 +23,12 @@ conf_data.set_quoted(
@@ -66,19 +66,18 @@ index ace1bdd..fbe1962 100644
 +    description: 'Maximum allowed number of system users',
 +)
 diff --git a/user_mgr.hpp b/user_mgr.hpp
-index 701ab3b..0fd5f80 100644
+index b69cb87..bcf6130 100644
 --- a/user_mgr.hpp
 +++ b/user_mgr.hpp
-@@ -14,6 +14,8 @@
+@@ -14,6 +14,7 @@
  // limitations under the License.
  */
  #pragma once
 +#include "config.h"
-+
+ #include "json_serializer.hpp"
  #include "users.hpp"
  
- #include <boost/process/child.hpp>
-@@ -39,7 +41,7 @@ namespace user
+@@ -42,7 +43,7 @@ namespace user
  {
  
  inline constexpr size_t ipmiMaxUsers = 15;
@@ -88,5 +87,5 @@ index 701ab3b..0fd5f80 100644
  inline constexpr size_t maxSystemGroupNameLength = 32;
  inline constexpr size_t maxSystemGroupCount = 64;
 -- 
-2.44.2
+2.47.1
 

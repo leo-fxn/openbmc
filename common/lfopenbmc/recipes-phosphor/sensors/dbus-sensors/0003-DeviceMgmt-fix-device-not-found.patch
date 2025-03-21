@@ -1,7 +1,10 @@
-From 6cadd4432a0dc24af7f4188c44119a9456c588e2 Mon Sep 17 00:00:00 2001
+From c445e393d07c6bf5fb42f9bdfa31a3c225ecf9fd Mon Sep 17 00:00:00 2001
 From: Cosmo Chou <cosmo.chou@quantatw.com>
 Date: Tue, 31 Dec 2024 14:39:48 +0800
-Subject: [PATCH 3/3] DeviceMgmt: fix device not found
+Subject: [PATCH 3/8] DeviceMgmt: fix device not found
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 Link:https://gerrit.openbmc.org/c/openbmc/dbus-sensors/+/69161
 
@@ -168,10 +171,10 @@ Signed-off-by: Potin Lai <potin.lai@quantatw.com>
  1 file changed, 3 insertions(+), 18 deletions(-)
 
 diff --git a/src/DeviceMgmt.hpp b/src/DeviceMgmt.hpp
-index 4b4dea8..d2a84fc 100644
+index 5247486..7da3e0a 100644
 --- a/src/DeviceMgmt.hpp
 +++ b/src/DeviceMgmt.hpp
-@@ -96,26 +96,10 @@ boost::container::flat_map<std::string,
+@@ -110,26 +110,10 @@ boost::container::flat_map<std::string,
                  continue;
              }
  
@@ -199,7 +202,7 @@ index 4b4dea8..d2a84fc 100644
                  {
                      findSensor = sensor.second;
                      break;
-@@ -126,7 +110,7 @@ boost::container::flat_map<std::string,
+@@ -140,7 +124,7 @@ boost::container::flat_map<std::string,
                  devices.emplace(
                      path.str,
                      std::make_pair(findSensor->getI2CDevice(), false));
@@ -208,7 +211,7 @@ index 4b4dea8..d2a84fc 100644
              }
  
              std::optional<I2CDeviceParams> params =
-@@ -154,6 +138,7 @@ boost::container::flat_map<std::string,
+@@ -168,6 +152,7 @@ boost::container::flat_map<std::string,
                          path.str,
                          std::make_pair(std::make_shared<I2CDevice>(*params),
                                         true));
@@ -217,5 +220,5 @@ index 4b4dea8..d2a84fc 100644
                  catch (std::runtime_error&)
                  {
 -- 
-2.25.1
+2.47.1
 

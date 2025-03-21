@@ -1,7 +1,7 @@
-From 093f2e2e10314372f45b3bbf6d820dfe1290a125 Mon Sep 17 00:00:00 2001
+From e20cc8c7a93acf82ee36e58fc6de6b7b2aad2d8a Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Thu, 27 Feb 2025 14:52:54 -0500
-Subject: [PATCH 201/206] registries: make registration dynamic
+Subject: [PATCH 06/11] registries: make registration dynamic
 
 Rather than having to manually hook code for registries, add a small
 registration function to the registry header and use this registration
@@ -2834,5 +2834,5 @@ index 10a98664..ab43155b 100644
  
      EXPECT_EQ(std::string(msg1->description),
 -- 
-2.45.3
+2.47.1
 
