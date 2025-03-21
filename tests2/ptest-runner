@@ -181,9 +181,15 @@ def main(args):
             "export PATH=/bin:${PATH}",
             "mount -t proc proc /proc",
             "mount -t tmpfs -o size=512m tmpfs /dev/shm",
+            "mount -t tmpfs -o size=512m tmpfs /run",
             "mount -t devpts devpts /dev/pts",
             "ln -s /dev/pts/ptmx /dev/ptmx",
             "touch /dev/null",
+            "mkdir -p /run/dbus",
+            "sed -i 's/user>messagebus/user>root/' /usr/share/dbus-1/system.conf",
+            "sed -i 's/deny own=/allow own=/' /usr/share/dbus-1/system.conf",
+            "sed -i 's/deny send_type=/allow send_type=/' /usr/share/dbus-1/system.conf",
+            "dbus-daemon --config-file=/usr/share/dbus-1/system.conf --nosyslog",
         ]
     else:
         # If we unpacked the rootfs within an existing tmpfs, then we don't have

@@ -24,6 +24,7 @@ do_install_ptest() {
     install -d ${D}${PTEST_PATH}
     install -d ${D}${PTEST_PATH}/meson-private
     install -d ${D}${PTEST_PATH}/meson-logs
+    install -d ${D}${PTEST_PATH}/test
 
     # Install executables with the name test-*
     for file in ${B}/test-*
@@ -32,6 +33,14 @@ do_install_ptest() {
             install -m 0755 ${file} ${D}${PTEST_PATH}/
             # Meson 0.40 (Rocko) adds incorrect RPATHs, so delete them.
             chrpath -d ${D}${PTEST_PATH}/$(basename ${file})
+        fi
+    done
+    for file in ${B}/test/test-*
+    do
+        if [ -f ${file} ]; then
+            install -m 0755 ${file} ${D}${PTEST_PATH}/test
+            # Meson 0.40 (Rocko) adds incorrect RPATHs, so delete them.
+            chrpath -d ${D}${PTEST_PATH}/test/$(basename ${file})
         fi
     done
 

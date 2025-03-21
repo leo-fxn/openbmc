@@ -10,9 +10,10 @@ MACHINE ??= "qemux86-64"
 PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"
 
 # OpenBMC distro settings
-DISTRO ?= "openbmc-fb-master"
+DISTRO ?= "openbmc-fb-lf"
 
 # Enable ptest to be built into the image.
 DISTRO_FEATURES:append = " ptest"
 
 SOC_FAMILY = "aspeed-g5"
+
