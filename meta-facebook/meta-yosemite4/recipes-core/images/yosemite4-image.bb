@@ -19,7 +19,5 @@ IMAGE_INSTALL:append = " sensor-cache"
 IMAGE_INSTALL:append = " fan-manual-mode"
 # A service for asking for reboot assistance via SEL event
 IMAGE_INSTALL:append = " managed-reboot"
-# Install valgrind while looking for memory leaks
-IMAGE_INSTALL:append = " valgrind"
 # Added as a temp way to reset individual nics
 IMAGE_INSTALL:append = " nic-reset"
