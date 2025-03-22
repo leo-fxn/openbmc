@@ -56,7 +56,7 @@ index 3dfa83e..e8ffd1b 100644
 +                auto method =
 +                    bus.new_method_call(systemd_busname, systemd_path,
 +                                        systemd_interface, "StartUnit");
-+                method.append("pldm_nic_power_cycle@" +
++                method.append("nic-powercycle@" +
 +                                  std::to_string(nic_index) + ".service",
 +                              "replace");
 +                bus.call_noreply(method);
