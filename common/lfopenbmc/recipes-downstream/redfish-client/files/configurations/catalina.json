@@ -6,8 +6,7 @@
   "event_log_configs": {
       "eventlog_interval_milliseconds": 2000,
       "paths": [
-          "/redfish/v1/Systems/HGX_Baseboard_0/LogServices/EventLog/Entries",
-          "/redfish/v1/Systems/HMC_BMC_0/LogServices/EventLog/Entries"
+          "/redfish/v1/Systems/HGX_Baseboard_0/LogServices/EventLog/Entries"
       ]
   },
   "sensor_configs": {
