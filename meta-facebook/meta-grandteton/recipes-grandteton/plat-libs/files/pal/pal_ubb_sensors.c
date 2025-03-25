@@ -130,11 +130,6 @@ read_kv_snr(uint8_t fru, uint8_t sensor_num, float *value) {
   int ret = -1;
   char data[32] = {0};
 
-  if (!ubb_sensor_map[sensor_num].stby_read &&
-      (kv_get("gpu_snr_valid", data, NULL, 0) || strcmp(data, "valid"))) {
-    return -1;
-  }
-
   ret = kv_get(UBB_SNR_INFO[sensor_num].snr_name, data, NULL, 0);
 
   if (ret || !strcmp(data, "NA")) {
@@ -149,6 +144,7 @@ static int
 read_snr(uint8_t fru, uint8_t sensor_num, float *value) {
   int ret = -1;
   char err_code[32] = {0};
+  char snr_valid[32] = {0};
   static uint8_t snr_retry = 0;
   static bool snr_failed = false, fan_asserted = false;
 
@@ -185,6 +181,12 @@ read_snr(uint8_t fru, uint8_t sensor_num, float *value) {
       }
     }
     snr_failed = false;
+  }
+
+  if (!ubb_sensor_map[sensor_num].stby_read &&
+      (kv_get("gpu_snr_valid", snr_valid, NULL, 0) || strcmp(snr_valid, "valid"))) {
+    snr_failed |= true;
+    return -1;
   }
 
   ret = read_kv_snr(fru, sensor_num, value);
