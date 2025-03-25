@@ -23,7 +23,7 @@ pal_get_sensor_health_key(uint8_t fru, char *key) {
       break;
     case FRU_HGX:
       if (!pal_is_artemis()) {
-        sprintf(key, "hgx_sensor_health");
+        sprintf(key, "gpu_sensor_health");
       } else {
         return -1;
       }
@@ -75,7 +75,7 @@ pal_get_sensor_health_key(uint8_t fru, char *key) {
       break;
     case FRU_UBB:
       if (!pal_is_artemis()) {
-        sprintf(key, "ubb_sensor_health");
+        sprintf(key, "gpu_sensor_health");
       } else {
         return -1;
       }
