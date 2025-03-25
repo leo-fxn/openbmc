@@ -1,25 +1,26 @@
-From 9cdba04165d016b73be4a32d59c93005fe5d9043 Mon Sep 17 00:00:00 2001
+From 61131ee9303b3c4a2ca21ee3002680d3b070993b Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai.pt@gmail.com>
 Date: Tue, 14 Jan 2025 16:46:00 +0800
-Subject: [PATCH 1012/1015] ARM: dts: aspeed: catalina: Add multi-master
- support to more i2c buses
+Subject: [PATCH 12/24] ARM: dts: aspeed: catalina: Enable multi-master on
+ additional I2C buses
 
-Updated the DTS file to set `multi-master` on I2C buses shared between
-the host BMC and the NV module with HMC.
-
-This change ensures proper coordination and operation in multi-master
-environments.
+Update the device tree to enable `multi-master` mode on I2C buses shared
+between the host BMC and the NV module with HMC. This ensures proper bus
+arbitration and coordination in multi-master environments, preventing
+communication conflicts and improving reliability.
 
 Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
+---
+LORE: https://lore.kernel.org/all/20250320-potin-catalina-dts-update-20250102-v5-8-e161be6583a7@gmail.com/
 ---
  arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
-index 03b27cee2f3a..9a36aed8f5da 100644
+index 1e1bcc9ac2f0d..abf15d3226055 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
-@@ -936,6 +936,7 @@ ssif-bmc@10 {
+@@ -815,6 +815,7 @@ ssif-bmc@10 {
  
  &i2c12 {
  	status = "okay";
@@ -27,7 +28,7 @@ index 03b27cee2f3a..9a36aed8f5da 100644
  
  	// Module 1 FRU EEPROM
  	eeprom@50 {
-@@ -946,6 +947,7 @@ eeprom@50 {
+@@ -825,6 +826,7 @@ eeprom@50 {
  
  &i2c13 {
  	status = "okay";
@@ -36,5 +37,5 @@ index 03b27cee2f3a..9a36aed8f5da 100644
  	// Module 0 FRU EEPROM
  	eeprom@50 {
 -- 
-2.44.2
+2.31.1
 

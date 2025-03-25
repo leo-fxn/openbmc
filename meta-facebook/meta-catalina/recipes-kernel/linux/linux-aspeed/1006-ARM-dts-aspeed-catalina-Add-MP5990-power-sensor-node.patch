@@ -1,0 +1,34 @@
+From 5e2899d530fd62487bbfb0be116f23a6b66239bb Mon Sep 17 00:00:00 2001
+From: Potin Lai <potin.lai.pt@gmail.com>
+Date: Thu, 20 Mar 2025 00:06:23 +0800
+Subject: [PATCH 07/24] ARM: dts: aspeed: catalina: Add MP5990 power sensor
+ node
+
+Add a device tree node for the MP5990 power sensor to enable monitoring of
+the P12V supplying power to the fans.
+
+Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
+---
+LORE: https://lore.kernel.org/all/20250320-potin-catalina-dts-update-20250102-v5-3-e161be6583a7@gmail.com/
+---
+ arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+index 307af99e833c2..f5f47245796ae 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+@@ -428,6 +428,10 @@ i2c1mux0ch0: i2c@0 {
+ 			#size-cells = <0>;
+ 			reg = <0x0>;
+ 
++			power-sensor@22 {
++				compatible = "mps,mp5990";
++				reg = <0x22>;
++			};
+ 			power-sensor@41 {
+ 				compatible = "ti,ina238";
+ 				reg = <0x41>;
+-- 
+2.31.1
+

@@ -1,7 +1,7 @@
-From 7642b8a35e55a34432364631f62d999d2490f247 Mon Sep 17 00:00:00 2001
+From b96f51d08e5703cfa31a13fdc0f5c17de189aef7 Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai.pt@gmail.com>
 Date: Fri, 2 Aug 2024 17:32:49 +0800
-Subject: [PATCH 1005/1015] ARM: dts: aspeed: catalina: add max31790 nodes
+Subject: [PATCH 17/24] ARM: dts: aspeed: catalina: add max31790 nodes
 
 max31790 nodes were removed due to compatible string not exist on upstream.
 Add back max31790 nodes back in this patch.
@@ -12,10 +12,10 @@ Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
  1 file changed, 20 insertions(+)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
-index 04b2ca24f488..8a303fb27e22 100644
+index 431f842cb1091..12838e04bf7aa 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
-@@ -526,10 +526,30 @@ fan-3 {
+@@ -533,10 +533,30 @@ fan-3 {
  			pwm@21{
  				compatible = "maxim,max31790";
  				reg = <0x21>;
@@ -47,5 +47,5 @@ index 04b2ca24f488..8a303fb27e22 100644
  		};
  		i2c1mux0ch3: i2c@3 {
 -- 
-2.44.2
+2.31.1
 

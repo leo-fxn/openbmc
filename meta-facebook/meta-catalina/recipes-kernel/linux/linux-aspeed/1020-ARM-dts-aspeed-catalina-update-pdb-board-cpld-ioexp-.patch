@@ -1,8 +1,8 @@
-From 687dee0e69f52649f0845b15f89958a49193e1da Mon Sep 17 00:00:00 2001
+From 6d63fea11b712b009faf7cb589ea77e416eab149 Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai.pt@gmail.com>
 Date: Mon, 4 Nov 2024 19:13:30 +0800
-Subject: [PATCH 1009/1015] ARM: dts: aspeed: catalina: update pdb board cpld
- ioexp linename
+Subject: [PATCH 21/24] ARM: dts: aspeed: catalina: update pdb board cpld ioexp
+ linename
 
 Due to there are huge changes of PDB CPLD IOEXP pin definitions since
 DVT version, Update the CPLD IOEXP nodes and GPIO linename of each PDB
@@ -14,10 +14,10 @@ Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
  1 file changed, 47 insertions(+), 65 deletions(-)
 
 diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
-index bfd795330df2..12eb2c4dd867 100644
+index 48effb32c6f93..8cd5878ab0980 100644
 --- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
 +++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
-@@ -931,8 +931,8 @@ &i2c14 {
+@@ -919,8 +919,8 @@ &i2c14 {
  	// PDB CPLD IOEXP 0x10
  	io_expander9: gpio@10 {
  		compatible = "nxp,pca9555";
@@ -28,7 +28,7 @@ index bfd795330df2..12eb2c4dd867 100644
  		reg = <0x10>;
  		gpio-controller;
  		#gpio-cells = <2>;
-@@ -941,8 +941,8 @@ io_expander9: gpio@10 {
+@@ -929,8 +929,8 @@ io_expander9: gpio@10 {
  	// PDB CPLD IOEXP 0x11
  	io_expander10: gpio@11 {
  		compatible = "nxp,pca9555";
@@ -39,7 +39,7 @@ index bfd795330df2..12eb2c4dd867 100644
  		reg = <0x11>;
  		gpio-controller;
  		#gpio-cells = <2>;
-@@ -951,8 +951,8 @@ io_expander10: gpio@11 {
+@@ -939,8 +939,8 @@ io_expander10: gpio@11 {
  	// PDB CPLD IOEXP 0x12
  	io_expander11: gpio@12 {
  		compatible = "nxp,pca9555";
@@ -50,7 +50,7 @@ index bfd795330df2..12eb2c4dd867 100644
  		reg = <0x12>;
  		gpio-controller;
  		#gpio-cells = <2>;
-@@ -961,8 +961,8 @@ io_expander11: gpio@12 {
+@@ -949,8 +949,8 @@ io_expander11: gpio@12 {
  	// PDB CPLD IOEXP 0x13
  	io_expander12: gpio@13 {
  		compatible = "nxp,pca9555";
@@ -61,7 +61,7 @@ index bfd795330df2..12eb2c4dd867 100644
  		reg = <0x13>;
  		gpio-controller;
  		#gpio-cells = <2>;
-@@ -971,21 +971,13 @@ io_expander12: gpio@13 {
+@@ -959,21 +959,13 @@ io_expander12: gpio@13 {
  	// PDB CPLD IOEXP 0x14
  	io_expander13: gpio@14 {
  		compatible = "nxp,pca9555";
@@ -85,7 +85,7 @@ index bfd795330df2..12eb2c4dd867 100644
  	};
  };
  
-@@ -1205,71 +1197,61 @@ &io_expander8 {
+@@ -1193,71 +1185,61 @@ &io_expander8 {
  
  &io_expander9 {
  	gpio-line-names =
@@ -195,5 +195,5 @@ index bfd795330df2..12eb2c4dd867 100644
 -		"FAB_BMC_REV_ID0","";
 -};
 -- 
-2.44.2
+2.31.1
 

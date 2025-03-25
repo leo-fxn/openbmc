@@ -1,0 +1,38 @@
+From c23cd65eec0abbf50e954600c969d19131836c15 Mon Sep 17 00:00:00 2001
+From: Potin Lai <potin.lai.pt@gmail.com>
+Date: Wed, 19 Mar 2025 23:43:39 +0800
+Subject: [PATCH 10/24] ARM: dts: aspeed: catalina: Add second source HSC node
+ support
+
+Add device tree nodes for the XDP710 Hot-Swap Controller (HSC) to support
+the Power Distribution Board (PDB) with a second-source configuration.
+
+Signed-off-by: Potin Lai <potin.lai.pt@gmail.com>
+---
+LORE: https://lore.kernel.org/all/20250320-potin-catalina-dts-update-20250102-v5-6-e161be6583a7@gmail.com/
+---
+ arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+index 9cbb296dcd9e5..cf8a31b500745 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-catalina.dts
+@@ -562,6 +562,14 @@ i2c1mux0ch4: i2c@4 {
+ 			#size-cells = <0>;
+ 			reg = <0x4>;
+ 
++			power-monitor@13 {
++				compatible = "infineon,xdp710";
++				reg = <0x13>;
++			};
++			power-monitor@1c {
++				compatible = "infineon,xdp710";
++				reg = <0x1c>;
++			};
+ 			power-monitor@42 {
+ 				compatible = "lltc,ltc4287";
+ 				reg = <0x42>;
+-- 
+2.31.1
+
