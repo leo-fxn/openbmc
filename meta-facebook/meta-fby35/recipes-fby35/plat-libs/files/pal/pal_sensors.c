@@ -2796,6 +2796,7 @@ read_adc_val(uint8_t adc_id, float *value) {
   uint8_t bmc_location = 0;
   float arr[120] = {0};
   int ignore_sample = 0;
+  int slot_type = fby35_common_get_slot_type(FRU_SLOT1);
   static uint8_t gval = UNKNOWN_SOLUTION;
 
   const char *adc_label[] = {
@@ -2863,6 +2864,10 @@ read_adc_val(uint8_t adc_id, float *value) {
       syslog(LOG_WARNING, "%s() Failed to get board revision", __func__);
       return -1;
     }
+  }
+
+  if (slot_type == SERVER_TYPE_CL_EMR) { // EMR using MP BOM since EVT stage
+    rev_id = BB_REV_MP;
   }
 
   if ( ret == PAL_EOK ) {
@@ -3936,6 +3941,7 @@ int
 pal_get_sensor_threshold(uint8_t fru, uint8_t sensor_num, uint8_t thresh, void *value) {
   static bool is_fan_threshold_init = false;
   float *val = (float*) value;
+  int slot_type = fby35_common_get_slot_type(FRU_SLOT1);
 
   if (fru == FRU_BMC && is_fan_threshold_init == false) {
     if (pal_bmc_fan_threshold_init() < 0) {
@@ -3954,6 +3960,10 @@ pal_get_sensor_threshold(uint8_t fru, uint8_t sensor_num, uint8_t thresh, void *
       syslog(LOG_WARNING, "%s() Failed to get board revision", __func__);
       return -1;
     }
+  }
+
+  if (slot_type == SERVER_TYPE_CL_EMR) { // EMR using MP BOM since EVT stage
+    rev_id = BB_REV_MP;
   }
 
   switch (fru) {
