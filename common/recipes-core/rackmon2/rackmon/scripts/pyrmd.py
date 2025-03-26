@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+# Copyright 2021-present Facebook. All Rights Reserved.
 """
-Modbus/rackmond library + Standalone tool to view current power/current
-readings
+Modbus/rackmond library
 """
 import asyncio
 import contextlib

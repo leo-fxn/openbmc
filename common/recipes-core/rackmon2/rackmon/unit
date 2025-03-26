@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright 2021-present Facebook. All Rights Reserved.
 
 check_packages() {
   required_packages=("python3-jsonschema" "meson" "ninja-build" "gtest" "gtest-devel" "gmock" "gmock-devel" "glog" "glog-devel" "json-devel" "cli11-devel")

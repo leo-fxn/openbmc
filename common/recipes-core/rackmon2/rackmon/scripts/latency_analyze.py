@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# Copyright 2021-present Facebook. All Rights Reserved.
 import sys
 
 import matplotlib.pyplot as plt

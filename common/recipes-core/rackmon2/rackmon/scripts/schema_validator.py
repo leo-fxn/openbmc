@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright 2021-present Facebook. All Rights Reserved.
 import json
 import os
 import sys

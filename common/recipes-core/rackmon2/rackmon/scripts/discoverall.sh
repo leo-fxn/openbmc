@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright 2021-present Facebook. All Rights Reserved.
 
 UARTS=("ttyUSB1" "ttyUSB2" "ttyUSB3")
 BAUDS=(19200 115200)
