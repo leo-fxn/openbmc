@@ -1,0 +1,37 @@
+From 057df1ff02b48cee94451f53633f1d70fe4a030a Mon Sep 17 00:00:00 2001
+From: Daniel Hsu <Daniel-Hsu@quantatw.com>
+Date: Tue, 25 Mar 2025 15:54:55 +0800
+Subject: [PATCH] mctp: Fix incorrect tx flow invalidation condition in
+ mctp-i2c
+
+Lore link: https://lore.kernel.org/all/20250325081008.3372960-1-Daniel-Hsu@quantatw.com/
+
+Previously, the condition for invalidating the tx flow in
+mctp_i2c_invalidate_tx_flow() checked if `rc` was nonzero.
+However, this could incorrectly trigger the invalidation
+even when `rc > 0` was returned as a success status.
+
+This patch updates the condition to explicitly check for `rc < 0`,
+ensuring that only error cases trigger the invalidation.
+
+Signed-off-by: Daniel Hsu <Daniel-Hsu@quantatw.com>
+---
+ drivers/net/mctp/mctp-i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/mctp/mctp-i2c.c b/drivers/net/mctp/mctp-i2c.c
+index d74d47dd6e04..f782d93f826e 100644
+--- a/drivers/net/mctp/mctp-i2c.c
++++ b/drivers/net/mctp/mctp-i2c.c
+@@ -537,7 +537,7 @@ static void mctp_i2c_xmit(struct mctp_i2c_dev *midev, struct sk_buff *skb)
+ 		rc = __i2c_transfer(midev->adapter, &msg, 1);
+
+ 		/* on tx errors, the flow can no longer be considered valid */
+-		if (rc)
++		if (rc < 0)
+ 			mctp_i2c_invalidate_tx_flow(midev, skb);
+
+ 		break;
+--
+2.25.1
+
