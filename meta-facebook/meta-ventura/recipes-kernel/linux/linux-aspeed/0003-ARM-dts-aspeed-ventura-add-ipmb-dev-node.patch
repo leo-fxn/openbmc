@@ -1,0 +1,39 @@
+From c18e3e6d3c21268a303e1b4b26307b1bb8b4e686 Mon Sep 17 00:00:00 2001
+From: PKLee-Quanta <p.k.lee@quantatw.com>
+Date: Tue, 4 Mar 2025 20:25:25 +0800
+Subject: [PATCH] ARM: dts: aspeed: ventura: add ipmb-dev node
+
+ipmb-dev node was removed due to compatible string not exist on
+upstream. Add back ipmb-dev node back in this patch.
+
+LORE: https://lore.kernel.org/all/20250321123731.1373596-3-jason-hsu@quantatw.com/
+
+Signed-off-by: PKLee-Quanta <p.k.lee@quantatw.com>
+---
+ .../boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts    | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
+index c9887839ac3b..4bf54ecb4d9a 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
+@@ -1092,6 +1092,16 @@ rtc@51 {
+ 
+ &i2c7 {
+ 	status = "okay";
++	bus-frequency = <100000>;
++	multi-master;
++	aspeed,hw-timeout-ms = <1000>;
++
++	//USB Debug Connector
++	ipmb@10 {
++		compatible = "ipmb-dev";
++		reg = <(0x10 | I2C_OWN_SLAVE_ADDRESS)>;
++		i2c-protocol;
++	};
+ };
+ 
+ &i2c9 {
+-- 
+2.43.0
+
