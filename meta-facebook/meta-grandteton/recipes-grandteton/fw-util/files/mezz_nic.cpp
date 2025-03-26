@@ -9,11 +9,27 @@
 using namespace std;
 
 int PLDMNicComponent::get_version(json& j) {
-
-  string ver{};
+  string ver{}, vendor{};
+  string MLX_IANA = "33049";
+  string BCM_IANA = "4413";
 
   try {
-    j["PRETTY_COMPONENT"] = kv::get("swb_nic_vendor", kv::region::temp) + _ver_key;
+    if (fru() == "nic1") {
+       vendor = kv::get("nic_vendor", kv::region::temp);
+       if (vendor == MLX_IANA) {
+         j["PRETTY_COMPONENT"] = "Mellanox " + _ver_key;
+       }
+       else if (vendor == BCM_IANA) {
+         j["PRETTY_COMPONENT"] = "Broadcom " + _ver_key;
+       }
+       else {
+         j["PRETTY_COMPONENT"] = _ver_key;
+       }
+    }
+    else {
+       vendor = kv::get("swb_nic_vendor", kv::region::temp);
+       j["PRETTY_COMPONENT"] = kv::get("swb_nic_vendor", kv::region::temp) + " " + _ver_key;
+    }
   } catch (std::exception& e) {
     j["PRETTY_COMPONENT"] = _ver_key;
   }
