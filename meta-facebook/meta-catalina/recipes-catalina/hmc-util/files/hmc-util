@@ -68,7 +68,12 @@ get_all_comp_version()
         echo "failed: HMC not response."
         return 1
     else
-        echo "${CURL_DATA}" | jq -r '.Members[] | select(.Id) | "\(.Id): \(.Version // .Oem.Nvidia.ActiveFirmwareSlot.Version // "NA")"'
+        echo "${CURL_DATA}" | jq '.Members | map(select(.Id)) | map({ (.Id): (.Version // .Oem.Nvidia.ActiveFirmwareSlot.Version // "NA") }) | add' \
+        | jq 'if (.HGX_FW_GPU_1 == null or .HGX_FW_GPU_1 == "NA") and has("HGX_FW_GPU_2") then .HGX_FW_GPU_1 = .HGX_FW_GPU_2 end' \
+        | jq 'if (.HGX_InfoROM_GPU_1 == null or .HGX_InfoROM_GPU_1 == "NA") and has("HGX_InfoROM_GPU_2") then .HGX_InfoROM_GPU_1 = .HGX_InfoROM_GPU_2 end' \
+        | jq 'if has("HGX_FW_GPU_1") and has("HGX_FW_GPU_2") then del(.HGX_FW_GPU_2) end' \
+        | jq 'if has("HGX_InfoROM_GPU_1") and has("HGX_InfoROM_GPU_2") then del(.HGX_InfoROM_GPU_2) end' \
+        | jq -r 'to_entries | sort_by(.key) | .[] | "\(.key): \(.value)"'
     fi
     return 0
 }
