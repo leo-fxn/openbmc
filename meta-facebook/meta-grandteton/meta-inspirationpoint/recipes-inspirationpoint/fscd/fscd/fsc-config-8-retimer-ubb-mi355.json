@@ -1,5 +1,5 @@
 {
-    "version": "inspirationpint_MI355X_v2",
+    "version": "inspirationpint_MI355X_v3",
     "pwm_transition_value": 100,
     "pwm_boost_value": 100,
     "sample_interval_ms": 3000,
@@ -258,10 +258,7 @@
           [67, 40],
           [70, 45],
           [73, 50],
-          [75, 65],
-          [80, 78],
-          [82, 81],
-          [95, 100]
+          [75, 58]
         ]
       },
       "gpu_tray_gpu_pid": {
@@ -272,8 +269,8 @@
         "positive_hysteresis": 0,
         "negative_hysteresis": 2,
         "setpoint": 93,
-        "kp": -5.5,
-        "ki": -0.035,
+        "kp": -1.5,
+        "ki": -0.2,
         "kd": 0
       },
       "gpu_tray_retimer_linear": {
@@ -285,11 +282,11 @@
         "negative_hysteresis": 1,
         "data": [
           [80, 25],
-          [85, 30],
+          [86, 30],
           [89, 35],
           [92, 45],
           [96, 53],
-          [98, 70],
+          [100, 70],
           [105, 100]
         ]
       },
@@ -316,8 +313,6 @@
           [63, 25],
           [70, 35],
           [75, 50],
-          [82, 60],
-          [85, 80],
           [99, 100]
         ]
       },
