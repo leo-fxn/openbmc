@@ -42,6 +42,7 @@
 #include <linux/netlink.h>
 #include <sys/un.h>
 #include "pal.h"
+#include <openbmc/nv-cper.hpp>
 
 #ifdef CONFIG_HALFDOME
 #define PLATFORM_NAME "halfdome"
@@ -4524,6 +4525,30 @@ pal_handle_dcmi(uint8_t fru, uint8_t *request, uint8_t req_len, uint8_t *respons
   memcpy(response, &rbuf[1], *rlen);
 
   return 0;
+}
+
+int
+pal_handle_platfrom_error_record(uint8_t fru, uint8_t *request, uint8_t req_len, uint8_t *response, uint8_t *res_len) {
+  return createNvSsifCperDumpEntry(fru, request, req_len);
+}
+
+int
+pal_handle_arm_sbmr(uint8_t fru, uint8_t *request, uint8_t req_len, uint8_t *response, uint8_t *res_len) {
+  unsigned char cmd = request[1];
+  int ret = 0;
+
+  switch (cmd)
+  {
+    case CMD_SEND_PLAT_ERROR_RECORD:
+      ret = pal_handle_platfrom_error_record(fru, request, req_len, response, res_len);
+      break;
+
+    default:
+      ret = -1;
+      break;
+  }
+
+  return ret;
 }
 
 int

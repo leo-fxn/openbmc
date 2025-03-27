@@ -2445,6 +2445,12 @@ pal_handle_dcmi(uint8_t fru, uint8_t *tbuf, uint8_t tlen, uint8_t *rbuf, uint8_t
 }
 
 int __attribute__((weak))
+pal_handle_arm_sbmr(uint8_t fru, uint8_t *tbuf, uint8_t tlen, uint8_t *rbuf, uint8_t *rlen)
+{
+  return PAL_EOK;
+}
+
+int __attribute__((weak))
 pal_is_fru_ready(uint8_t fru, uint8_t *status)
 {
   return PAL_EOK;

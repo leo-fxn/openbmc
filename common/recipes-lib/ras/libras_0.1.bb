@@ -18,6 +18,8 @@ LOCAL_URI = " \
     file://ras.c \
     file://cper.hpp \
     file://cper.cpp \
+    file://nv-cper.hpp \
+    file://nv-cper.cpp \
     file://meson.build \
     "
 

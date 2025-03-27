@@ -3831,8 +3831,8 @@ static void ipmi_handle(
       res->netfn_lun = NETFN_TRANSPORT_RES << 2;
       ipmi_handle_transport(request, req_len, response, res_len);
       break;
-    case NETFN_DCMI_REQ:
-      res->netfn_lun = NETFN_DCMI_RES << 2;
+    case NETFN_GROUP_EXTENSION_REQ:
+      res->netfn_lun = NETFN_GROUP_EXTENSION_RES << 2;
       ipmi_handle_dcmi(request, req_len, response, res_len);
       break;
     case NETFN_OEM_REQ:

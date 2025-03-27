@@ -176,6 +176,7 @@ static pthread_mutex_t m_sensor;
 static pthread_mutex_t m_app;
 static pthread_mutex_t m_storage;
 static pthread_mutex_t m_transport;
+static pthread_mutex_t m_group_extension;
 static pthread_mutex_t m_oem;
 static pthread_mutex_t m_oem_storage;
 static pthread_mutex_t m_oem_1s;
@@ -2051,32 +2052,47 @@ ipmi_handle_transport (unsigned char *request, unsigned char req_len,
 }
 
 /*
- * Function(s) to handle IPMI messages with NetFn: DCMI
+ * Function(s) to handle IPMI messages with NetFn: Group Extension
  */
 static void
-ipmi_handle_dcmi(unsigned char *request, unsigned char req_len,
+ipmi_handle_group_extension(unsigned char *request, unsigned char req_len,
      unsigned char *response, unsigned char *res_len)
 {
   int ret;
   ipmi_mn_req_t *req = (ipmi_mn_req_t *) request;
   ipmi_res_t *res = (ipmi_res_t *) response;
 
-  // If there is no command to process return
-  if (req->cmd == 0x0) {
-    res->cc = CC_UNSPECIFIED_ERROR;
-    *res_len = 0;
-    return;
-  }
+  pthread_mutex_lock(&m_group_extension);
+  switch (req->data[0]) {
+    case ARM_SBMR:
+      ret = pal_handle_arm_sbmr(req->payload_id, &request[1], req_len-1, res->data, res_len);
+      if (ret < 0) {
+        res->cc = CC_UNSPECIFIED_ERROR;
+        *res_len = 0;
+        return;
+      }
+      res->cc = CC_SUCCESS;
+      res->data[0] = ARM_SBMR;
+      *res_len = 1;
+      break;
 
-  // Since DCMI handling is specific to platform, call PAL to process
-  ret = pal_handle_dcmi(req->payload_id, &request[1], req_len-1, res->data, res_len);
-  if (ret < 0) {
-    res->cc = CC_UNSPECIFIED_ERROR;
-    *res_len = 0;
-    return;
-  }
+    case DCMI:
+      // Since DCMI handling is specific to platform, call PAL to process
+      ret = pal_handle_dcmi(req->payload_id, &request[1], req_len-1, res->data, res_len);
+      if (ret < 0) {
+        res->cc = CC_UNSPECIFIED_ERROR;
+        *res_len = 0;
+        return;
+      }
+      res->cc = CC_SUCCESS;
+      break;
 
-  res->cc = CC_SUCCESS;
+    default:
+      res->cc = CC_INVALID_CMD;
+      break;
+  }
+  pthread_mutex_unlock(&m_group_extension);
+
 }
 
 /*
@@ -4912,9 +4928,9 @@ ipmi_handle (unsigned char *request, unsigned char req_len,
       res->netfn_lun = NETFN_TRANSPORT_RES << 2;
       ipmi_handle_transport (request, req_len, response, res_len);
       break;
-    case NETFN_DCMI_REQ:
-      res->netfn_lun = NETFN_DCMI_RES << 2;
-      ipmi_handle_dcmi(request, req_len, response, res_len);
+    case NETFN_GROUP_EXTENSION_REQ:
+      res->netfn_lun = NETFN_GROUP_EXTENSION_RES << 2;
+      ipmi_handle_group_extension(request, req_len, response, res_len);
       break;
     case NETFN_OEM_REQ:
       res->netfn_lun = NETFN_OEM_RES << 2;
@@ -5099,6 +5115,7 @@ main (int argc, char **argv)
   pthread_mutex_init(&m_app, NULL);
   pthread_mutex_init(&m_storage, NULL);
   pthread_mutex_init(&m_transport, NULL);
+  pthread_mutex_init(&m_group_extension, NULL);
   pthread_mutex_init(&m_oem, NULL);
   pthread_mutex_init(&m_oem_1s, NULL);
   pthread_mutex_init(&m_oem_usb_dbg, NULL);
@@ -5141,6 +5158,7 @@ main (int argc, char **argv)
   pthread_mutex_destroy(&m_app);
   pthread_mutex_destroy(&m_storage);
   pthread_mutex_destroy(&m_transport);
+  pthread_mutex_destroy(&m_group_extension);
   pthread_mutex_destroy(&m_oem);
   pthread_mutex_destroy(&m_oem_1s);
   pthread_mutex_destroy(&m_oem_usb_dbg);

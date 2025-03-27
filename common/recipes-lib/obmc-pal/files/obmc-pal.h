@@ -556,6 +556,7 @@ int pal_fan_recovered_handle(int fan_num);
 void pal_inform_bic_mode(uint8_t fru, uint8_t mode);
 void pal_update_ts_sled(void);
 int pal_handle_dcmi(uint8_t fru, uint8_t *tbuf, uint8_t tlen, uint8_t *rbuf, uint8_t *rlen);
+int pal_handle_arm_sbmr(uint8_t fru, uint8_t *tbuf, uint8_t tlen, uint8_t *rbuf, uint8_t *rlen);
 int pal_is_fru_ready(uint8_t fru, uint8_t *status);
 int pal_is_slot_server(uint8_t fru);
 int pal_is_slot_support_update(uint8_t fru);

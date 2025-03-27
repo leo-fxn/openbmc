@@ -7,6 +7,7 @@ install_headers(
     'obmc-ras.h',
     'ras.h',
     'cper.hpp',
+    'nv-cper.hpp',
     subdir: 'openbmc')
 
 cc = meson.get_compiler('c')
@@ -17,6 +18,7 @@ libs = [
 srcs = files(
   'base64.c',
   'cper.cpp',
+  'nv-cper.cpp',
   'obmc-ras.c',
   'ras.c',
 )

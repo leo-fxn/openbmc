@@ -29,7 +29,7 @@ namespace cper
 
 constexpr auto CPER_DUMP_PATH = "/mnt/data/faultlog/cper/";
 constexpr auto CPER_CONVERT = "/usr/bin/cper-convert";
-constexpr auto CPER_DUMP_MAX_LIMIT = 1024;
+constexpr auto CPER_DUMP_MAX_LIMIT = 2048;
 
 constexpr auto INVALID_ID = 0xFF;
 constexpr auto INVALID_ERROR_DESC = "None";
@@ -104,5 +104,6 @@ int registerOemSectionHandlers(SectionHandlerRegistry& registry);
 int parseCperFile(const std::string& file, std::vector<std::string>& entries);
 int createCperDumpEntry(const uint8_t& payloadId, 
                         const uint8_t* data, const size_t& dataSize);
+void limitDumpEntries();
 
 } // namespace cper

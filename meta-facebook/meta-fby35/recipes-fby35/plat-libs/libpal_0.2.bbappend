@@ -21,6 +21,7 @@ DEPENDS += " \
     libobmc-sensors \
     libsensor-correction \
     libmisc-utils \
+    libras \
     "
 
 CFLAGS += " -Wall -Werror "

@@ -20,4 +20,5 @@ pal_deps += [
     dependency('libnl-wrapper'),
     dependency('libobmc-i2c'),
     dependency('libobmc-sensors'),
+    dependency('libras'),
     ]

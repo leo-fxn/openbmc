@@ -220,6 +220,7 @@ int pal_get_cpu_model(uint8_t fru);
 void pal_create_set_event_receiver(uint8_t slot);
 bool is_server_post_complete(uint8_t slot_id);
 int pal_get_retimer_type(uint8_t slot);
+int pal_handle_platfrom_error_record(uint8_t fru, uint8_t *tbuf, uint8_t tlen, uint8_t *rbuf, uint8_t *rlen);
 
 #ifdef __cplusplus
 } // extern "C"
