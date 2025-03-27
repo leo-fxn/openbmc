@@ -1,0 +1,153 @@
+From a967c5b5c06e817125fb9e6e1c8cd751507b9b31 Mon Sep 17 00:00:00 2001
+From: Eric Yang <eric.yang.wiwynn@gmail.com>
+Date: Wed, 26 Mar 2025 18:30:01 +0800
+Subject: [PATCH] Add retry mechanism with configurable Meson option
+
+Introduced a retry mechanism for mapper GetSubTree calls, allowing
+the number of retries to be configured via a Meson option.
+---
+ meson.build   |  2 ++
+ meson.options |  7 +++++++
+ settings.cpp  | 44 ++++++++++++++++++++++++++++++--------------
+ settings.hpp  |  7 +++++--
+ 4 files changed, 44 insertions(+), 16 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index e9e5729..2e5014f 100644
+--- a/meson.build
++++ b/meson.build
+@@ -67,6 +67,8 @@ conf.set(
+     get_option('check-fwupdate-before-do-transition').allowed(),
+ )
+ 
++conf.set('RETRY_ATTEMPTS', get_option('retry_attempts'))
++
+ configure_file(output: 'config.h', configuration: conf)
+ 
+ if (get_option('warm-reboot').allowed())
+diff --git a/meson.options b/meson.options
+index b4e1ad4..44a9add 100644
+--- a/meson.options
++++ b/meson.options
+@@ -153,3 +153,10 @@ option(
+     value: 'enabled',
+     description: 'Apply the Power policy right after BMC_READY',
+ )
++
++option(
++    'retry_attempts',
++    type : 'integer',
++    value : 1,
++    description : 'Number of retry attempts for GetSubTree',
++)
+diff --git a/settings.cpp b/settings.cpp
+index 0445092..88fd38d 100644
+--- a/settings.cpp
++++ b/settings.cpp
+@@ -17,7 +17,10 @@ using namespace sdbusplus::xyz::openbmc_project::Common::Error;
+ 
+ using ObjectMapper = sdbusplus::client::xyz::openbmc_project::ObjectMapper<>;
+ 
+-Objects::Objects(sdbusplus::bus_t& bus, const Path& root) : bus(bus)
++/**
++ * @brief Constructs Objects with retry mechanism for GetSubTree calls
++ */
++Objects::Objects(sdbusplus::bus_t& bus, const Path& root, int retries) : bus(bus)
+ {
+     std::vector<std::string> settingsIntfs = {autoRebootIntf, powerRestoreIntf};
+     auto depth = 0;
+@@ -33,22 +36,32 @@ Objects::Objects(sdbusplus::bus_t& bus, const Path& root) : bus(bus)
+     using MapperResponse = std::map<Path, std::map<Service, Interfaces>>;
+     MapperResponse result;
+ 
+-    try
++    for (int attempt = 1; attempt <= retries; ++attempt)
+     {
+-        auto response = bus.call(mapperCall);
++        try
++        {
++            auto response = bus.call(mapperCall);
++            response.read(result);
+ 
+-        response.read(result);
+-        if (result.empty())
++            if (result.empty())
++            {
++                error("Invalid response from mapper");
++                elog<InternalFailure>();
++            }
++
++            break;
++        }
++        catch (const sdbusplus::exception_t& e)
+         {
+-            error("Invalid response from mapper");
+-            elog<InternalFailure>();
++            error("Error in mapper GetSubTree at attempt {ATTEMPT}: {ERROR}",
++                "ATTEMPT", attempt, "ERROR", e);
++
++            if (attempt == retries)
++            {
++                elog<InternalFailure>();
++            }
+         }
+     }
+-    catch (const sdbusplus::exception_t& e)
+-    {
+-        error("Error in mapper GetSubTree: {ERROR}", "ERROR", e);
+-        elog<InternalFailure>();
+-    }
+ 
+     for (const auto& iter : result)
+     {
+@@ -128,8 +141,11 @@ Service Objects::service(const Path& path, const Interface& interface) const
+     return result.begin()->first;
+ }
+ 
+-HostObjects::HostObjects(sdbusplus::bus_t& bus, size_t id) :
+-    Objects(bus, Path("/xyz/openbmc_project/control/host") + std::to_string(id))
++/**
++ * @brief Constructs HostObjects with retry mechanism
++ */
++HostObjects::HostObjects(sdbusplus::bus_t& bus, size_t id, int retries) :
++    Objects(bus, Path("/xyz/openbmc_project/control/host") + std::to_string(id), retries)
+ {}
+ 
+ } // namespace settings
+diff --git a/settings.hpp b/settings.hpp
+index a4ec5cc..f849de8 100644
+--- a/settings.hpp
++++ b/settings.hpp
+@@ -5,6 +5,7 @@
+ #include <xyz/openbmc_project/Control/Power/RestorePolicy/client.hpp>
+ 
+ #include <string>
++#include "config.h"
+ 
+ namespace settings
+ {
+@@ -29,8 +30,9 @@ struct Objects
+      *
+      * @param[in] bus  - The Dbus bus object
+      * @param[in] root - The root object path
++     * @param[in] retries - Maximum retry attempts (default: RETRY_ATTEMPTS from config.h)
+      */
+-    explicit Objects(sdbusplus::bus_t& bus, const Path& root = defaultRoot);
++    explicit Objects(sdbusplus::bus_t& bus, const Path& root = defaultRoot, int retries = RETRY_ATTEMPTS);
+     Objects(const Objects&) = delete;
+     Objects& operator=(const Objects&) = delete;
+     Objects(Objects&&) = delete;
+@@ -76,8 +78,9 @@ struct HostObjects : public Objects
+      *
+      * @param[in] bus - The Dbus bus object
+      * @param[in] id  - The Host id
++      * @param[in] retries - Maximum retry attempts (default: RETRY_ATTEMPTS from config.h)
+      */
+-    HostObjects(sdbusplus::bus_t& bus, size_t id);
++    HostObjects(sdbusplus::bus_t& bus, size_t id, int retries = RETRY_ATTEMPTS);
+ };
+ 
+ } // namespace settings
+-- 
+2.25.1
+
