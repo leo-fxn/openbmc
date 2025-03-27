@@ -1,0 +1,134 @@
+From 5524b2d22f83673662d5a7c28c2e5533f02e1d43 Mon Sep 17 00:00:00 2001
+From: Jason Hsu <jason-hsu@quantatw.com>
+Date: Thu, 27 Mar 2025 13:57:49 +0800
+Subject: [PATCH] ARM: dts: aspeed: ventura: modify dts for Pilot stage
+
+1. Add RACK leak sensor cable sgpio(LEAK3, LEAK4) in dts.
+
+2. Add fan LED group in dts.
+
+3. Add VR temp sensor in dts.
+
+Signed-off-by: Jason Hsu <jason-hsu@quantatw.com>
+---
+ .../aspeed/aspeed-bmc-facebook-ventura.dts    | 76 +++++++++++++++++--
+ 1 file changed, 70 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
+index 4bf54ecb4d9a..7f99fcaac68b 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-ventura.dts
+@@ -569,6 +569,54 @@ led-84 {
+ 			default-state = "off";
+ 			gpios = <&tray_leds_g1_gpio 0 GPIO_ACTIVE_LOW>;
+ 		};
++
++		led-85 {
++			label = "fan0_ledd1_blue";
++			default-state = "off";
++			gpios = <&fan_leds_g1_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-86 {
++			label = "fan0_ledd2_blue";
++			default-state = "off";
++			gpios = <&fan_leds_g1_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-87 {
++			label = "fan0_ledd1_amber";
++			default-state = "off";
++			gpios = <&fan_leds_g1_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-88 {
++			label = "fan0_ledd2_amber";
++			default-state = "off";
++			gpios = <&fan_leds_g1_gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led-89 {
++			label = "fan1_ledd1_blue";
++			default-state = "off";
++			gpios = <&fan_leds_g2_gpio 0 GPIO_ACTIVE_LOW>;
++		};
++
++		led-90 {
++			label = "fan1_ledd2_blue";
++			default-state = "off";
++			gpios = <&fan_leds_g2_gpio 1 GPIO_ACTIVE_LOW>;
++		};
++
++		led-91 {
++			label = "fan1_ledd1_amber";
++			default-state = "off";
++			gpios = <&fan_leds_g2_gpio 4 GPIO_ACTIVE_LOW>;
++		};
++
++		led-92 {
++			label = "fan1_ledd2_amber";
++			default-state = "off";
++			gpios = <&fan_leds_g2_gpio 5 GPIO_ACTIVE_LOW>;
++		};
+ 	};
+ 
+ 	memory@80000000 {
+@@ -898,7 +946,7 @@ eeprom@56 {
+ 				reg = <0x56>;
+ 			};
+ 
+-			gpio@21 {
++			fan_leds_g1_gpio: gpio@21 {
+ 				compatible = "nxp,pca9555";
+ 				reg = <0x21>;
+ 				gpio-controller;
+@@ -928,7 +976,7 @@ eeprom@56 {
+ 				reg = <0x56>;
+ 			};
+ 
+-			gpio@21 {
++			fan_leds_g2_gpio: gpio@21 {
+ 				compatible = "nxp,pca9555";
+ 				reg = <0x21>;
+ 				gpio-controller;
+@@ -1049,6 +1097,22 @@ &i2c4 {
+ &i2c5 {
+ 	status = "okay";
+ 
++    // VR TEMP U399
++	temperature-sensor@4c {
++		compatible = "ti,tmp75";
++		reg = <0x4c>;
++	};
++    // VR TEMP U397
++	temperature-sensor@4d {
++		compatible = "ti,tmp75";
++		reg = <0x4d>;
++	};
++    // BRICK TEMP U398
++	temperature-sensor@4e {
++		compatible = "ti,tmp75";
++		reg = <0x4e>;
++	};
++
+ 	temperature-sensor@4f {
+ 		compatible = "ti,tmp75";
+ 		reg = <0x4f>;
+@@ -1260,10 +1324,10 @@ &sgpiom0 {
+ 	"host0-ready","WATER_VALVE_CLOSED_N",
+ 	"","FM_MDIO_SW_SEL_PLD",
+ 	"","FM_88E6393X_BIN_UPDATE_EN_N",
+-	"","",
+-	"","",
+-	"","",
+-	"","",
++	"LEAK3_DETECT","",
++	"LEAK4_DETECT","",
++	"RETURN_CNTL_FB_D_R","",
++	"SUPPLY_CNTL_FB_D_R","",
+     /*B0 - B7*/
+ 	"IT_STOP_PUMP_SPARE_2","",
+ 	"IT_STOP_PUMP_2","",
+-- 
+2.34.1
+
