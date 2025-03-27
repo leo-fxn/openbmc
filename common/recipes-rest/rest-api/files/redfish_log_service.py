@@ -60,7 +60,9 @@ class RedfishLogService:
         self, fru_name: str
     ) -> Sequence[Dict[str, str]]:
         log_service_id = "SEL"
-        if fru_name == "1" and rest_pal_legacy.pal_get_num_slots() == 1:
+        if fru_name == "mb" or (
+            fru_name == "1" and rest_pal_legacy.pal_get_num_slots() == 1
+        ):
             server_name = "all"
         else:
             server_name = self.get_server_name(fru_name)
@@ -81,10 +83,10 @@ class RedfishLogService:
         for entry in raw_sel_entries["Logs"]:
             if entry["MESSAGE"].startswith("SEL Entry"):
                 redfish_sel_entry = {}
-                redfish_sel_entry[
-                    "@odata.id"
-                ] = "/redfish/v1/Systems/{}/LogServices/{}/Entries/{}".format(
-                    fru_name, log_service_id, index
+                redfish_sel_entry["@odata.id"] = (
+                    "/redfish/v1/Systems/{}/LogServices/{}/Entries/{}".format(
+                        fru_name, log_service_id, index
+                    )
                 )
                 redfish_sel_entry["@odata.type"] = "#LogEntry.v1_10_0.LogEntry"
                 datetime_object = datetime.strptime(
