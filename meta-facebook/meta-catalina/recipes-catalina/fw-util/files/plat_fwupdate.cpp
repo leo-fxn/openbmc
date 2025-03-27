@@ -60,9 +60,14 @@ public:
     }
 
     // VR Component
-    static VrComponent pdb_vr_n1("pdb", "vr_n1", "PDB_P12V_N1_VR");
-    static VrComponent pdb_vr_n2("pdb", "vr_n2", "PDB_P12V_N2_VR");
-    static VrComponent pdb_vr_aux("pdb", "vr_aux", "PDB_P12V_AUX_VR");
+    memset(value, 0, MAX_VALUE_LEN);
+    kv_get("pdb_vr_type", value, NULL, 0);
+    if (std::string(value) == "raa")
+    {
+      static VrComponent pdb_vr_n1("pdb", "vr_n1", "PDB_P12V_N1_VR");
+      static VrComponent pdb_vr_n2("pdb", "vr_n2", "PDB_P12V_N2_VR");
+      static VrComponent pdb_vr_aux("pdb", "vr_aux", "PDB_P12V_AUX_VR");
+    }
   }
 };
 

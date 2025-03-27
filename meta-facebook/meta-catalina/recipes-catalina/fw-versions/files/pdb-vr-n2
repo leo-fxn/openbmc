@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# If 19-0063 exist, Delta brick is uesd on this PDB board.
+# brick does not have firmware version, skip VR version check here
+if [ "$(i2cdetect -y -q 19 0x63 0x63 | awk '/60:/ {print $2}')" != "--" ]; then
+    exit 0
+fi
+
 version=$(fw-util pdb --version vr_n2 | awk -F ',' '{print $1}' | awk -F ' ' '{print $3, $4}')
 echo "version: $version"
 
