@@ -1,0 +1,107 @@
+From bda3059ebfcf9bbf21e52422c95651f08f969767 Mon Sep 17 00:00:00 2001
+From: Igor Kanyuka <ifelmail@gmail.com>
+Date: Wed, 26 Mar 2025 16:20:54 +0000
+Subject: [PATCH 207/207] Show mapped and raw Dbus messages in Log services
+
+Currently we have a flag, that enables mapping in the code, and if the
+mapping is enabled, it will try to map an entry, and if it fails, it
+will return an error to the requester. If it's disabled, it will read
+data from DBus event and put to the log entry.
+
+Testing:
+Ran it in QEMU, fetched logs and raw and mapped are shown [1].
+
+1 Logs:
+```
+    {
+      "@odata.id": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/14",
+      "@odata.type": "#LogEntry.v1_9_0.LogEntry",
+      "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/14/attachment",
+      "Created": "2025-03-26T15:13:30.720+00:00",
+      "EntryType": "Event",
+      "Id": "14",
+      "Message": "Host0 state is off",
+      "Modified": "2025-03-26T15:13:30.720+00:00",
+      "Name": "System Event Log Entry",
+      "Resolved": false,
+      "Severity": "OK"
+    },
+    {
+      "@odata.id": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/15",
+      "@odata.type": "#LogEntry.v1_9_0.LogEntry",
+      "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/EventLog/Entries/15/attachment",
+      "Created": "2025-03-26T15:18:12.185+00:00",
+      "EntryType": "Event",
+      "Id": "15",
+      "Message": "Sensor 'BIC_JI_SENSOR_MB_RETIMER_TEMP_C' reading of 10.2 (xyz.openbmc_project.Sensor.Value.Unit.DegreesC) is below the 15.5 lower critical threshold.",
+      "MessageArgs": [
+        "BIC_JI_SENSOR_MB_RETIMER_TEMP_C",
+        "10.2",
+        "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
+        "15.5"
+      ],
+      "MessageId": "SensorEvent.1.0.ReadingBelowLowerCriticalThreshold",
+      "Modified": "2025-03-26T15:18:12.185+00:00",
+      "Name": "System Event Log Entry",
+      "Resolution": "Check the condition of the resources listed in RelatedItem.",
+      "Resolved": false,
+      "Severity": "Critical"
+    }
+  ],
+  "Members@odata.count": 15,
+  "Name": "System Event Log Entries"
+```
+
+Change-Id: I84258ce334e1572d5c4debd65d9bb5ffb89924df
+Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
+---
+ redfish-core/lib/log_services.hpp | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
+
+diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
+index d9d68ee5..87b44529 100644
+--- a/redfish-core/lib/log_services.hpp
++++ b/redfish-core/lib/log_services.hpp
+@@ -1445,26 +1445,28 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+     }
+     DbusEventLogEntry entry = optEntry.value();
+ 
++    bool useFallbackMapping = true;
+     if constexpr (BMCWEB_REDFISH_ALLOW_DBUS_MESSAGES_MAPPING)
+     {
+         EventLogObjectsType eventLogObjectsType;
+         auto success =
+             dbus_registries_map::dbusEventLogEntryToEventLogObjectsType(
+                 entry, eventLogObjectsType);
+-        if (!success)
++        if (success)
+         {
+-            messages::internalError(asyncResp->res);
+-            return false;
++            objectToFillOut["Message"] = std::move(eventLogObjectsType.message);
++            objectToFillOut["MessageId"] =
++                std::move(eventLogObjectsType.messageId);
++            objectToFillOut["MessageArgs"] =
++                std::move(eventLogObjectsType.messageArgs);
++            objectToFillOut["Resolution"] =
++                std::move(eventLogObjectsType.resolution);
++            objectToFillOut["Severity"] =
++                std::move(eventLogObjectsType.severity);
++            useFallbackMapping = false;
+         }
+-        objectToFillOut["Message"] = std::move(eventLogObjectsType.message);
+-        objectToFillOut["MessageId"] = std::move(eventLogObjectsType.messageId);
+-        objectToFillOut["MessageArgs"] =
+-            std::move(eventLogObjectsType.messageArgs);
+-        objectToFillOut["Resolution"] =
+-            std::move(eventLogObjectsType.resolution);
+-        objectToFillOut["Severity"] = std::move(eventLogObjectsType.severity);
+     }
+-    else
++    if (useFallbackMapping)
+     {
+         objectToFillOut["Message"] = entry.Message;
+         if ((entry.Resolution != nullptr) && !entry.Resolution->empty())
+-- 
+2.45.3
+

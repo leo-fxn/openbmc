@@ -1,7 +1,7 @@
-From b1cc90c3da8eb012d83c3421ade22586ce3f4210 Mon Sep 17 00:00:00 2001
+From bf046f054239a1ae45393ff0a5cf92bfb0e99ab8 Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Thu, 13 Mar 2025 08:52:38 +0000
-Subject: [PATCH 05/11] Fix crash on requesting all events if dbus logging
+Subject: [PATCH 200/207] Fix crash on requesting all events if dbus logging
  enabled
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -267,11 +267,11 @@ root@bmc:~# curl -ks -H "Content-Type: application/json" -H "X-Auth-Token: $toke
 Change-Id: I231b2266ccee27e83363cd1363c130d3fe8f1ed3
 Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
 ---
- redfish-core/lib/log_services.hpp | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ redfish-core/lib/log_services.hpp | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
 diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
-index fd76da51..2db5d208 100644
+index fd76da51..d767341f 100644
 --- a/redfish-core/lib/log_services.hpp
 +++ b/redfish-core/lib/log_services.hpp
 @@ -1426,7 +1426,7 @@ static LogParseError fillEventLogEntryJson(
@@ -300,7 +300,7 @@ index fd76da51..2db5d208 100644
  }
  
  inline void afterLogEntriesGetManagedObjects(
-@@ -1507,8 +1508,13 @@ inline void afterLogEntriesGetManagedObjects(
+@@ -1507,13 +1508,18 @@ inline void afterLogEntriesGetManagedObjects(
                                              propertyMap.second);
              }
          }
@@ -316,6 +316,12 @@ index fd76da51..2db5d208 100644
      }
  
      std::ranges::sort(entriesArray, [](const nlohmann::json& left,
+                                        const nlohmann::json& right) {
+-        return (left["Id"] <= right["Id"]);
++        return redfish::json_util::objectKeyCmp("Id", left, right);
+     });
+     asyncResp->res.jsonValue["Members@odata.count"] = entriesArray.size();
+     asyncResp->res.jsonValue["Members"] = std::move(entriesArray);
 -- 
-2.47.1
+2.45.3
 

@@ -1,7 +1,7 @@
-From cfe47de48a66330f10099608510c244fe6cd2eff Mon Sep 17 00:00:00 2001
+From 3860838ea776554186c23cb8d6d630c0cc254f57 Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Mon, 24 Feb 2025 12:50:55 +0000
-Subject: [PATCH 08/11] Add generation for Vendor registries and a DBus to RF
+Subject: [PATCH 203/207] Add generation for Vendor registries and a DBus to RF
  map
 
 The system consumes Log events sent over DBus, but these events
@@ -527,5 +527,5 @@ index 8b03a6b3..20d3b6d3 100755
  
  if __name__ == "__main__":
 -- 
-2.47.1
+2.45.3
 

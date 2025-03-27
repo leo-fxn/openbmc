@@ -1,7 +1,7 @@
-From b364e6ecd13752bed40ee297d837b24fd0b37617 Mon Sep 17 00:00:00 2001
+From b0bb98ae8ef557c69f22d003f26256fce80cd5fb Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Mon, 24 Feb 2025 15:59:10 +0000
-Subject: [PATCH 11/11] Map DBus event to RF MessageID and parse args
+Subject: [PATCH 206/207] Map DBus event to RF MessageID and parse args
 
 There is a generated map that contains DBus event name and corresponding
 RF info - Registry, MessageID within the registry and names of arguments
@@ -88,20 +88,20 @@ Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
  include/dbus_utility.hpp                      |   4 +-
  meson.build                                   |   2 +
  meson.options                                 |  15 ++
- redfish-core/include/event_log.hpp            |  11 +-
+ redfish-core/include/event_log.hpp            |  13 +-
  .../include/event_logs_object_type.hpp        |   5 +-
  .../include/utils/dbus_event_log_entry.hpp    |   4 +
  .../utils/dbus_registries_map_utils.hpp       |  27 ++++
- redfish-core/lib/log_services.hpp             |  48 ++++--
+ redfish-core/lib/log_services.hpp             |  49 ++++--
  redfish-core/src/dbus_log_watcher.cpp         |  27 +---
- redfish-core/src/event_log.cpp                |  39 ++---
- redfish-core/src/filesystem_log_watcher.cpp   |  23 ++-
- redfish-core/src/subscription.cpp             |   9 +-
- .../src/utils/dbus_registries_map_utils.cpp   | 118 +++++++++++++++
+ redfish-core/src/event_log.cpp                |  42 ++----
+ redfish-core/src/filesystem_log_watcher.cpp   |  24 ++-
+ redfish-core/src/subscription.cpp             |  10 +-
+ .../src/utils/dbus_registries_map_utils.cpp   | 121 +++++++++++++++
  .../include/dbus_log_watcher_test.cpp         |  39 +++--
- test/redfish-core/include/event_log_test.cpp  |  30 +---
- test/redfish-core/lib/log_services_test.cpp   | 137 ++++++++++++++++++
- 17 files changed, 429 insertions(+), 110 deletions(-)
+ test/redfish-core/include/event_log_test.cpp  |  32 +---
+ test/redfish-core/lib/log_services_test.cpp   | 141 ++++++++++++++++++
+ 17 files changed, 440 insertions(+), 116 deletions(-)
  create mode 100644 redfish-core/include/utils/dbus_registries_map_utils.hpp
  create mode 100644 redfish-core/src/utils/dbus_registries_map_utils.cpp
  create mode 100644 test/redfish-core/lib/log_services_test.cpp
@@ -187,10 +187,10 @@ index 981fa8b8..75834230 100644
  option(
      'redfish-oem-manager-fan-data',
 diff --git a/redfish-core/include/event_log.hpp b/redfish-core/include/event_log.hpp
-index c902a09d..e30abc1c 100644
+index c902a09d..bda08858 100644
 --- a/redfish-core/include/event_log.hpp
 +++ b/redfish-core/include/event_log.hpp
-@@ -1,5 +1,7 @@
+@@ -1,11 +1,11 @@
  #pragma once
  
 +#include "event_logs_object_type.hpp"
@@ -198,7 +198,13 @@ index c902a09d..e30abc1c 100644
  #include <nlohmann/json.hpp>
  
  #include <cstdint>
-@@ -20,11 +22,10 @@ int getEventLogParams(const std::string& logEntry, std::string& timestamp,
+-#include <span>
+ #include <string>
+-#include <string_view>
+ #include <vector>
+ 
+ namespace redfish
+@@ -20,11 +20,10 @@ int getEventLogParams(const std::string& logEntry, std::string& timestamp,
                        std::string& messageID,
                        std::vector<std::string>& messageArgs);
  
@@ -263,7 +269,7 @@ index 5ce3b6ff..7c2f4f27 100644
          "Path", entry.Path,
 diff --git a/redfish-core/include/utils/dbus_registries_map_utils.hpp b/redfish-core/include/utils/dbus_registries_map_utils.hpp
 new file mode 100644
-index 00000000..11517fbd
+index 00000000..f028f65c
 --- /dev/null
 +++ b/redfish-core/include/utils/dbus_registries_map_utils.hpp
 @@ -0,0 +1,27 @@
@@ -289,16 +295,24 @@ index 00000000..11517fbd
 +
 +std::optional<MappedInfo> getMappedInfo(const DbusEventLogEntry& entry);
 +
-+bool DbusEventLogEntryToEventLogObjectsType(const DbusEventLogEntry& entry,
++bool dbusEventLogEntryToEventLogObjectsType(const DbusEventLogEntry& entry,
 +                                            EventLogObjectsType& event);
 +
 +} // namespace dbus_registries_map
 +} // namespace redfish
 diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
-index 2db5d208..6c5cbbe8 100644
+index d767341f..d9d68ee5 100644
 --- a/redfish-core/lib/log_services.hpp
 +++ b/redfish-core/lib/log_services.hpp
-@@ -25,6 +25,7 @@
+@@ -10,6 +10,7 @@
+ #include "dbus_singleton.hpp"
+ #include "dbus_utility.hpp"
+ #include "error_messages.hpp"
++#include "event_logs_object_type.hpp"
+ #include "generated/enums/log_entry.hpp"
+ #include "generated/enums/log_service.hpp"
+ #include "http_body.hpp"
+@@ -25,6 +26,7 @@
  #include "task.hpp"
  #include "task_messages.hpp"
  #include "utils/dbus_event_log_entry.hpp"
@@ -306,7 +320,7 @@ index 2db5d208..6c5cbbe8 100644
  #include "utils/dbus_utils.hpp"
  #include "utils/json_utils.hpp"
  #include "utils/query_param.hpp"
-@@ -1436,18 +1437,51 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+@@ -1436,18 +1438,51 @@ inline bool fillEventLogLogEntryFromPropertyMap(
  
      if (!optEntry.has_value())
      {
@@ -321,7 +335,7 @@ index 2db5d208..6c5cbbe8 100644
 +    {
 +        EventLogObjectsType eventLogObjectsType;
 +        auto success =
-+            dbus_registries_map::DbusEventLogEntryToEventLogObjectsType(
++            dbus_registries_map::dbusEventLogEntryToEventLogObjectsType(
 +                entry, eventLogObjectsType);
 +        if (!success)
 +        {
@@ -361,7 +375,7 @@ index 2db5d208..6c5cbbe8 100644
      objectToFillOut["Resolved"] = entry.Resolved;
      std::optional<bool> notifyAction =
          getProviderNotifyAction(entry.ServiceProviderNotify);
-@@ -1455,13 +1489,7 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+@@ -1455,13 +1490,7 @@ inline bool fillEventLogLogEntryFromPropertyMap(
      {
          objectToFillOut["ServiceProviderNotified"] = *notifyAction;
      }
@@ -375,7 +389,7 @@ index 2db5d208..6c5cbbe8 100644
      objectToFillOut["Created"] =
          redfish::time_utils::getDateTimeUintMs(entry.Timestamp);
      objectToFillOut["Modified"] =
-@@ -1470,7 +1498,7 @@ inline bool fillEventLogLogEntryFromPropertyMap(
+@@ -1470,7 +1499,7 @@ inline bool fillEventLogLogEntryFromPropertyMap(
      {
          objectToFillOut["AdditionalDataURI"] = boost::urls::format(
              "/redfish/v1/Systems/{}/LogServices/EventLog/Entries/{}/attachment",
@@ -385,7 +399,7 @@ index 2db5d208..6c5cbbe8 100644
      return true;
  }
 diff --git a/redfish-core/src/dbus_log_watcher.cpp b/redfish-core/src/dbus_log_watcher.cpp
-index c6ca3811..00e04687 100644
+index c6ca3811..77390bdc 100644
 --- a/redfish-core/src/dbus_log_watcher.cpp
 +++ b/redfish-core/src/dbus_log_watcher.cpp
 @@ -7,13 +7,14 @@
@@ -430,16 +444,34 @@ index c6ca3811..00e04687 100644
 +
 +    const DbusEventLogEntry& entry = optEntry.value();
 +
-+    return dbus_registries_map::DbusEventLogEntryToEventLogObjectsType(
++    return dbus_registries_map::dbusEventLogEntryToEventLogObjectsType(
 +        entry, event);
  }
  
  static void dbusEventLogMatchHandlerSingleEntry(
 diff --git a/redfish-core/src/event_log.cpp b/redfish-core/src/event_log.cpp
-index a4e78507..0c117bb9 100644
+index a4e78507..07a2803b 100644
 --- a/redfish-core/src/event_log.cpp
 +++ b/redfish-core/src/event_log.cpp
-@@ -121,35 +121,15 @@ int getEventLogParams(const std::string& logEntry, std::string& timestamp,
+@@ -15,8 +15,8 @@ limitations under the License.
+ */
+ #include "event_log.hpp"
+ 
++#include "event_logs_object_type.hpp"
+ #include "logging.hpp"
+-#include "registries.hpp"
+ #include "str_utility.hpp"
+ 
+ #include <nlohmann/json.hpp>
+@@ -26,7 +26,6 @@ limitations under the License.
+ #include <cstdint>
+ #include <ctime>
+ #include <iomanip>
+-#include <span>
+ #include <sstream>
+ #include <string>
+ #include <string_view>
+@@ -121,35 +120,15 @@ int getEventLogParams(const std::string& logEntry, std::string& timestamp,
      return 0;
  }
  
@@ -480,7 +512,7 @@ index a4e78507..0c117bb9 100644
      std::size_t dot = timestamp.find_first_of('.');
      std::size_t plus = timestamp.find_first_of('+', dot);
      if (dot != std::string::npos && plus != std::string::npos)
-@@ -160,13 +140,12 @@ int formatEventLogEntry(uint64_t eventId, const std::string& logEntryID,
+@@ -160,13 +139,12 @@ int formatEventLogEntry(uint64_t eventId, const std::string& logEntryID,
      // Fill in the log entry with the gathered data
      logEntryJson["EventId"] = std::to_string(eventId);
  
@@ -499,7 +531,7 @@ index a4e78507..0c117bb9 100644
  
  } // namespace event_log
 diff --git a/redfish-core/src/filesystem_log_watcher.cpp b/redfish-core/src/filesystem_log_watcher.cpp
-index 41f2c6a4..9950a2d8 100644
+index 41f2c6a4..a58bfa0c 100644
 --- a/redfish-core/src/filesystem_log_watcher.cpp
 +++ b/redfish-core/src/filesystem_log_watcher.cpp
 @@ -4,6 +4,7 @@
@@ -510,7 +542,15 @@ index 41f2c6a4..9950a2d8 100644
  
  #include <sys/inotify.h>
  
-@@ -92,7 +93,27 @@ void FilesystemLogWatcher::readEventLogsFromFile()
+@@ -19,6 +20,7 @@
+ #include <fstream>
+ #include <functional>
+ #include <string>
++#include <string_view>
+ #include <vector>
+ 
+ namespace redfish
+@@ -92,7 +94,27 @@ void FilesystemLogWatcher::readEventLogsFromFile()
              continue;
          }
  
@@ -540,10 +580,18 @@ index 41f2c6a4..9950a2d8 100644
  
      if (eventRecords.empty())
 diff --git a/redfish-core/src/subscription.cpp b/redfish-core/src/subscription.cpp
-index 1ba27f5d..7c61426f 100644
+index 1ba27f5d..c0eb9c7c 100644
 --- a/redfish-core/src/subscription.cpp
 +++ b/redfish-core/src/subscription.cpp
-@@ -223,13 +223,8 @@ void Subscription::filterAndSendEventLogs(
+@@ -49,7 +49,6 @@ limitations under the License.
+ #include <format>
+ #include <functional>
+ #include <memory>
+-#include <span>
+ #include <string>
+ #include <string_view>
+ #include <utility>
+@@ -223,13 +222,8 @@ void Subscription::filterAndSendEventLogs(
  
          nlohmann::json::object_t bmcLogEntry;
          uint64_t memberId = 0;
@@ -561,15 +609,16 @@ index 1ba27f5d..7c61426f 100644
          {
 diff --git a/redfish-core/src/utils/dbus_registries_map_utils.cpp b/redfish-core/src/utils/dbus_registries_map_utils.cpp
 new file mode 100644
-index 00000000..b88e2e87
+index 00000000..5f036526
 --- /dev/null
 +++ b/redfish-core/src/utils/dbus_registries_map_utils.cpp
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,121 @@
 +#include "utils/dbus_registries_map_utils.hpp"
 +
-+#include "event_log.hpp"
++#include "event_logs_object_type.hpp"
 +#include "external_registries_map.hpp"
 +#include "logging.hpp"
++#include "registries.hpp"
 +#include "utils/dbus_event_log_entry.hpp"
 +#include "utils/time_utils.hpp"
 +
@@ -578,7 +627,9 @@ index 00000000..b88e2e87
 +#include <cstring>
 +#include <format>
 +#include <optional>
++#include <string>
 +#include <string_view>
++#include <utility>
 +#include <vector>
 +
 +namespace redfish
@@ -619,7 +670,7 @@ index 00000000..b88e2e87
 +                      args};
 +}
 +
-+bool DbusEventLogEntryToEventLogObjectsType(const DbusEventLogEntry& entry,
++bool dbusEventLogEntryToEventLogObjectsType(const DbusEventLogEntry& entry,
 +                                            EventLogObjectsType& event)
 +{
 +    auto optDBusToRfInfo = getMappedInfo(entry);
@@ -761,9 +812,23 @@ index c2a33dff..48b90236 100644
          {"Id", DbusVariantType(static_cast<uint32_t>(1838))},
          {"Message", DbusVariantType("")},
 diff --git a/test/redfish-core/include/event_log_test.cpp b/test/redfish-core/include/event_log_test.cpp
-index c51eee6e..a9ffd3d0 100644
+index c51eee6e..291c7c14 100644
 --- a/test/redfish-core/include/event_log_test.cpp
 +++ b/test/redfish-core/include/event_log_test.cpp
+@@ -1,4 +1,5 @@
+ #include "event_log.hpp"
++#include "event_logs_object_type.hpp"
+ 
+ #include <nlohmann/json.hpp>
+ 
+@@ -7,7 +8,6 @@
+ #include <cstdint>
+ #include <ctime>
+ #include <string>
+-#include <string_view>
+ #include <vector>
+ 
+ #include <gmock/gmock.h>
 @@ -126,19 +126,19 @@ TEST(RedfishEventLog, GetEventLogParamsFailNoComma)
  
  TEST(RedfishEventLog, FormatEventLogEntrySuccess)
@@ -816,16 +881,20 @@ index c51eee6e..a9ffd3d0 100644
  } // namespace redfish::event_log
 diff --git a/test/redfish-core/lib/log_services_test.cpp b/test/redfish-core/lib/log_services_test.cpp
 new file mode 100644
-index 00000000..a70b33bd
+index 00000000..7c5277c6
 --- /dev/null
 +++ b/test/redfish-core/lib/log_services_test.cpp
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,141 @@
++#include "bmcweb_config.h"
++
++#include "async_resp.hpp"
 +#include "dbus_utility.hpp"
 +#include "redfish-core/lib/log_services.hpp"
 +
 +#include <nlohmann/json.hpp>
 +
 +#include <cstdint>
++#include <memory>
 +#include <string>
 +#include <unordered_map>
 +
@@ -958,5 +1027,5 @@ index 00000000..a70b33bd
 +}
 +} // namespace redfish
 -- 
-2.47.1
+2.45.3
 

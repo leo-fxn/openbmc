@@ -1,7 +1,7 @@
-From 6319df2b32813aa3231b6ceaeed3fb09d1c29ee7 Mon Sep 17 00:00:00 2001
+From 06c6d7456ac64955316834f1dd8819171fa8be20 Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Thu, 27 Feb 2025 22:13:03 -0500
-Subject: [PATCH 09/11] registries: generate from phosphor-dbus-interfaces
+Subject: [PATCH 204/207] registries: generate from phosphor-dbus-interfaces
 
 Add meson.build support for generating message registry headers from
 phosphor-dbus-interfaces supplied registries.  Add wrap file for
@@ -133,5 +133,5 @@ index 00000000..935a8b25
 +url = https://github.com/openbmc/phosphor-dbus-interfaces.git
 +revision = HEAD
 -- 
-2.47.1
+2.45.3
 
