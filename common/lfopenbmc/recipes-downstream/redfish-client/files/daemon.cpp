@@ -322,11 +322,17 @@ struct EventsDbusObject : IEventsDbusObject
             return;
         }
         auto& entryId = entry.getId().value();
-        if (seenEntries.find(entryId) != seenEntries.end())
+        if (!entry.getCreated().hasValue())
         {
             return;
         }
-        seenEntries.insert(entryId);
+        auto& timestamp = entry.getCreated().value();
+        auto it = seenEntries.find(entryId);
+        if (it != seenEntries.end() && it->second == timestamp)
+        {
+            return;
+        }
+        seenEntries[entryId] = timestamp;
         try
         {
             auto& maybeRedfishSeverity = entry.getSeverity();
@@ -387,7 +393,7 @@ struct EventsDbusObject : IEventsDbusObject
     }
 
     std::string url;
-    std::unordered_set<std::string> seenEntries;
+    std::unordered_map<std::string, std::string> seenEntries;
 };
 
 std::shared_ptr<IEventsDbusObject> createEventsDbusObjectForTest()
