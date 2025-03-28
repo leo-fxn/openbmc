@@ -1,13 +1,11 @@
 #!/bin/bash
-set -e
 
 eid=10
-max_retry_count=10
-retry_delay_sec=3
+max_retry_count=3
+retry_delay_sec=1
 
 pwr_asci_good_gpio_chip="gpiochip2"
 pwr_asci_good_line=92
-pwr_asci_good_timeout=300
 
 component_names=(
     ["1"]="Minerva_Aegis_vr_osfp_p3v3"
@@ -23,25 +21,20 @@ component_names=(
     ["11"]="Minerva_Aegis_vr_cpu_p0v8_vdda_pcie"
 )
 
-echo "Waiting for GPIO $pwr_asci_good_gpio_chip $pwr_asci_good_line to go high..."
-for ((elapsed_time=0; elapsed_time<pwr_asci_good_timeout; elapsed_time++)); do
-    gpio_value=$(gpioget "$pwr_asci_good_gpio_chip" "$pwr_asci_good_line" 2>/dev/null || echo "0")
 
-    if [ "$gpio_value" -eq 1 ]; then
-        echo "GPIO $pwr_asci_good_gpio_chip $pwr_asci_good_line is high"
-        break
-    fi
+gpio_value=$(gpioget "$pwr_asci_good_gpio_chip" "$pwr_asci_good_line" 2>/dev/null)
+gpioget_status=$?
 
-    if [ "$elapsed_time" -eq "$((pwr_asci_good_timeout - 1))" ]; then
-        echo "Failed to set version: Timeout ($pwr_asci_good_timeout sec) waiting for GPIO $pwr_asci_good_gpio_chip $pwr_asci_good_line high"
+if [ $gpioget_status -eq 0 ]; then
+    echo "power-asci-good value: $gpio_value"
+    
+    if [ -n "$gpio_value" ] && [ "$gpio_value" -eq 0 ] 2>/dev/null; then
+        echo "Failed to set version: the power-asci-good is not high"
         exit 1
     fi
-
-    sleep 1
-done
-
-echo "Waiting for Aegis BIC to be ready..."
-sleep 3
+else
+    echo "gpioget failed, skipping check"
+fi
 
 version=""
 for ((i=1; i<=max_retry_count; i++)); do
