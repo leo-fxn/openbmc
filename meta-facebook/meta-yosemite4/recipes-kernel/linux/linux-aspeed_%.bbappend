@@ -30,5 +30,6 @@ SRC_URI += " \
     file://2012-ubifs-add-check-for-crypto_shash_tfm_digest.patch \
     file://2013-ubifs-Don-t-add-xattr-inode-into-orphan-area.patch \
     file://2014-ubifs-Remove-insert_dead_orphan-from-replaying-orpha.patch \
+    file://2015-ncsi-Add-a-apply-mac-stage-for-mellanox-NICs.patch \
     file://yosemite4-local.cfg \
 "
