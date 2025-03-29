@@ -14,7 +14,14 @@ curl_dep = dependency('libcurl')
 boost_dep = dependency('boost', required: true)
 dl_dep = dependency('dl')
 
-dsp_spec_jsondir = meson.project_source_root() / 'DSP8010_2024.4' / 'json-schema'
+redfish_schema_dep = dependency('redfish-schema-pack', native: true)
+dsp_spec_jsondir = ''.join(
+    [
+        meson.get_external_property('sys_root', '', native: true),
+        '/',
+        redfish_schema_dep.get_variable('schema_dir'),
+    ],
+) / 'json-schema'
 
 subdir('redfish-binding')
 

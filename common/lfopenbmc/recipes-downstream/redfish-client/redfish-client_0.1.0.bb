@@ -14,6 +14,7 @@ DEPENDS += " \
     nlohmann-json \
     phosphor-dbus-interfaces \
     phosphor-logging \
+    redfish-schema-pack-native \
     sdbusplus \
     ${@bb.utils.contains('PTEST_ENABLED', '1', 'gtest', '', d)} \
 "
@@ -39,7 +40,6 @@ SRC_URI = " \
     file://source.cpp \
     file://source.hpp \
     file://xyz.openbmc_project.RedfishClient.service \
-    https://www.dmtf.org/sites/default/files/standards/documents/DSP8010_2024.4.zip;sha256sum=f364f36046897ffb5957f7b19378efd4365648df09b888da679b8d1a6c6af19d \
 "
 
 EXTRA_OEMESON = " \

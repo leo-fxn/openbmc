@@ -1,0 +1,5 @@
+[wrap-git]
+url = https://github.com/DMTF/Redfish-Publications
+revision = 5cc369c5c0fb39698259071b7a597f7504b24e55
+
+patch_directory = redfish-schema-pack
