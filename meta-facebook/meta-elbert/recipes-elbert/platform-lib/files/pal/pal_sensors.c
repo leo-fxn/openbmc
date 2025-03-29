@@ -2129,7 +2129,7 @@ fan_sys_airflow_cfg_check(void) {
     }
   }
 
-  // PIM8DDR and PIM16Q assumed equivalent 
+  // PIM8DDR and PIM16Q assumed equivalent
   if (num_pim16q == 8 && num_pim8ddm == 0 && num_psu == 2) {
     return CONFIG_8PIM16Q_0PIM8DDM_2PSU;
   } else if (num_pim16q == 5 && num_pim8ddm == 3 && num_psu == 2) {
@@ -2140,7 +2140,7 @@ fan_sys_airflow_cfg_check(void) {
     return CONFIG_0PIM16Q_8PIM8DDM_4PSU;
   } else if (num_pim8ddr > 0) {
     return CONFIG_PIM8DDR_2PSU;
-  } else {                      
+  } else {
     return CONFIG_UNKNOWN;
   }
 }
