@@ -82,23 +82,26 @@ userver_power_off() {
 
 userver_reset() {
     #
-    # write 0 to trigger CPLD power cycling COMe
+    # write 0 to trigger CPLD power cycling COMe + I210 + SSD
     # then this bit will auto set to 1 after Power cycle finish
-    if ! sysfs_write "$PWR_COME_CYCLE_N" 0; then
+    #
+    if ! sysfs_write "$PWR_COME_CYCLE_DEV_N" 0; then
         return 1
     fi
 
     timeout=10 #timeout 10 second
-    until [[ $(head -n 1 < "$PWR_COME_CYCLE_N" 2>/dev/null) -eq 1 ]] \
+    until [[ $(head -n 1 < "$PWR_COME_CYCLE_DEV_N" 2>/dev/null) -eq 1 ]] \
         || [ $((timeout)) -lt 0 ]; do
         sleep 1
         timeout=$((timeout-1))
     done
 
-    if [[ $(head -n 1 < "$PWR_COME_CYCLE_N" 2>/dev/null) -eq 0 ]]; then
+    if [[ $(head -n 1 < "$PWR_COME_CYCLE_DEV_N" 2>/dev/null) -eq 0 ]]; then
         echo "Reset timed out" >&2
         return 1
     fi
+
+    return 0
 }
 
 chassis_power_cycle() {
