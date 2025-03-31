@@ -20,6 +20,7 @@ SRC_URI:append = " \
     file://0204-registries-generate-from-phosphor-dbus-interfaces.patch \
     file://0205-Add-required-MemberId-to-the-EventRecord-definition.patch \
     file://0206-Map-DBus-event-to-RF-MessageID-and-parse-args.patch \
+    file://0207-Show-mapped-and-raw-Dbus-messages-in-Log-services.patch \
 "
 
 # Dependency variables for PDI-generated Redfish Message Registries
