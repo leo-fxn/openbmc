@@ -62,7 +62,8 @@ public:
     // VR Component
     memset(value, 0, MAX_VALUE_LEN);
     kv_get("pdb_vr_type", value, NULL, 0);
-    if (std::string(value) == "raa")
+    // Assume PDB discrete by default
+    if (std::string(value) != "delta")
     {
       static VrComponent pdb_vr_n1("pdb", "vr_n1", "PDB_P12V_N1_VR");
       static VrComponent pdb_vr_n2("pdb", "vr_n2", "PDB_P12V_N2_VR");
