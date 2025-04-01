@@ -20,7 +20,22 @@
 import unittest
 
 from common.base_interface_test import CommonInterfaceTest
+from utils.cit_logger import Logger
 
 
 class InterfaceTest(CommonInterfaceTest, unittest.TestCase):
-    pass
+
+    @unittest.skip("eth0 not supported for platform")
+    def test_eth0_v6_interface(self):
+        """
+        Tests eth0 v6 interface
+        """
+        pass
+
+    def test_usb0_v6_interface(self):
+        """
+        Tests usb0 v6 interface
+        """
+        self.set_ifname("usb0")
+        Logger.log_testname(name=self._testMethodName)
+        self.assertEqual(self.ping_v6(), 0, "Ping test for usb0 v6 failed")
