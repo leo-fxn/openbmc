@@ -35,13 +35,83 @@ TIMER_COUNTER_SETTING="${MCBCPLD_SYSFS_DIR}/timer_counter_setting"
 TIMER_COUNTER_SETTING_UPDATE="${MCBCPLD_SYSFS_DIR}/timer_counter_setting_update"
 POWER_CYCLE_GO="${MCBCPLD_SYSFS_DIR}/power_cycle_go"
 
+BOARD_ID="${MCBCPLD_SYSFS_DIR}/board_id"
+VERSION_ID="${MCBCPLD_SYSFS_DIR}/version_id"
+
+wedge_board_type_from_idprom() {
+    product_name=$(weutil | grep 'Product Name' | cut -d ' ' -f3)
+    product_name=${product_name,,}
+    product_name=${product_name%_*}
+
+    echo "${product_name^}"
+}
+
+wedge_board_type_from_hw_strapping() {
+    board_id=$(head -n 1 < "$BOARD_ID" 2> /dev/null)
+    echo "unknown value [$board_id]"
+}
+
 wedge_board_type() {
-    echo 'minipack3n'
+    wedge_board_type_from_idprom
+}
+
+wedge_board_rev_from_idprom() {
+    product_state=$(weutil | grep 'Product Production State' | cut -d ' ' -f4)
+    product_sub_state=$(weutil | grep 'Product Version' | cut -d ' ' -f3)
+    if [ -n "$product_state" ]; then
+        case "$((product_state))" in
+            1)
+                echo "EVT$product_sub_state"
+                ;;
+            2)
+                echo "DVT$product_sub_state"
+                ;;
+            3)
+                echo "PVT$product_sub_state"
+                ;;
+            4)
+                echo "MP$product_sub_state"
+                ;;
+        esac
+    fi
+}
+
+wedge_board_rev_from_hw_strapping() {
+    version_id=$(head -n 1 < "$VERSION_ID" 2> /dev/null)
+    case "$((version_id))" in
+        0)
+            echo "EVT"
+            ;;
+        1)
+            echo "DVT"
+            ;;
+        *)
+            echo "unknown value [$version_id]"
+            ;;
+    esac
 }
 
 wedge_board_rev() {
-    # FIXME if needed.
-    return 1
+    board_type=$(wedge_board_type_from_idprom)
+    if [ -z "$board_type" ]; then
+        board_type=$(wedge_board_type_from_hw_strapping)
+        echo "Board type: unknown value [$board_type]"
+    else
+        echo "Board type: $board_type Switching System"
+    fi
+
+    board_rev=$(wedge_board_rev_from_idprom)
+    if [ -z "$board_rev" ]; then
+        board_rev=$(wedge_board_rev_from_hw_strapping)
+    fi
+
+    echo "Revision: $board_rev"
+
+    return 0
+}
+
+wedge_board_type_rev() {
+    wedge_board_rev
 }
 
 userver_power_is_on() {
