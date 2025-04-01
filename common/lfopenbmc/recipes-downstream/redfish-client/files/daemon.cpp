@@ -262,7 +262,7 @@ struct EventsDbusObject : IEventsDbusObject
 
         try
         {
-            auto coll = redfishlib::LogEntryCollection::parseLogEntryCollection(
+            auto coll = redfish_binding::LogEntryCollection::parseLogEntryCollection(
                 logEntryJson);
             applyLogEntryCollection(coll);
         }
@@ -276,7 +276,7 @@ struct EventsDbusObject : IEventsDbusObject
     }
 
     void applyLogEntryCollection(
-        redfishlib::LogEntryCollection::LogEntryCollection& collection) override
+        redfish_binding::LogEntryCollection::LogEntryCollection& collection) override
     {
         auto& maybeMembers = collection.getMembers();
         if (maybeMembers.hasValue())
@@ -289,17 +289,17 @@ struct EventsDbusObject : IEventsDbusObject
     }
 
   private:
-    static int getLogEntrySeverity(redfishlib::LogEntry::EventSeverity severity)
+    static int getLogEntrySeverity(redfish_binding::LogEntry::EventSeverity severity)
     {
         switch (severity)
         {
-            case redfishlib::LogEntry::EventSeverity::OK:
+            case redfish_binding::LogEntry::EventSeverity::OK:
                 return LOG_INFO;
 
-            case redfishlib::LogEntry::EventSeverity::Warning:
+            case redfish_binding::LogEntry::EventSeverity::Warning:
                 return LOG_WARNING;
 
-            case redfishlib::LogEntry::EventSeverity::Critical:
+            case redfish_binding::LogEntry::EventSeverity::Critical:
                 return LOG_CRIT;
 
             default:
@@ -313,7 +313,7 @@ struct EventsDbusObject : IEventsDbusObject
                  cper.toJson().dump());
     }
 
-    void applyLogEntry(redfishlib::LogEntry::LogEntry& entry)
+    void applyLogEntry(redfish_binding::LogEntry::LogEntry& entry)
     {
         namespace CPER = sdbusplus::error::xyz::openbmc_project::state::CPER;
 

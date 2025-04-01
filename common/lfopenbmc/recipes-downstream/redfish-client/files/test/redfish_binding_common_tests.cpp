@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-namespace redfishlib
+namespace redfish_binding
 {
 
 namespace
@@ -264,4 +264,4 @@ TEST(ResourceBaseTest, ResourceBaseTest)
     EXPECT_EQ(resource.toJson(), json);
 }
 
-} // namespace redfishlib
+} // namespace redfish_binding

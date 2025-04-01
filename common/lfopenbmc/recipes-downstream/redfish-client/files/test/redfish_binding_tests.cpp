@@ -1,8 +1,8 @@
-#include "Sensor_Sensor.hpp"
+#include "redfish-binding/Sensor_Sensor.hpp"
 
 #include <gtest/gtest.h>
 
-TEST(RedfishLibTest, ParseSensorTest)
+TEST(RedfishBindingTest, ParseSensorTest)
 {
     std::string sensorJson = R"(
   {
@@ -14,10 +14,10 @@ TEST(RedfishLibTest, ParseSensorTest)
     }
   }
 )";
-    auto sensor = redfishlib::Sensor::parseSensor(sensorJson);
+    auto sensor = redfish_binding::Sensor::parseSensor(sensorJson);
     EXPECT_EQ(sensor.getReading().value(), 1.5);
     EXPECT_EQ(sensor.getReadingUnits().value(), "Cel");
     EXPECT_EQ(sensor.getName().value(), "Test_Sensor");
     EXPECT_EQ(sensor.getStatus().value().getState().value(),
-              redfishlib::Resource::State::Enabled);
+              redfish_binding::Resource::State::Enabled);
 }

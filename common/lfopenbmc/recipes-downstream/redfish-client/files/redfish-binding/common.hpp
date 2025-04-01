@@ -6,7 +6,7 @@
 #include <string>
 #include <variant>
 
-namespace redfishlib
+namespace redfish_binding
 {
 
 class IProperty
@@ -247,7 +247,7 @@ class ResourceBaseWithError : public ResourceBase
     Property<Error> error_{"error"};
 };
 
-} // namespace redfishlib
+} // namespace redfish_binding
 
 namespace nlohmann
 {
@@ -269,7 +269,7 @@ struct adl_serializer<std::variant<T, Ts...>>
             }
             else
             {
-                value = redfishlib::variant_cast(
+                value = redfish_binding::variant_cast(
                     json.template get<std::variant<Ts...>>());
             }
         }

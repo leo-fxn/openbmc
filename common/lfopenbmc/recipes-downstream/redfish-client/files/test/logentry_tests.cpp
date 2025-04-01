@@ -253,7 +253,7 @@ TEST_F(LogEntryTests, ParseEventsCorrectly)
     ctx.spawn([this]() -> sdbusplus::async::task<> {
         auto eventsDbusObject = createEventsDbusObjectForTest();
 
-        auto coll = redfishlib::LogEntryCollection::parseLogEntryCollection(
+        auto coll = redfish_binding::LogEntryCollection::parseLogEntryCollection(
             kEventlogEntryCollectionJson);
 
         using namespace std::string_literals;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LogEntryCollection_LogEntryCollection.hpp"
+#include "redfish-binding/LogEntryCollection_LogEntryCollection.hpp"
 #include "sensor.hpp"
 #include "source.hpp"
 
@@ -115,7 +115,7 @@ class IEventsDbusObject
     IEventsDbusObject& operator=(IEventsDbusObject&&) = delete;
 
     virtual void applyLogEntryCollection(
-        redfishlib::LogEntryCollection::LogEntryCollection& collection) = 0;
+        redfish_binding::LogEntryCollection::LogEntryCollection& collection) = 0;
 };
 
 std::shared_ptr<IEventsDbusObject> createEventsDbusObjectForTest();

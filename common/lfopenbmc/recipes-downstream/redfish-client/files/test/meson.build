@@ -27,7 +27,7 @@ daemon_test_files = [
     'http_client_tests.cpp',
     'logentry_tests.cpp',
     'redfish_binding_common_tests.cpp',
-    'redfishlib_tests.cpp',
+    'redfish_binding_tests.cpp',
     'sensor_tests.cpp',
     'source_tests.cpp',
 ]

@@ -17,7 +17,7 @@
 % endfor
 % endif
 
-namespace redfishlib
+namespace redfish_binding
 {
 % if len(forward_declarations) > 0:
 
@@ -98,4 +98,4 @@ inline ${cpp_def.identifier.id} parse${cpp_def.identifier.id}(const std::string&
 
 } // namespace ${cpp_def.identifier.namespace}
 
-} // namespace redfishlib
+} // namespace redfish_binding

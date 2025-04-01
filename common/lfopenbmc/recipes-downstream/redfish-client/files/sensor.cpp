@@ -1,6 +1,6 @@
 #include "sensor.hpp"
 
-#include "Sensor_Sensor.hpp"
+#include "redfish-binding/Sensor_Sensor.hpp"
 
 namespace redfish_client_daemon
 {
@@ -8,7 +8,7 @@ namespace redfish_client_daemon
 namespace
 {
 
-std::optional<double> toMaybeDouble(redfishlib::Property<double>& property)
+std::optional<double> toMaybeDouble(redfish_binding::Property<double>& property)
 {
     if (property.hasValue())
     {
@@ -21,7 +21,7 @@ std::optional<double> toMaybeDouble(redfishlib::Property<double>& property)
 
 std::optional<Sensor> Sensor::parseSensor(const std::string& sensorJson)
 {
-    auto parsed = redfishlib::Sensor::parseSensor(sensorJson);
+    auto parsed = redfish_binding::Sensor::parseSensor(sensorJson);
 
     auto maybeReading = toMaybeDouble(parsed.getReading());
     if (!maybeReading.has_value())
