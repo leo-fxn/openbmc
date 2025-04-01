@@ -56,21 +56,21 @@ class DummyResource : public ResourceBaseWithError
     }
 
   protected:
-    IProperty* findProperty(const std::string& name) override
+    IProperty* findProperty(const std::string& key) override
     {
-        if (name == p1_.name())
+        if (key == p1_.key())
         {
             return &p1_;
         }
-        if (name == p2_.name())
+        if (key == p2_.key())
         {
             return &p2_;
         }
-        if (name == p3_.name())
+        if (key == p3_.key())
         {
             return &p3_;
         }
-        return ResourceBaseWithError::findProperty(name);
+        return ResourceBaseWithError::findProperty(key);
     }
 
     void forEachProperty(
@@ -253,11 +253,11 @@ TEST(ResourceBaseTest, ResourceBaseTest)
     EXPECT_EQ(resource.p2().hasValue(), false);
     EXPECT_EQ(resource.p3().hasValue(), true);
     EXPECT_EQ(std::get<double>(resource.p3().value()), 0.5);
-    EXPECT_EQ(resource.error().hasValue(), true);
-    EXPECT_EQ(resource.error().value().code().hasValue(), true);
-    EXPECT_EQ(resource.error().value().code().value(), "404");
-    EXPECT_EQ(resource.error().value().message().hasValue(), false);
-    EXPECT_EQ(resource.error().value().leftover(), nlohmann::json({}));
+    EXPECT_EQ(resource.getError().hasValue(), true);
+    EXPECT_EQ(resource.getError().value().getCode().hasValue(), true);
+    EXPECT_EQ(resource.getError().value().getCode().value(), "404");
+    EXPECT_EQ(resource.getError().value().getMessage().hasValue(), false);
+    EXPECT_EQ(resource.getError().value().leftover(), nlohmann::json({}));
     EXPECT_EQ(resource.leftover(), nlohmann::json({{"unknown", "unknown"}}));
     // toJson() will drop all keys with nullptr as value
     json.erase("p2");

@@ -360,7 +360,7 @@ struct EventsDbusObject : IEventsDbusObject
                     {
                         return unknownSource;
                     }
-                    auto& id = origin.value().get_odata_id();
+                    auto& id = origin.value().getOdataId();
                     if (!id.hasValue())
                     {
                         return unknownSource;

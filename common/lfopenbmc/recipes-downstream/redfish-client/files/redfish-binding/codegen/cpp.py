@@ -3,11 +3,17 @@ from abc import ABC, abstractmethod
 from functools import reduce
 from typing import List
 
+from inflection import camelize
+
 from .util import DefinitionType
 
 
 def sanitize_name(name: str) -> str:
-    return re.sub(r"[^a-zA-Z0-9_]", "_", name)
+    return camelize(
+        "odata"
+        if name == "odata-v4"
+        else re.sub(r"[^a-zA-Z0-9_]", "_", name).strip("_")
+    )
 
 
 class CppIdentifier(object):

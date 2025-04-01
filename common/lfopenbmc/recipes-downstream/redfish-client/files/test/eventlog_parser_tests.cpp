@@ -19,17 +19,17 @@ TEST(EventLogParserTests, ZeroEntriesTest)
         kEventlogEntryCollectionJson);
     EXPECT_STREQ(
         "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries",
-        coll.get_odata_id().value().c_str());
+        coll.getOdataId().value().c_str());
     EXPECT_STREQ("#LogEntryCollection.LogEntryCollection",
-                 coll.get_odata_type().value().c_str());
+                 coll.getOdataType().value().c_str());
     EXPECT_STREQ("Collection of System Event Log Entries",
                  coll.getDescription().value().c_str());
     EXPECT_STREQ("System Event Log Entries", coll.getName().value().c_str());
-    EXPECT_EQ(0, coll.getMembers_odata_count().value());
+    EXPECT_EQ(0, coll.getMembersOdataCount().value());
 
     EXPECT_FALSE(coll.getOem().hasValue());
-    EXPECT_FALSE(coll.get_odata_context().hasValue());
-    EXPECT_FALSE(coll.get_odata_etag().hasValue());
+    EXPECT_FALSE(coll.getOdataContext().hasValue());
+    EXPECT_FALSE(coll.getOdataEtag().hasValue());
 
     auto& maybeMembers = coll.getMembers();
     EXPECT_TRUE(maybeMembers.hasValue());
@@ -89,7 +89,7 @@ TEST(EventLogParserTests, WithEntriesTest)
         kEventlogEntryCollectionJson);
     auto& maybeMembers = coll.getMembers();
     EXPECT_TRUE(maybeMembers.hasValue());
-    EXPECT_EQ(kExpectedEventCount, coll.getMembers_odata_count().value());
+    EXPECT_EQ(kExpectedEventCount, coll.getMembersOdataCount().value());
     EXPECT_EQ(kExpectedEventCount, maybeMembers.value().size());
 
     // Validate entry at index 0.
@@ -97,9 +97,9 @@ TEST(EventLogParserTests, WithEntriesTest)
         auto& member = maybeMembers.value()[0];
         EXPECT_STREQ(
             "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries/102",
-            member.get_odata_id().value().c_str());
+            member.getOdataId().value().c_str());
         EXPECT_STREQ("#LogEntry.v1_15_0.LogEntry",
-                     member.get_odata_type().value().c_str());
+                     member.getOdataType().value().c_str());
         EXPECT_STREQ("2025-01-09T06:32:02+00:00",
                      member.getCreated().value().c_str());
         EXPECT_STREQ("2025-01-14T20:55:46+00:00",
@@ -131,9 +131,9 @@ TEST(EventLogParserTests, WithEntriesTest)
         auto& member = maybeMembers.value()[1];
         EXPECT_STREQ(
             "/redfish/v1/Systems/SomeBaseBoard/LogServices/EventLog/Entries/103",
-            member.get_odata_id().value().c_str());
+            member.getOdataId().value().c_str());
         EXPECT_STREQ("#LogEntry.v1_15_0.LogEntry",
-                     member.get_odata_type().value().c_str());
+                     member.getOdataType().value().c_str());
         EXPECT_STREQ("2025-01-14T21:12:42+00:00",
                      member.getCreated().value().c_str());
         EXPECT_EQ(redfish_binding::LogEntry::LogEntryType::Event,

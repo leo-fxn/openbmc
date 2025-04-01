@@ -17,6 +17,8 @@
 % endfor
 % endif
 
+#include <nlohmann/json.hpp>
+
 namespace redfish_binding
 {
 % if len(forward_declarations) > 0:
@@ -48,15 +50,15 @@ class ${cpp_def.identifier.id} : public ResourceBaseWithError
 
     % endfor
   protected:
-    IProperty* findProperty(const std::string& name) override
+    IProperty* findProperty(const std::string& key) override
     {
       % for property in cpp_def.properties:
-      if (name == ${property.name_as_member}_.name())
+      if (key == ${property.name_as_member}_.key())
       {
         return &${property.name_as_member}_;
       }
       % endfor
-      return ResourceBaseWithError::findProperty(name);
+      return ResourceBaseWithError::findProperty(key);
     }
 
     void forEachProperty(

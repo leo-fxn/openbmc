@@ -18,7 +18,7 @@ class IProperty
 
     virtual nlohmann::json toJson() const = 0;
 
-    virtual std::string name() const = 0;
+    virtual std::string key() const = 0;
 
     virtual ~IProperty() = default;
 
@@ -35,7 +35,7 @@ template <typename T>
 class Property : public IProperty
 {
   public:
-    explicit Property(const std::string& name) : name_(name) {}
+    explicit Property(const std::string& key) : key_(key) {}
 
     Property() = delete;
 
@@ -64,7 +64,7 @@ class Property : public IProperty
         catch (const std::exception& ex)
         {
             // change it to log
-            std::cout << name() << ":" << json.dump() << " - " << ex.what()
+            std::cout << key() << ":" << json.dump() << " - " << ex.what()
                       << std::endl;
             return false;
         }
@@ -75,19 +75,19 @@ class Property : public IProperty
         nlohmann::json json({});
         if (hasValue())
         {
-            json[name_] = *value_;
+            json[key_] = *value_;
         }
         return json;
     }
 
-    std::string name() const override
+    std::string key() const override
     {
-        return name_;
+        return key_;
     }
 
   private:
     std::unique_ptr<T> value_;
-    std::string name_;
+    std::string key_;
 };
 
 template <typename... Args>
@@ -181,28 +181,28 @@ void to_json(nlohmann::json& json, const T& resource)
 class Error : public ResourceBase
 {
   public:
-    Property<std::string>& code()
+    Property<std::string>& getCode()
     {
         return code_;
     }
 
-    Property<std::string>& message()
+    Property<std::string>& getMessage()
     {
         return message_;
     }
 
   protected:
-    IProperty* findProperty(const std::string& name) override
+    IProperty* findProperty(const std::string& key) override
     {
-        if (name == code_.name())
+        if (key == code_.key())
         {
             return &code_;
         }
-        if (name == message_.name())
+        if (key == message_.key())
         {
             return &message_;
         }
-        return ResourceBase::findProperty(name);
+        return ResourceBase::findProperty(key);
     }
 
     void forEachProperty(
@@ -221,19 +221,19 @@ class Error : public ResourceBase
 class ResourceBaseWithError : public ResourceBase
 {
   public:
-    Property<Error>& error()
+    Property<Error>& getError()
     {
         return error_;
     }
 
   protected:
-    IProperty* findProperty(const std::string& name) override
+    IProperty* findProperty(const std::string& key) override
     {
-        if (name == error_.name())
+        if (key == error_.key())
         {
             return &error_;
         }
-        return ResourceBase::findProperty(name);
+        return ResourceBase::findProperty(key);
     }
 
     void forEachProperty(
