@@ -32,6 +32,7 @@ PLATFORMS = [
     "morgan800cc",
     "northdome",
     "tahan",
+    "tahansb800bc",
     "ventura",
     "wedge100",
     "wedge400",
