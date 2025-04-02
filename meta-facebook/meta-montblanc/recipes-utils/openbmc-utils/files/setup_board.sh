@@ -59,8 +59,10 @@ fixup_phy_onlyevt() {
     echo -e "\nsetting PHY CHIP 88E1512 mode."
 }
 
-
-fixup_phy_onlyevt
+if wedge_board_rev | grep -q EVT; then
+    echo -e "\nConfiguring PHY on EVT board"
+    fixup_phy_onlyevt
+fi
 # set LPC signal strength pin to 0 (weakest)
 setup_LPC_signal_strength 0
 # set MAC4 TX4 clock delay to 8
