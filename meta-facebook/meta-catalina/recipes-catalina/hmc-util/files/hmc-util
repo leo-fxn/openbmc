@@ -173,7 +173,7 @@ check_erot_background_copy_status()
 update_comp()
 {
     if ! TARGET_STR=$(prepare_update_target_str "$1"); then
-        echo "failed: Unknow component, $1"
+        echo "failed: Unknown component, $1"
         exit 1
     fi
 
@@ -185,7 +185,7 @@ update_comp()
         FORCE_UPDATE=", \"ForceUpdate\":true"
     fi
 
-    CURL_CMD="curl --connect-timeout ${CURL_CONNECT_TIMEOUT} -s -u root:0penBmc -H 'Expect:' -L -X POST '${FW_UPDATE_URL}' -F 'UpdateParameters={\"Targets\":[$TARGET_STR]$FORCE_UPDATE} ;type=application/json' -F UpdateFile=@$2"
+    CURL_CMD="curl --connect-timeout ${CURL_CONNECT_TIMEOUT} -s -H 'Expect:' -L -X POST '${FW_UPDATE_URL}' -F 'UpdateParameters={\"Targets\":[$TARGET_STR]$FORCE_UPDATE} ;type=application/json' -F UpdateFile=@$2"
     echo "CMD: ${CURL_CMD}"
     if ! CURL_DATA=$(eval "${CURL_CMD}"); then
         echo "failed: HMC not response."
@@ -223,7 +223,7 @@ update_comp()
             echo "[$i] $(echo "$CURL_DATA" | jq -r ".Messages[$i].Message")"
         done
         MESSAGE_COUNT="$NEW_MESSAGE_COUNT"
-        
+
         echo -ne "PercentComplete: ${PERCENT} ...... (seconds: $((retry*10)))\r"
 
         if [ "$TASK_STATE" != "Running" ]; then
