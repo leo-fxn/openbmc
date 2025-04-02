@@ -15,22 +15,11 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 #
+
 [Match]
-Name=eth0
+Name=eth0.4092
 
 [Network]
-IPv6AcceptRA=yes
-DHCP=yes
-VLAN=eth0.4088
-VLAN=eth0.4092
-
-[DHCP]
-UseDomains=yes
-UseNTP=yes
-ClientIdentifier=mac
-VendorClassIdentifier=OpenBMC:VENDOR_SERIAL_HERE
-
-[DHCPv6]
-UseDomains=yes
-UseNTP=yes
-SendVendorOption=40981:1:string:OpenBMC:VENDOR_SERIAL_HERE
+IPv6AcceptRA=no
+DHCP=no
+Address=fe80::1/64
