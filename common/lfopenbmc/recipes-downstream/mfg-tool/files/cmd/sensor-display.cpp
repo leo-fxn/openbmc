@@ -44,23 +44,24 @@ struct command
                 {
                     auto proxy =
                         sensor::Proxy(ctx).service(service).path(path.str);
+                    auto properties = co_await proxy.properties();
 
-                    auto value = co_await proxy.value();
+                    auto value = properties.value;
                     entry_json["value"] = value;
                     entry_json["status"] =
                         std::isfinite(value) ? "ok" : "unavailable";
 
-                    if (auto v = co_await proxy.max_value(); std::isfinite(v))
+                    if (auto v = properties.max_value; std::isfinite(v))
                     {
                         entry_json["max"] = v;
                     }
-                    if (auto v = co_await proxy.min_value(); std::isfinite(v))
+                    if (auto v = properties.min_value; std::isfinite(v))
                     {
                         entry_json["min"] = v;
                     }
                     entry_json["unit"] =
                         last_element(sdbusplus::message::convert_to_string(
-                                         co_await proxy.unit()),
+                                         properties.unit),
                                      '.');
                 }
                 catch (const sdbusplus::exception::SdBusError& e)
@@ -85,14 +86,15 @@ struct command
                     auto proxy =
                         sensor::hard_shutdown::Proxy(ctx).service(service).path(
                             path.str);
+                    auto properties = co_await proxy.properties();
 
-                    if (auto v = co_await proxy.hard_shutdown_high();
+                    if (auto v = properties.hard_shutdown_high;
                         std::isfinite(v))
                     {
                         entry_json["high"] = v;
                         update_status<std::greater>(sensor_json, v, "critical");
                     }
-                    if (auto v = co_await proxy.hard_shutdown_low();
+                    if (auto v = properties.hard_shutdown_low;
                         std::isfinite(v))
                     {
                         entry_json["low"] = v;
@@ -121,14 +123,15 @@ struct command
                     auto proxy =
                         sensor::critical::Proxy(ctx).service(service).path(
                             path.str);
+                    auto properties = co_await proxy.properties();
 
-                    if (auto v = co_await proxy.critical_high();
+                    if (auto v = properties.critical_high;
                         std::isfinite(v))
                     {
                         entry_json["high"] = v;
                         update_status<std::greater>(sensor_json, v, "critical");
                     }
-                    if (auto v = co_await proxy.critical_low();
+                    if (auto v = properties.critical_low;
                         std::isfinite(v))
                     {
                         entry_json["low"] = v;
@@ -157,14 +160,15 @@ struct command
                     auto proxy =
                         sensor::warning::Proxy(ctx).service(service).path(
                             path.str);
+                    auto properties = co_await proxy.properties();
 
-                    if (auto v = co_await proxy.warning_high();
+                    if (auto v = properties.warning_high;
                         std::isfinite(v))
                     {
                         entry_json["high"] = v;
                         update_status<std::greater>(sensor_json, v, "warning");
                     }
-                    if (auto v = co_await proxy.warning_low(); std::isfinite(v))
+                    if (auto v = properties.warning_low; std::isfinite(v))
                     {
                         entry_json["low"] = v;
                         update_status<std::less>(sensor_json, v, "warning");
@@ -192,9 +196,10 @@ struct command
                 {
                     auto proxy =
                         threshold::Proxy(ctx).service(service).path(path.str);
+                    auto properties = co_await proxy.properties();
 
-                    auto values = co_await proxy.value();
-                    auto asserted = co_await proxy.asserted();
+                    auto values = properties.value;
+                    auto asserted = properties.asserted;
 
                     for (const auto& [type, type_str] : thresholds)
                     {
@@ -239,22 +244,23 @@ struct command
                 {
                     auto proxy =
                         metric::Proxy(ctx).service(service).path(path.str);
+                    auto properties = co_await proxy.properties();
 
-                    auto value = co_await proxy.value();
+                    auto value = properties.value;
                     entry_json["value"] = value;
                     entry_json["status"] =
                         std::isfinite(value) ? "ok" : "unavailable";
-                    if (auto v = co_await proxy.max_value(); std::isfinite(v))
+                    if (auto v = properties.max_value; std::isfinite(v))
                     {
                         entry_json["max"] = v;
                     }
-                    if (auto v = co_await proxy.min_value(); std::isfinite(v))
+                    if (auto v = properties.min_value; std::isfinite(v))
                     {
                         entry_json["min"] = v;
                     }
                     entry_json["unit"] =
                         last_element(sdbusplus::message::convert_to_string(
-                                         co_await proxy.unit()),
+                                         properties.unit),
                                      '.');
                 }
                 catch (const sdbusplus::exception::SdBusError& e)
@@ -280,9 +286,10 @@ struct command
                 {
                     auto proxy =
                         threshold::Proxy(ctx).service(service).path(path.str);
+                    auto properties = co_await proxy.properties();
 
-                    auto values = co_await proxy.value();
-                    auto asserted = co_await proxy.asserted();
+                    auto values = properties.value;
+                    auto asserted = properties.asserted;
 
                     for (const auto& [type, type_str] : thresholds)
                     {
