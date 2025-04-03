@@ -1,7 +1,7 @@
-From 2c9ab23cf234ae3755737c9e08032cc812d83429 Mon Sep 17 00:00:00 2001
+From bf2129b56c705f67f4822155ccb2c369a52eb388 Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Tue, 11 Mar 2025 13:47:42 +0800
-Subject: [PATCH] entity-manager: Add config-prefix filtering
+Subject: [PATCH 7/7] entity-manager: Add config-prefix filtering
 
 This change introduces a new option "config-prefix" that enables
 filtering of JSON configuration files by their filename prefix.
@@ -203,5 +203,5 @@ index 57c787f..a7fef70 100644
  bool getI2cDevicePaths(
      const std::filesystem::path& dirPath,
 -- 
-2.25.1
+2.45.3
 

@@ -1,7 +1,7 @@
-From 02d9c9241e6e172ec038d90fdbcb6d1864488b8e Mon Sep 17 00:00:00 2001
+From 279908aa2078c10a640b49d3ad97f46d901b7c25 Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Wed, 8 May 2024 14:29:36 +0800
-Subject: [PATCH 2/6] configurations: Revise the BRCM NIC sensor name
+Subject: [PATCH 2/7] configurations: Revise the BRCM NIC sensor name
 
 1. Revise the BRCM NIC temperature sensor name to NICX_TEMP_C.
 2. Revise the temperature threshold.
@@ -101,5 +101,5 @@ index 3f028b7..25e6386 100644
      "Type": "Board",
      "xyz.openbmc_project.Inventory.Decorator.Asset": {
 -- 
-2.44.2
+2.45.3
 
