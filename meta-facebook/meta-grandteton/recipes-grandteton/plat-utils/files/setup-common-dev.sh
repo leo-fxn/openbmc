@@ -105,6 +105,7 @@ probe_mb_eeprom() {
   if [ -n "$product" ]; then
     if [[ $product =~ .*"Inference".* ]]; then
       kv set mb_product "GTI"
+      kv set cpu_product "Genoa"
     elif [[ $product =~ .*"1.5".* ]]; then
       mb_product="GT1.5"
       kv set mb_product "GT1.5"
@@ -118,6 +119,7 @@ probe_mb_eeprom() {
     fi
   else
     kv set mb_product "GTA"
+    kv set cpu_product "Genoa"
     mb_product="GTA"
   fi
 }
