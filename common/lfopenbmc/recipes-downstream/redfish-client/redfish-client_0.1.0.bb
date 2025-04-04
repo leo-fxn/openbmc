@@ -36,6 +36,8 @@ SRC_URI = " \
     file://daemon_main.cpp \
     file://http_client.cpp \
     file://http_client.hpp \
+    file://log_service_handler.cpp \
+    file://log_service_handler.hpp \
     file://sensor.cpp \
     file://sensor.hpp \
     file://source.cpp \

@@ -55,7 +55,13 @@ cpp_args = ['-DBOOST_STACKTRACE_USE_ADDR2LINE', '-ggdb', '-fPIC']
 
 link_args = ['-rdynamic']
 
-srcs = ['daemon.cpp', 'http_client.cpp', 'sensor.cpp', 'source.cpp']
+srcs = [
+    'daemon.cpp',
+    'http_client.cpp',
+    'sensor.cpp',
+    'source.cpp',
+    'log_service_handler.cpp',
+]
 
 redfish_client_library = static_library(
     'redfish-client-lib',

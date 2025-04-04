@@ -1,4 +1,5 @@
 #include "daemon.hpp"
+#include "log_service_handler.hpp"
 
 #include <nlohmann/json.hpp>
 #include <phosphor-logging/commit.hpp>
@@ -251,15 +252,16 @@ TEST_F(LogEntryTests, ParseEventsCorrectly)
 {
     logManager.performDebugDump = true;
     ctx.spawn([this]() -> sdbusplus::async::task<> {
-        auto eventsDbusObject = createEventsDbusObjectForTest();
+        auto logServiceHandler = std::make_shared<LogServiceHandler>("");
 
-        auto coll = redfish_binding::LogEntryCollection::parseLogEntryCollection(
-            kEventlogEntryCollectionJson);
+        auto coll =
+            redfish_binding::LogEntryCollection::parseLogEntryCollection(
+                kEventlogEntryCollectionJson);
 
         using namespace std::string_literals;
 
         // Apply collection once.
-        eventsDbusObject->applyLogEntryCollection(coll);
+        logServiceHandler->applyLogEntryCollection(coll);
         EXPECT_EQ(2, logManager.callLogs->size());
 
         // Validate record at index 0 (Unexpected Exception).

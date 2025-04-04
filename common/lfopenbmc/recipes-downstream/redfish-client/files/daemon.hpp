@@ -1,13 +1,9 @@
 #pragma once
 
-#include "redfish-binding/LogEntryCollection_LogEntryCollection.hpp"
 #include "sensor.hpp"
 #include "source.hpp"
 
 #include <sdbusplus/async.hpp>
-#include <sdbusplus/bus.hpp>
-#include <sdbusplus/message.hpp>
-#include <sdbusplus/sdbus.hpp>
 #include <xyz/openbmc_project/Sensor/Value/aserver.hpp>
 
 #include <memory>
@@ -102,22 +98,5 @@ class ISensorDbusObject
 
 std::shared_ptr<ISensorDbusObject> createSensorDbusObjectForTest(
     sdbusplus::async::context& ctx, const char* metricPath);
-
-// EventsDbusObject interface
-class IEventsDbusObject
-{
-  public:
-    IEventsDbusObject() = default;
-    virtual ~IEventsDbusObject() = default;
-    IEventsDbusObject(const IEventsDbusObject&) = delete;
-    IEventsDbusObject(IEventsDbusObject&&) = delete;
-    IEventsDbusObject& operator=(const IEventsDbusObject&) = delete;
-    IEventsDbusObject& operator=(IEventsDbusObject&&) = delete;
-
-    virtual void applyLogEntryCollection(
-        redfish_binding::LogEntryCollection::LogEntryCollection& collection) = 0;
-};
-
-std::shared_ptr<IEventsDbusObject> createEventsDbusObjectForTest();
 
 } // namespace redfish_client_daemon
