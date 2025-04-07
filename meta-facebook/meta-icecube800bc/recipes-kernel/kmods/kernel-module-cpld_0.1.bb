@@ -30,9 +30,6 @@ UNPACKDIR="${S}"
 LOCAL_URI = " \
     file://Makefile \
     file://mcbcpld.c \
-    file://mcbcpld.c \
-    file://pwrcpld.c \
-    file://scmcpld.c \
     file://scmcpld.c \
     file://COPYING \
     "

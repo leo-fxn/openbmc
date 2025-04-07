@@ -14,8 +14,9 @@
  */
 static const i2c_dev_attr_st mcbcpld_attrs[] = {
 	{
-		"version_id",
-		NULL,
+		"board_id",
+		"Meta Networking system board type:\n"
+		" 0x8 : Icecube",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		NULL,
 		0x0,
@@ -23,8 +24,16 @@ static const i2c_dev_attr_st mcbcpld_attrs[] = {
 		4,
 	},
 	{
-		"board_id",
-		NULL,
+		"version_id",
+		"Icecube board revision:\n"
+		" 0x00 Pre-EVT & EVT1\n"
+		" 0x01 EVT-2A\n"
+		" 0x02 EVT-2B/C\n"
+		" 0x03 DVT-1A\n"
+		" 0x04 DVT-1B\n"
+		" 0x05 PPVT\n"
+		" 0x06 PVT\n"
+		" 0x07 MP\n",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		NULL,
 		0x0,
@@ -69,53 +78,14 @@ static const i2c_dev_attr_st mcbcpld_attrs[] = {
 		8,
 	},
 	{
-		"pwr_come_en",
-		"0: COMe power is off\n"
-		"1: COMe power is on",
+		"iob_flash_wp_l",
+		"Control IOB FPGA SPI flash write protect\n"
+		"1: Not protect\n"
+		"0: Protect",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		I2C_DEV_ATTR_STORE_DEFAULT,
-		0x14,
-		0,
+		0x6,
 		1,
-	},
-	{
-		"pwr_force_off",
-		"0: COMe power is off\n"
-		"1: COMe power is on",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		I2C_DEV_ATTR_STORE_DEFAULT,
-		0x14,
-		1,
-		1,
-	},
-	{
-		"pwr_cyc_n",
-		"Write 0 to trigger CPLD power cycling COMe\n"
-		"The bit will auto set to 1 after power cycle finishes",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		I2C_DEV_ATTR_STORE_DEFAULT,
-		0x14,
-		2,
-		1,
-	},
-	{
-		"cmm_rdy_nw_l",
-		"0: CMM Ready\n"
-		"1: CMM Not Ready",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		NULL,
-		0x15,
-		7,
-		1,
-	},
-	{
-		"cmm_crd_pwren_l",
-		"0: Enable\n"
-		"1: Disable",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		NULL,
-		0x15,
-		0,
 		1,
 	},
 	{
@@ -126,16 +96,6 @@ static const i2c_dev_attr_st mcbcpld_attrs[] = {
 		I2C_DEV_ATTR_STORE_DEFAULT,
 		0x23,
 		0,
-		1,
-	},
-	{
-		"crd_leakage_alarm_l_status",
-		"0: This blade has leakage\n"
-		"1: This blade has no leakage",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		NULL,
-		0x34,
-		1,
 		1,
 	}
 };

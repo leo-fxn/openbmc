@@ -14,15 +14,9 @@
  */
 static const i2c_dev_attr_st scmcpld_attrs[] = {
 	{
-		"version_id",
-		"Icecube SCM Board revision:\n"
-		" 0x0: EVT-1\n"
-		" 0x1: EVT-2\n"
-		" 0x2: EVT-3\n"
-		" 0x3: DVT-1\n"
-		" 0x4: DVT-2\n"
-		" 0x5: PVT\n"
-		" 0x6: MP\n",
+		"board_id",
+		"Meta Networking system board type:\n"
+		" 0x8 : Icecube",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		NULL,
 		0x0,
@@ -30,8 +24,16 @@ static const i2c_dev_attr_st scmcpld_attrs[] = {
 		4,
 	},
 	{
-		"board_id",
-		NULL,
+		"version_id",
+		"Icecube board revision:\n"
+		" 0x00 Pre-EVT & EVT1\n"
+		" 0x01 EVT-2A\n"
+		" 0x02 EVT-2B/C\n"
+		" 0x03 DVT-1A\n"
+		" 0x04 DVT-1B\n"
+		" 0x05 PPVT\n"
+		" 0x06 PVT\n"
+		" 0x07 MP\n",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		NULL,
 		0x0,
@@ -57,10 +59,20 @@ static const i2c_dev_attr_st scmcpld_attrs[] = {
 		8,
 	},
 	{
+		"cb_sys_reset",
+		"COMe System Warm Reset\n"
+		"0: Reset\n"
+		"1: Not reset",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0xf,
+		5,
+		1,
+	},
+	{
 		"pwr_come_en",
-		"use to power on the COMe (default: 0)\n"
-		" 0: power off COMe\n"
-		" 1: power on COMe\n",
+		"0: COMe power is off\n"
+		"1: COMe power is on",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		I2C_DEV_ATTR_STORE_DEFAULT,
 		0x14,
@@ -69,9 +81,8 @@ static const i2c_dev_attr_st scmcpld_attrs[] = {
 	},
 	{
 		"pwr_force_off",
-		"use to make COMe power off when set to 0\n"
-		" 0: COMe power is off\n"
-		" 1: COMe power is on\n",
+		"0: COMe power is off\n"
+		"1: COMe power is on",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		I2C_DEV_ATTR_STORE_DEFAULT,
 		0x14,
@@ -80,75 +91,37 @@ static const i2c_dev_attr_st scmcpld_attrs[] = {
 	},
 	{
 		"pwr_cyc_n",
-		"write 0 to trigger CPLD power cycling COMe\n"
-		"then this bit will auto set to 1 after Power cycle finish\n",
+		"Write 0 to trigger CPLD power cycling COMe\n"
+		"The bit will auto set to 1 after power cycle finishes",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		I2C_DEV_ATTR_STORE_DEFAULT,
 		0x14,
 		2,
-		1,
-	},
-	{
-		"pwr_come_cycle_dev_n",
-		"write 0 to trigger CPLD power cycling the COMe + I210 + SSD\n"
-		"then this bit will auto set to 1 after Power cycle finish\n",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		I2C_DEV_ATTR_STORE_DEFAULT,
-		0x14,
-		3,
-		1,
-	},
-	{
-		"iob_fpga_program",
-		" 0x00: Re-init"
-		" 0x01: Normal\n",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		I2C_DEV_ATTR_STORE_DEFAULT,
-		0x18,
-		2,
-		1,
-	},
-	{
-		"xp5r0v_come_pg",
-		" 0x00: Not good"
-		" 0x01: Good\n",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		NULL,
-		0x1c,
-		0,
-		1,
-	},
-	{
-		"xp12r0v_come_pg",
-		" 0x00: Not good"
-		" 0x01: Good\n",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		NULL,
-		0x1c,
-		1,
-		1,
-	},
-	{
-		"e1_ssd_present",
-		" 0x00: absent"
-		" 0x01: present\n",
-		I2C_DEV_ATTR_SHOW_DEFAULT,
-		NULL,
-		0x27,
-		0,
 		1,
 	},
 	{
 		"spi_select",
-		" 0x00: BMC SPI to IOB FPGA FLASH"
-		" 0x01: BMC SPI to COMe"
-		" 0x02: BMC SPI to PROT\n",
+		" 0x00: IOB FPGA FLASH (CS0)\n"
+		" 0x01: BIOS (CS0)\n"
+		" 0x0E: BIOS (CS1)\n"
+		" 0x0F: IOB FPGA FLASH (CS0), BIOS (CS1)",
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		I2C_DEV_ATTR_STORE_DEFAULT,
-		0x41,
+		0x34,
 		0,
 		8,
-	}
+	},
+	{
+		"e1_s_ssd_prsnt0_l",
+		" 0x00: present"
+		" 0x01: not present\n",
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		NULL,
+		0xb4,
+		1,
+		1,
+	},
+
 };
 
 static const struct i2c_device_id scmcpld_id[] = {
