@@ -383,7 +383,7 @@ var GetBSMFlashManufacturerFromFile = func() (string, error) {
 // IsBMCLite check whether the system is running BMC-lite
 // For S368275.   Make this beautiful later.
 var IsBMCLite = func() bool {
-	magics := []string{"fbdarwin", "meru", "janga", "montblanc", "tahan", "morgan800cc"}
+	magics := []string{"fbdarwin", "meru", "janga", "montblanc", "tahan", "morgan800cc", "minipack3n"}
 
 	issueBuf, err := fileutils.ReadFile(etcIssueFilePath)
 	if err != nil {
