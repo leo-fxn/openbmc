@@ -1,7 +1,7 @@
-From 3860838ea776554186c23cb8d6d630c0cc254f57 Mon Sep 17 00:00:00 2001
+From 429fb14777f63b5efb4879f79eec903039ac85c1 Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Mon, 24 Feb 2025 12:50:55 +0000
-Subject: [PATCH 203/207] Add generation for Vendor registries and a DBus to RF
+Subject: [PATCH 202/206] Add generation for Vendor registries and a DBus to RF
  map
 
 The system consumes Log events sent over DBus, but these events

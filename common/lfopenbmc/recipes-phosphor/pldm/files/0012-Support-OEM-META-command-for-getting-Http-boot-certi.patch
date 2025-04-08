@@ -1,7 +1,7 @@
-From bf681676ff5a2e06f3f90466ffc177e5ac9a4512 Mon Sep 17 00:00:00 2001
+From 9d318160200f51592220fb75a8d8036d972baf41 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 16:21:45 +0800
-Subject: [PATCH 12/17] Support OEM-META command for getting Http boot
+Subject: [PATCH 12/18] Support OEM-META command for getting Http boot
  certification
 
 Summary:
@@ -402,5 +402,5 @@ index 0000000..28b085d
 +
 +} // namespace pldm::responder::oem_meta
 -- 
-2.47.1
+2.45.3
 

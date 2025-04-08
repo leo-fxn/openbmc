@@ -1,7 +1,7 @@
-From 054298362fcf38673b848de92e979b8340a08a31 Mon Sep 17 00:00:00 2001
+From 1b2bcde8f79b8dee5de4230afc1dc9987287357e Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Fri, 28 Jun 2024 16:57:45 +0800
-Subject: [PATCH 09/17] Support OEM-META command for NIC power cycle
+Subject: [PATCH 09/18] Support OEM-META command for NIC power cycle
 
 Summary:
 - Add option to let Host can trigger NIC card power cycle to
@@ -20,7 +20,7 @@ Upstream-Status: Pending
  1 file changed, 35 insertions(+)
 
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp
-index 3dfa83e..e8ffd1b 100644
+index 3dfa83e..c9c557c 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_power_control.cpp
 @@ -16,6 +16,10 @@ enum class POWER_CONTROL_OPTION
@@ -73,5 +73,5 @@ index 3dfa83e..e8ffd1b 100644
              error("Get invalid power control option, option={OPTION}", "OPTION",
                    option);
 -- 
-2.47.1
+2.45.3
 

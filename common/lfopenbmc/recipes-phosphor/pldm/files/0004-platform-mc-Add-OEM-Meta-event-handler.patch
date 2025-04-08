@@ -1,7 +1,7 @@
-From e118e4834fc58d848c285f37d2e6560deb469423 Mon Sep 17 00:00:00 2001
+From 9631868671c19a72ddd4df7b6d6254ec0413181b Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
-Subject: [PATCH 04/17] platform-mc: Add OEM Meta event handler
+Subject: [PATCH 04/18] platform-mc: Add OEM Meta event handler
 
 Add OEM Meta handler with event type 0xFB. It will print the logs
 with prefix "BIOS_IPMI_SEL", so the user can utilize it to filter
@@ -60,9 +60,9 @@ Upstream-Status: Pending
  oem/meta/platform-mc/event_oem_meta.hpp |  21 +
  platform-mc/event_manager.cpp           |  42 +-
  platform-mc/event_manager.hpp           |  15 +-
- platform-mc/manager.hpp                 |  26 +-
+ platform-mc/manager.hpp                 |  27 +-
  platform-mc/test/meson.build            |   2 +
- pldmd/pldmd.cpp                         |  17 +-
+ pldmd/pldmd.cpp                         |  16 +-
  8 files changed, 1026 insertions(+), 13 deletions(-)
  create mode 100644 oem/meta/platform-mc/event_oem_meta.cpp
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
@@ -81,7 +81,7 @@ index 4c78d06..f616f69 100644
      install: true,
 diff --git a/oem/meta/platform-mc/event_oem_meta.cpp b/oem/meta/platform-mc/event_oem_meta.cpp
 new file mode 100644
-index 0000000..df0f3c0
+index 0000000..fc6afda
 --- /dev/null
 +++ b/oem/meta/platform-mc/event_oem_meta.cpp
 @@ -0,0 +1,915 @@
@@ -464,7 +464,7 @@ index 0000000..df0f3c0
 +                                to_hex_string(eventData[13]) + ") ";
 +
 +                    uint8_t severity = eventData[11] & 0x0F;
-+                    switch(severity)
++                    switch (severity)
 +                    {
 +                        case 0x0B:
 +                            errorLog += "Uncorrected System Fatal Error, ";
@@ -1028,7 +1028,7 @@ index 0000000..55822a8
 +} // namespace platform_mc
 +} // namespace pldm
 diff --git a/platform-mc/event_manager.cpp b/platform-mc/event_manager.cpp
-index 625771f..cb97523 100644
+index 3af26d2..c4ed128 100644
 --- a/platform-mc/event_manager.cpp
 +++ b/platform-mc/event_manager.cpp
 @@ -1,10 +1,12 @@
@@ -1103,18 +1103,18 @@ index 625771f..cb97523 100644
  
      return PLDM_ERROR;
 diff --git a/platform-mc/event_manager.hpp b/platform-mc/event_manager.hpp
-index b1461d7..f2f75c1 100644
+index 083725d..b44e333 100644
 --- a/platform-mc/event_manager.hpp
 +++ b/platform-mc/event_manager.hpp
-@@ -3,6 +3,7 @@
+@@ -2,6 +2,7 @@
+ 
  #include "common/types.hpp"
  #include "numeric_sensor.hpp"
- #include "pldmd/dbus_impl_requester.hpp"
 +#include "requester/configuration_discovery_handler.hpp"
  #include "requester/handler.hpp"
  #include "terminus.hpp"
  #include "terminus_manager.hpp"
-@@ -40,9 +41,11 @@ class EventManager
+@@ -39,9 +40,11 @@ class EventManager
      EventManager& operator=(EventManager&&) = delete;
      virtual ~EventManager() = default;
  
@@ -1129,7 +1129,7 @@ index b1461d7..f2f75c1 100644
      {
          // Default response handler for PollForPlatFormEventMessage
          registerPolledEventHandler(
-@@ -221,6 +224,10 @@ class EventManager
+@@ -220,6 +223,10 @@ class EventManager
                                   uint16_t eventId,
                                   std::vector<uint8_t>& eventMessage);
  
@@ -1140,7 +1140,7 @@ index b1461d7..f2f75c1 100644
      /** @brief Reference of terminusManager */
      TerminusManager& terminusManager;
  
-@@ -232,6 +239,8 @@ class EventManager
+@@ -231,6 +238,8 @@ class EventManager
  
      /** @brief map of PLDM event type of polled event to EventHandlers */
      pldm::platform_mc::EventMap eventHandlers;
@@ -1150,10 +1150,10 @@ index b1461d7..f2f75c1 100644
  } // namespace platform_mc
  } // namespace pldm
 diff --git a/platform-mc/manager.hpp b/platform-mc/manager.hpp
-index de7bb28..3264a2c 100644
+index de7bb28..6a6c3c0 100644
 --- a/platform-mc/manager.hpp
 +++ b/platform-mc/manager.hpp
-@@ -4,12 +4,14 @@
+@@ -4,6 +4,7 @@
  #include "common/types.hpp"
  #include "event_manager.hpp"
  #include "platform_manager.hpp"
@@ -1161,14 +1161,16 @@ index de7bb28..3264a2c 100644
  #include "requester/handler.hpp"
  #include "requester/mctp_endpoint_discovery.hpp"
  #include "sensor_manager.hpp"
- #include "terminus_manager.hpp"
+@@ -11,6 +12,8 @@
  
  #include <libpldm/pldm.h>
-+#include <oem/meta/platform-mc/event_oem_meta.hpp>
  
++#include <oem/meta/platform-mc/event_oem_meta.hpp>
++
  namespace pldm
  {
-@@ -35,13 +37,17 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+ namespace platform_mc
+@@ -35,13 +38,17 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
      Manager& operator=(Manager&&) = delete;
      ~Manager() = default;
  
@@ -1189,7 +1191,7 @@ index de7bb28..3264a2c 100644
      {}
  
      /** @brief Helper function to do the actions before discovering terminus
-@@ -199,6 +205,18 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -199,6 +206,18 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
          return PLDM_SUCCESS;
      }
  
@@ -1208,7 +1210,7 @@ index de7bb28..3264a2c 100644
      /** @brief The function to trigger the event polling
       *
       *  @param[in] tid - Terminus ID
-@@ -284,6 +302,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
+@@ -284,6 +303,8 @@ class Manager : public pldm::MctpDiscoveryHandlerIntf
  
      /** @brief map of PLDM event type to EventHandlers */
      PollHandlers pollHandlers;
@@ -1231,10 +1233,10 @@ index 2d722e9..5720af4 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index 84e30d6..4c74666 100644
+index d55ab0b..0469e35 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
-@@ -225,8 +225,13 @@ int main(int argc, char** argv)
+@@ -222,8 +222,12 @@ int main(int argc, char** argv)
      }
      DBusHandler dbusHandler;
  
@@ -1245,11 +1247,10 @@ index 84e30d6..4c74666 100644
 -        std::make_unique<platform_mc::Manager>(event, reqHandler, instanceIdDb);
 +        std::make_unique<platform_mc::Manager>(event, reqHandler, instanceIdDb,
 +                                               configurationDiscovery.get());
-+
  
      std::unique_ptr<pldm::host_effecters::HostEffecterParser>
          hostEffecterParser =
-@@ -258,9 +263,6 @@ int main(int argc, char** argv)
+@@ -255,9 +259,6 @@ int main(int argc, char** argv)
      std::shared_ptr<HostPDRHandler> hostPDRHandler;
      std::unique_ptr<DbusToPLDMEvent> dbusToPLDMEventHandler;
  
@@ -1259,7 +1260,7 @@ index 84e30d6..4c74666 100644
      std::unique_ptr<platform_config::Handler> platformConfigHandler{};
      platformConfigHandler =
          std::make_unique<platform_config::Handler>(PDR_JSONS_DIR);
-@@ -315,6 +317,13 @@ int main(int argc, char** argv)
+@@ -312,6 +313,13 @@ int main(int argc, char** argv)
                               size_t eventDataOffset) {
               return platformManager->handleSensorEvent(
                   request, payloadLength, formatVersion, tid, eventDataOffset);
@@ -1274,5 +1275,5 @@ index 84e30d6..4c74666 100644
  
      auto platformHandler = std::make_unique<platform::Handler>(
 -- 
-2.47.1
+2.45.3
 

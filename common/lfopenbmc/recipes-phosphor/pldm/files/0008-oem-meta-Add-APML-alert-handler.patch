@@ -1,7 +1,7 @@
-From 88b13cb94b4588323cf41ad0f2b4d043c68efcd0 Mon Sep 17 00:00:00 2001
+From 7c2dd5257f1348de7e514153c1effa7ed6af25ba Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Fri, 28 Jun 2024 11:19:43 +0800
-Subject: [PATCH 08/17] oem-meta: Add APML alert handler
+Subject: [PATCH 08/18] oem-meta: Add APML alert handler
 
 Add APML alert handler. It will call `amd-ras` to do ADDC.
 
@@ -202,5 +202,5 @@ index 0000000..40c3cf0
 +
 +} // namespace pldm::responder::oem_meta
 -- 
-2.47.1
+2.45.3
 

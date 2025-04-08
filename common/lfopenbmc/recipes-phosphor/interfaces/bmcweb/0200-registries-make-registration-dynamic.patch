@@ -1,7 +1,7 @@
-From 6d2041bbd846f48f6cce14fd4cb2da6aa0978c2b Mon Sep 17 00:00:00 2001
+From ca90570d1a22f2c2884b97a3cb3d16778c34a493 Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Thu, 27 Feb 2025 14:52:54 -0500
-Subject: [PATCH 201/207] registries: make registration dynamic
+Subject: [PATCH 200/206] registries: make registration dynamic
 
 Rather than having to manually hook code for registries, add a small
 registration function to the registry header and use this registration

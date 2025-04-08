@@ -1,7 +1,7 @@
-From bda3059ebfcf9bbf21e52422c95651f08f969767 Mon Sep 17 00:00:00 2001
+From 597b94173a2b379a866568949b4ba9d9f691759f Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Wed, 26 Mar 2025 16:20:54 +0000
-Subject: [PATCH 207/207] Show mapped and raw Dbus messages in Log services
+Subject: [PATCH 206/206] Show mapped and raw Dbus messages in Log services
 
 Currently we have a flag, that enables mapping in the code, and if the
 mapping is enabled, it will try to map an entry, and if it fails, it
@@ -59,7 +59,7 @@ Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
  1 file changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
-index d9d68ee5..87b44529 100644
+index a0f4afc4..c9b8b4a7 100644
 --- a/redfish-core/lib/log_services.hpp
 +++ b/redfish-core/lib/log_services.hpp
 @@ -1445,26 +1445,28 @@ inline bool fillEventLogLogEntryFromPropertyMap(

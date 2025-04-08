@@ -1,7 +1,7 @@
-From 06c6d7456ac64955316834f1dd8819171fa8be20 Mon Sep 17 00:00:00 2001
+From 41a1f871acda8324c84ad7039acb3a431f2a8438 Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Thu, 27 Feb 2025 22:13:03 -0500
-Subject: [PATCH 204/207] registries: generate from phosphor-dbus-interfaces
+Subject: [PATCH 203/206] registries: generate from phosphor-dbus-interfaces
 
 Add meson.build support for generating message registry headers from
 phosphor-dbus-interfaces supplied registries.  Add wrap file for
@@ -32,7 +32,7 @@ Change-Id: I069d3086954d4d439759f4acfdddc84466237012
  create mode 100644 subprojects/phosphor-dbus-interfaces.wrap
 
 diff --git a/meson.build b/meson.build
-index 186c92c7..24938273 100644
+index 4549ab28..0423e5f0 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -232,15 +232,27 @@ if not nghttp2.found()

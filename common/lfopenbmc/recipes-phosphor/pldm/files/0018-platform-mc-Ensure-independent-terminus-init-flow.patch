@@ -1,7 +1,7 @@
-From e1adcc9815aa28a7c564b4b1184401a321b09641 Mon Sep 17 00:00:00 2001
+From dea93cb30604bbf893f54f0f82503ef95af0d239 Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Thu, 20 Mar 2025 13:48:31 +0800
-Subject: [PATCH] platform-mc: Ensure independent terminus init flow
+Subject: [PATCH 18/18] platform-mc: Ensure independent terminus init flow
 
 Modified the terminus initialization flow to ensure that failures in
 the initialization of individual EIDs do not impact the processing of
@@ -16,7 +16,7 @@ Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
  1 file changed, 23 insertions(+), 2 deletions(-)
 
 diff --git a/platform-mc/terminus_manager.cpp b/platform-mc/terminus_manager.cpp
-index 406c70a..6eec825 100644
+index 767b9e8..9b83f26 100644
 --- a/platform-mc/terminus_manager.cpp
 +++ b/platform-mc/terminus_manager.cpp
 @@ -186,6 +186,8 @@ TerminiMapper::iterator TerminusManager::findTerminusPtr(
@@ -73,5 +73,5 @@ index 406c70a..6eec825 100644
      }
  
 -- 
-2.25.1
+2.45.3
 
