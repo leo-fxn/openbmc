@@ -11,8 +11,8 @@ SRC_URI:append = " \
 "
 
 SRC_URI:append:fb-compute-multihost = " \
-     file://0005-Utils-support-powerState-for-multi-node-system.patch \
-     file://0009-hwmontempsensor-add-option-for-PowerStateChanged.patch \
-     file://0010-meta-facebook-yosemite4-Disable-in2_alarm-event.patch \
-     file://0011-Add-retry-attempts-configuration-for-fan-sensors.patch \
+    file://0005-Utils-support-powerState-for-multi-node-system.patch \
+    file://0009-Avoid-recreating-hwmon-temp-when-blade-cycle.patch \
+    file://0010-meta-facebook-yosemite4-Disable-in2_alarm-event.patch \
+    file://0011-Add-retry-attempts-configuration-for-fan-sensors.patch \
 "

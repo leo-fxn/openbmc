@@ -1,7 +1,7 @@
-From c445e393d07c6bf5fb42f9bdfa31a3c225ecf9fd Mon Sep 17 00:00:00 2001
+From 18aef2ac3bc78e9abf82c86cc27632840d3a9728 Mon Sep 17 00:00:00 2001
 From: Cosmo Chou <cosmo.chou@quantatw.com>
 Date: Tue, 31 Dec 2024 14:39:48 +0800
-Subject: [PATCH 3/8] DeviceMgmt: fix device not found
+Subject: [PATCH 03/11] DeviceMgmt: fix device not found
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -171,7 +171,7 @@ Signed-off-by: Potin Lai <potin.lai@quantatw.com>
  1 file changed, 3 insertions(+), 18 deletions(-)
 
 diff --git a/src/DeviceMgmt.hpp b/src/DeviceMgmt.hpp
-index 5247486..7da3e0a 100644
+index 09644ab..98f6a1f 100644
 --- a/src/DeviceMgmt.hpp
 +++ b/src/DeviceMgmt.hpp
 @@ -110,26 +110,10 @@ boost::container::flat_map<std::string,
@@ -188,8 +188,8 @@ index 5247486..7da3e0a 100644
 -                std::get_if<std::string>(&findSensorName->second);
 -            if (sensorName == nullptr)
 -            {
--                std::cerr << "Unable to find sensor name " << name
--                          << " on path " << path.str << "\n";
+-                lg2::info("Unable to find '{NAME}' on '{PATH}'", "NAME", name,
+-                          "PATH", path.str);
 -                continue;
 -            }
 -
@@ -220,5 +220,5 @@ index 5247486..7da3e0a 100644
                  catch (std::runtime_error&)
                  {
 -- 
-2.47.1
+2.45.3
 

@@ -1,4 +1,4 @@
-From ff4949e3d3bf4ec50cac779af4604f90a45bcf2d Mon Sep 17 00:00:00 2001
+From 2cf92c6edbc8104b1e9511d7b83ed6d4f59bd531 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 25 Sep 2023 11:10:46 +0800
 Subject: [PATCH 3/7] Add mctp eids configuration for Yosemite 4
@@ -167,20 +167,20 @@ index cdbae8c..214be6b 100644
      ],
      "Name": "Yosemite 4 Wailua Falls Slot $bus % 15",
 diff --git a/schemas/legacy.json b/schemas/legacy.json
-index 0c18284..8954f0d 100644
+index bc04791..fc31470 100644
 --- a/schemas/legacy.json
 +++ b/schemas/legacy.json
-@@ -65,6 +65,9 @@
-                 "EntityInstance": {
-                     "$ref": "#/$defs/Types/EntityInstance"
+@@ -11,6 +11,9 @@
+                 "AlphaS": {
+                     "type": "number"
                  },
 +                "EndpointId": {
 +                    "$ref": "#/$defs/Types/EndpointId"
 +                },
-                 "GpioPins": {
-                     "$ref": "#/$defs/Types/GpioPins"
+                 "Name": {
+                     "$ref": "#/$defs/Types/Name"
                  },
-@@ -1030,6 +1033,9 @@
+@@ -1178,6 +1181,9 @@
              "EntityInstance": {
                  "type": "number"
              },

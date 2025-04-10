@@ -1,7 +1,7 @@
-From 10af1dd7109704cf6884da227876c86e7c2da374 Mon Sep 17 00:00:00 2001
+From fec3e1d4d70bb92d4f409fcd75a495d420d6a8ac Mon Sep 17 00:00:00 2001
 From: Bright Cheng <bright_cheng@wiwynn.com>
 Date: Mon, 26 Aug 2024 11:37:53 +0800
-Subject: [PATCH 5/8] Utils: support powerState for multi-node system
+Subject: [PATCH 05/11] Utils: support powerState for multi-node system
 
 The current code of dbus-sensors only get powerState values for Chassis0
 and Host0 which cannot be used for the system with multiple server
@@ -49,21 +49,31 @@ root@bmc:~# busctl get-property xyz.openbmc_project.PSUSensor /xyz/openbmc_proje
 d 36.666
 root@bmc:~# busctl get-property xyz.openbmc_project.PSUSensor /xyz/openbmc_project/sensors/voltage/MEDUSA_MB7_12VHSC_INPUT_VOLT_V xyz.openbmc_project.Sensor.Value Value
 d 12.209
+
+Change-Id: I49ede1e6276acdbee2f8a9807c738be7970beaf9
 ---
- src/Utils.cpp                    | 433 ++++++++++++++++++++-----------
+ src/Utils.cpp                    | 443 ++++++++++++++++++++-----------
  src/Utils.hpp                    |  38 ++-
  src/hwmon-temp/HwmonTempMain.cpp |   6 +-
  src/psu/PSUSensor.cpp            |  25 +-
  src/psu/PSUSensor.hpp            |   9 +-
  src/psu/PSUSensorMain.cpp        |  10 +-
  src/sensor.hpp                   |   7 +-
- 7 files changed, 348 insertions(+), 180 deletions(-)
+ 7 files changed, 353 insertions(+), 185 deletions(-)
 
 diff --git a/src/Utils.cpp b/src/Utils.cpp
-index 2af6b50..291e27c 100644
+index 202e394..d47897a 100644
 --- a/src/Utils.cpp
 +++ b/src/Utils.cpp
-@@ -56,14 +56,24 @@
+@@ -41,6 +41,7 @@
+ #include <filesystem>
+ #include <fstream>
+ #include <functional>
++#include <iostream>
+ #include <iterator>
+ #include <memory>
+ #include <optional>
+@@ -56,14 +57,24 @@
  #include <variant>
  #include <vector>
  
@@ -91,7 +101,7 @@ index 2af6b50..291e27c 100644
  
  /**
   * return the contents of a file
-@@ -302,44 +312,84 @@ bool findFiles(const std::filesystem::path& dirPath,
+@@ -304,44 +315,84 @@ bool findFiles(const std::filesystem::path& dirPath,
      return true;
  }
  
@@ -189,16 +199,12 @@ index 2af6b50..291e27c 100644
      {
          return false;
      }
-@@ -347,13 +397,17 @@ bool readingStateGood(const PowerState& powerState)
-     return true;
- }
+@@ -351,11 +402,15 @@ bool readingStateGood(const PowerState& powerState)
  
--static void getPowerStatus(
--    const std::shared_ptr<sdbusplus::asio::connection>& conn,
+ static void getPowerStatus(
+     const std::shared_ptr<sdbusplus::asio::connection>& conn,
 -    size_t retries = 2)
-+static void
-+    getPowerStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
-+                   size_t slotNumber = 0, size_t retries = 2)
++    size_t slotNumber = 0, size_t retries = 2)
  {
 +    std::string busname = power::busname + std::to_string(slotNumber);
 +    std::string path = power::path + std::to_string(slotNumber);
@@ -212,7 +218,7 @@ index 2af6b50..291e27c 100644
              if (ec)
              {
                  if (retries != 0U)
-@@ -361,10 +415,10 @@ static void getPowerStatus(
+@@ -363,10 +418,10 @@ static void getPowerStatus(
                      auto timer = std::make_shared<boost::asio::steady_timer>(
                          conn->get_io_context());
                      timer->expires_after(std::chrono::seconds(15));
@@ -227,8 +233,8 @@ index 2af6b50..291e27c 100644
                      return;
                  }
  
-@@ -374,19 +428,24 @@ static void getPowerStatus(
-                           << "\n";
+@@ -376,19 +431,24 @@ static void getPowerStatus(
+                            "ERROR_MESSAGE", ec.message());
                  return;
              }
 -            powerStatusOn = std::get<std::string>(state).ends_with(".Running");
@@ -241,12 +247,10 @@ index 2af6b50..291e27c 100644
 +        power::property);
  }
  
--static void getPostStatus(
--    const std::shared_ptr<sdbusplus::asio::connection>& conn,
+ static void getPostStatus(
+     const std::shared_ptr<sdbusplus::asio::connection>& conn,
 -    size_t retries = 2)
-+static void
-+    getPostStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
-+                  size_t slotNumber = 0, size_t retries = 2)
++    size_t slotNumber = 0, size_t retries = 2)
  {
 +    std::string busname = post::busname + std::to_string(slotNumber);
 +    std::string path = post::path + std::to_string(slotNumber);
@@ -260,7 +264,7 @@ index 2af6b50..291e27c 100644
              if (ec)
              {
                  if (retries != 0U)
-@@ -394,10 +453,10 @@ static void getPostStatus(
+@@ -396,10 +456,10 @@ static void getPostStatus(
                      auto timer = std::make_shared<boost::asio::steady_timer>(
                          conn->get_io_context());
                      timer->expires_after(std::chrono::seconds(15));
@@ -275,7 +279,7 @@ index 2af6b50..291e27c 100644
                      return;
                  }
                  // we commonly come up before power control, we'll capture the
-@@ -407,21 +466,26 @@ static void getPostStatus(
+@@ -409,21 +469,26 @@ static void getPostStatus(
                  return;
              }
              const auto& value = std::get<std::string>(state);
@@ -293,12 +297,10 @@ index 2af6b50..291e27c 100644
 +        post::property);
  }
  
--static void getChassisStatus(
--    const std::shared_ptr<sdbusplus::asio::connection>& conn,
+ static void getChassisStatus(
+     const std::shared_ptr<sdbusplus::asio::connection>& conn,
 -    size_t retries = 2)
-+static void
-+    getChassisStatus(const std::shared_ptr<sdbusplus::asio::connection>& conn,
-+                     size_t slotNumber = 0, size_t retries = 2)
++    size_t slotNumber = 0, size_t retries = 2)
  {
 +    std::string busname = chassis::busname + std::to_string(slotNumber);
 +    std::string path = chassis::path + std::to_string(slotNumber);
@@ -312,7 +314,7 @@ index 2af6b50..291e27c 100644
              if (ec)
              {
                  if (retries != 0U)
-@@ -429,10 +493,10 @@ static void getChassisStatus(
+@@ -431,10 +496,10 @@ static void getChassisStatus(
                      auto timer = std::make_shared<boost::asio::steady_timer>(
                          conn->get_io_context());
                      timer->expires_after(std::chrono::seconds(15));
@@ -327,8 +329,8 @@ index 2af6b50..291e27c 100644
                      return;
                  }
  
-@@ -442,10 +506,10 @@ static void getChassisStatus(
-                           << ec.message() << "\n";
+@@ -445,10 +510,10 @@ static void getChassisStatus(
+                     "ERROR_MESSAGE", ec.message());
                  return;
              }
 -            chassisStatusOn =
@@ -341,7 +343,7 @@ index 2af6b50..291e27c 100644
          chassis::interface, chassis::property);
  }
  
-@@ -453,8 +517,6 @@ void setupPowerMatchCallback(
+@@ -456,8 +521,6 @@ void setupPowerMatchCallback(
      const std::shared_ptr<sdbusplus::asio::connection>& conn,
      std::function<void(PowerState type, bool state)>&& hostStatusCallback)
  {
@@ -350,7 +352,7 @@ index 2af6b50..291e27c 100644
      // create a match for powergood changes, first time do a method call to
      // cache the correct value
      if (powerMatch)
-@@ -462,32 +524,64 @@ void setupPowerMatchCallback(
+@@ -465,115 +528,191 @@ void setupPowerMatchCallback(
          return;
      }
  
@@ -369,6 +371,71 @@ index 2af6b50..291e27c 100644
 -            {
 -                bool on = std::get<std::string>(findState->second)
 -                              .ends_with(".Running");
+-                if (!on)
+-                {
+-                    timer.cancel();
+-                    powerStatusOn = false;
+-                    hostStatusCallback(PowerState::on, powerStatusOn);
+-                    return;
+-                }
+-                // on comes too quickly
+-                timer.expires_after(std::chrono::seconds(10));
+-                timer.async_wait(
+-                    [hostStatusCallback](boost::system::error_code ec) {
+-                        if (ec == boost::asio::error::operation_aborted)
+-                        {
+-                            return;
+-                        }
+-                        if (ec)
+-                        {
+-                            lg2::error("Timer error: '{ERROR_MESSAGE}'",
+-                                       "ERROR_MESSAGE", ec.message());
+-                            return;
+-                        }
+-                        powerStatusOn = true;
+-                        hostStatusCallback(PowerState::on, powerStatusOn);
+-                    });
+-            }
+-        });
+-
+-    postMatch = std::make_unique<sdbusplus::bus::match_t>(
+-        static_cast<sdbusplus::bus_t&>(*conn),
+-        "type='signal',interface='" + std::string(properties::interface) +
+-            "',path='" + std::string(post::path) + "',arg0='" +
+-            std::string(post::interface) + "'",
+-        [hostStatusCallback](sdbusplus::message_t& message) {
+-            std::string objectName;
+-            boost::container::flat_map<std::string, std::variant<std::string>>
+-                values;
+-            message.read(objectName, values);
+-            auto findState = values.find(post::property);
+-            if (findState != values.end())
+-            {
+-                auto& value = std::get<std::string>(findState->second);
+-                biosHasPost =
+-                    (value != "Inactive") &&
+-                    (value != "xyz.openbmc_project.State.OperatingSystem."
+-                              "Status.OSStatus.Inactive");
+-                hostStatusCallback(PowerState::biosPost, biosHasPost);
+-            }
+-        });
+-
+-    chassisMatch = std::make_unique<sdbusplus::bus::match_t>(
+-        static_cast<sdbusplus::bus_t&>(*conn),
+-        "type='signal',interface='" + std::string(properties::interface) +
+-            "',path='" + std::string(chassis::path) + "',arg0='" +
+-            std::string(chassis::interface) + "'",
+-        [hostStatusCallback = std::move(hostStatusCallback)](
+-            sdbusplus::message_t& message) {
+-            std::string objectName;
+-            boost::container::flat_map<std::string, std::variant<std::string>>
+-                values;
+-            message.read(objectName, values);
+-            auto findState = values.find(chassis::property);
+-            if (findState != values.end())
+-            {
+-                bool on = std::get<std::string>(findState->second)
+-                              .ends_with(chassis::sOn);
 -                if (!on)
 +    /* Get host paths */
 +    static const int depth = 1;
@@ -414,83 +481,44 @@ index 2af6b50..291e27c 100644
 +                auto findState = values.find(power::property);
 +                if (findState != values.end())
                  {
--                    timer.cancel();
--                    powerStatusOn = false;
--                    hostStatusCallback(PowerState::on, powerStatusOn);
+-                    timerChassisOn.cancel();
+-                    chassisStatusOn = false;
+-                    hostStatusCallback(PowerState::chassisOn, chassisStatusOn);
 -                    return;
 -                }
 -                // on comes too quickly
--                timer.expires_after(std::chrono::seconds(10));
--                timer.async_wait(
--                    [hostStatusCallback](boost::system::error_code ec) {
+-                timerChassisOn.expires_after(std::chrono::seconds(10));
+-                timerChassisOn.async_wait([hostStatusCallback](
+-                                              boost::system::error_code ec) {
+-                    if (ec == boost::asio::error::operation_aborted)
 +                    bool on = std::get<std::string>(findState->second)
 +                                  .ends_with(".Running");
 +                    auto it = findPowerStateByPath(path, powerStatusOn);
 +                    if (!on)
-+                    {
+                     {
 +                        timer->cancel();
 +                        it->second = false;
 +                        hostStatusCallback(PowerState::on, it->second);
-+                        return;
-+                    }
+                         return;
+                     }
+-                    if (ec)
 +                    // on comes too quickly
 +                    timer->expires_after(std::chrono::seconds(10));
-+                    timer->async_wait([hostStatusCallback,
-+                                       it](boost::system::error_code ec) {
-                         if (ec == boost::asio::error::operation_aborted)
-                         {
-                             return;
-@@ -497,78 +591,123 @@ void setupPowerMatchCallback(
-                             std::cerr << "Timer error " << ec.message() << "\n";
-                             return;
-                         }
--                        powerStatusOn = true;
--                        hostStatusCallback(PowerState::on, powerStatusOn);
-+                        it->second = true;
-+                        hostStatusCallback(PowerState::on, it->second);
-                     });
--            }
--        });
--
--    postMatch = std::make_unique<sdbusplus::bus::match_t>(
--        static_cast<sdbusplus::bus_t&>(*conn),
--        "type='signal',interface='" + std::string(properties::interface) +
--            "',path='" + std::string(post::path) + "',arg0='" +
--            std::string(post::interface) + "'",
--        [hostStatusCallback](sdbusplus::message_t& message) {
--            std::string objectName;
--            boost::container::flat_map<std::string, std::variant<std::string>>
--                values;
--            message.read(objectName, values);
--            auto findState = values.find(post::property);
--            if (findState != values.end())
--            {
--                auto& value = std::get<std::string>(findState->second);
--                biosHasPost =
--                    (value != "Inactive") &&
--                    (value != "xyz.openbmc_project.State.OperatingSystem."
--                              "Status.OSStatus.Inactive");
--                hostStatusCallback(PowerState::biosPost, biosHasPost);
--            }
--        });
--
--    chassisMatch = std::make_unique<sdbusplus::bus::match_t>(
--        static_cast<sdbusplus::bus_t&>(*conn),
--        "type='signal',interface='" + std::string(properties::interface) +
--            "',path='" + std::string(chassis::path) + "',arg0='" +
--            std::string(chassis::interface) + "'",
--        [hostStatusCallback = std::move(hostStatusCallback)](
--            sdbusplus::message_t& message) {
--            std::string objectName;
--            boost::container::flat_map<std::string, std::variant<std::string>>
--                values;
--            message.read(objectName, values);
--            auto findState = values.find(chassis::property);
--            if (findState != values.end())
--            {
--                bool on = std::get<std::string>(findState->second)
--                              .ends_with(chassis::sOn);
--                if (!on)
++                    timer->async_wait(
++                        [hostStatusCallback, it](boost::system::error_code ec) {
++                            if (ec == boost::asio::error::operation_aborted)
++                            {
++                                return;
++                            }
++                            if (ec)
++                            {
++                                lg2::error("Timer error: '{ERROR_MESSAGE}'",
++                                           "ERROR_MESSAGE", ec.message());
++                                return;
++                            }
++                            it->second = true;
++                            hostStatusCallback(PowerState::on, it->second);
++                        });
 +                }
 +            });
 +
@@ -510,11 +538,7 @@ index 2af6b50..291e27c 100644
 +                message.read(objectName, values);
 +                auto findState = values.find(post::property);
 +                if (findState != values.end())
-                 {
--                    timerChassisOn.cancel();
--                    chassisStatusOn = false;
--                    hostStatusCallback(PowerState::chassisOn, chassisStatusOn);
--                    return;
++                {
 +                    auto& value = std::get<std::string>(findState->second);
 +                    auto it = findPowerStateByPath(path, biosHasPost);
 +                    it->second =
@@ -522,16 +546,7 @@ index 2af6b50..291e27c 100644
 +                        (value != "xyz.openbmc_project.State.OperatingSystem."
 +                                  "Status.OSStatus.Inactive");
 +                    hostStatusCallback(PowerState::biosPost, it->second);
-                 }
--                // on comes too quickly
--                timerChassisOn.expires_after(std::chrono::seconds(10));
--                timerChassisOn.async_wait([hostStatusCallback](
--                                              boost::system::error_code ec) {
--                    if (ec == boost::asio::error::operation_aborted)
--                    {
--                        return;
--                    }
--                    if (ec)
++                }
 +            });
 +        postMatchVec.emplace_back(
 +            std::make_pair(std::string(path), std::move(postMatch)));
@@ -588,7 +603,8 @@ index 2af6b50..291e27c 100644
 +                    auto it = findPowerStateByPath(path, chassisStatusOn);
 +                    if (!on)
                      {
--                        std::cerr << "Timer error " << ec.message() << "\n";
+-                        lg2::error("Timer error: '{ERROR_MESSAGE}'",
+-                                   "ERROR_MESSAGE", ec.message());
 +                        timerChassisOn->cancel();
 +                        it->second = false;
 +                        hostStatusCallback(PowerState::chassisOn, it->second);
@@ -631,7 +647,7 @@ index 2af6b50..291e27c 100644
  
  void setupPowerMatch(const std::shared_ptr<sdbusplus::asio::connection>& conn)
 diff --git a/src/Utils.hpp b/src/Utils.hpp
-index be96877..4fcfc94 100644
+index 8cfdddd..14ad3ff 100644
 --- a/src/Utils.hpp
 +++ b/src/Utils.hpp
 @@ -55,6 +55,7 @@ using ManagedObjectType =
@@ -737,10 +753,10 @@ index be96877..4fcfc94 100644
  
      void getPath(const std::string& path, const std::string& interface,
 diff --git a/src/hwmon-temp/HwmonTempMain.cpp b/src/hwmon-temp/HwmonTempMain.cpp
-index 0074900..342502f 100644
+index fe4f5b8..50c8899 100644
 --- a/src/hwmon-temp/HwmonTempMain.cpp
 +++ b/src/hwmon-temp/HwmonTempMain.cpp
-@@ -593,7 +593,11 @@ static void powerStateChanged(
+@@ -594,7 +594,11 @@ static void powerStateChanged(
          {
              if (sensor != nullptr && sensor->readState == type)
              {
@@ -863,7 +879,7 @@ index 465958c..6065c37 100644
          }
      }
 diff --git a/src/sensor.hpp b/src/sensor.hpp
-index 2eab853..d649ab2 100644
+index 07d70ec..c590ad1 100644
 --- a/src/sensor.hpp
 +++ b/src/sensor.hpp
 @@ -72,7 +72,7 @@ struct Sensor
@@ -892,7 +908,7 @@ index 2eab853..d649ab2 100644
      size_t errCount{0};
      std::unique_ptr<SensorInstrumentation> instrumentation;
  
-@@ -434,7 +435,7 @@ struct Sensor
+@@ -436,7 +437,7 @@ struct Sensor
  
      bool readingStateGood() const
      {
@@ -902,5 +918,5 @@ index 2eab853..d649ab2 100644
  
      void markFunctional(bool isFunctional)
 -- 
-2.47.1
+2.45.3
 

@@ -1,7 +1,7 @@
-From a6633dbdf1067640e08c84776396312983db1a60 Mon Sep 17 00:00:00 2001
+From 265689a636f5c9b2fb3a5cfc2e93a29c72273f40 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Fri, 22 Sep 2023 09:49:53 +0800
-Subject: [PATCH 1/8] PSUSensor: add ina233 support
+Subject: [PATCH 01/11] PSUSensor: add ina233 support
 
 add device ina233 pmbus reading support
 
@@ -27,5 +27,5 @@ index a02ad17..179cbd4 100644
      {"IR38060", I2CDeviceType{"ir38060", true}},
      {"IR38164", I2CDeviceType{"ir38164", true}},
 -- 
-2.47.1
+2.45.3
 

@@ -1,7 +1,7 @@
-From 5679132a6b72831ba1f736b4fa5a681629ff8e59 Mon Sep 17 00:00:00 2001
+From 6e27f7e06a9804ef87597cad60699483ce45666d Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Tue, 26 Sep 2023 14:24:08 +0800
-Subject: [PATCH 2/8] PSUSensor: add adm1281 support
+Subject: [PATCH 02/11] PSUSensor: add adm1281 support
 
 add device adm1281 pmbus reading support
 
@@ -27,5 +27,5 @@ index 179cbd4..679482b 100644
      {"ADS1015", I2CDeviceType{"ads1015", true}},
      {"ADS7830", I2CDeviceType{"ads7830", true}},
 -- 
-2.47.1
+2.45.3
 

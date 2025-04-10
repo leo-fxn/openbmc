@@ -1,4 +1,4 @@
-From 7b7cbbb05a560dded23de2331bfb287e94dcc0d5 Mon Sep 17 00:00:00 2001
+From 3febe6783d491e1fd1e5bffc910b517a0f762b6a Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Thu, 7 Mar 2024 10:41:16 +0800
 Subject: [PATCH 4/7] configurations: yosemite4: Add IANA for sentinel dome
@@ -70,20 +70,20 @@ index ea4646b..a23e533 100644
              "Type": "MCTPEndpoint"
          }
 diff --git a/schemas/legacy.json b/schemas/legacy.json
-index 8954f0d..4c25510 100644
+index fc31470..d42e6e7 100644
 --- a/schemas/legacy.json
 +++ b/schemas/legacy.json
-@@ -74,6 +74,9 @@
-                 "GpioPolarity": {
-                     "$ref": "#/$defs/Types/GpioPolarity"
+@@ -14,6 +14,9 @@
+                 "EndpointId": {
+                     "$ref": "#/$defs/Types/EndpointId"
                  },
 +                "IANA": {
 +                    "$ref": "#/$defs/Types/IANA"
 +                },
-                 "Index": {
-                     "$ref": "#/$defs/Types/Index"
+                 "Name": {
+                     "$ref": "#/$defs/Types/Name"
                  },
-@@ -1045,6 +1048,9 @@
+@@ -1193,6 +1196,9 @@
              "GpioPolarity": {
                  "enum": ["Low"]
              },
@@ -91,8 +91,8 @@ index 8954f0d..4c25510 100644
 +                "type": "string"
 +            },
              "Index": {
-                 "type": "number"
-             },
+                 "type": "number",
+                 "minimum": 0,
 -- 
 2.45.3
 

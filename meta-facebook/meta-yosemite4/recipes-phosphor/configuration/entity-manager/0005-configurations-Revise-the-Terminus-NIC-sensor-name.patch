@@ -1,4 +1,4 @@
-From bc23e505cda73d9d6a46dc5beaf73bee946cb809 Mon Sep 17 00:00:00 2001
+From 2893e4ce4561f47afda21c4e6b6b8e31d7e42ae6 Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Wed, 17 Jul 2024 11:33:26 +0800
 Subject: [PATCH 5/7] configurations: Revise the Terminus NIC sensor name

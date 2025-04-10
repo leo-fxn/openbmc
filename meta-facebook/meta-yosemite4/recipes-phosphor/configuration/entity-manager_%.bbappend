@@ -1,4 +1,4 @@
-FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/entity-manager:"
 
 EXTRA_OEMESON:append = " \
      -Dconfig-prefix=yosemite4,brcm,cx7,terminus,bmc \
