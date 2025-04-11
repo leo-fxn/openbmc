@@ -19,6 +19,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 LOCAL_URI += " \
     file://fsc-config.json \
+    file://fsc-config-vll.json \
     file://zone1.fsc \
     file://fsc_board.py \
     file://setup-fan.sh \
@@ -29,7 +30,8 @@ LOCAL_URI += " \
 FSC_BIN_FILES += "get_fan_speed.sh \
                   set_fan_speed.sh "
 
-FSC_CONFIG += "fsc-config.json"
+FSC_CONFIG += "fsc-config.json \
+               fsc-config-vll.json"
 
 FSC_ZONE_CONFIG +="zone1.fsc"
 

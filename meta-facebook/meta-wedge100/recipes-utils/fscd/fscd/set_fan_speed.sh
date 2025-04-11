@@ -28,6 +28,51 @@ FAN_DIR=$(i2c_device_sysfs_abspath 8-0033)
 
 set -e
 
+# This util is called by fscd system service as a pre-condition
+# Therefore, if fscd thermal model is not configured, do that here
+# This is the target file that the config will be written
+default_fsc_config="/etc/fsc-config.json"
+if [ -f /etc/netwhoami ]; then
+  # If we already have netwhoami, use that
+  echo "Checking netwhoami for detecting the datacenter location."
+  dc=$(/bin/grep "network_name=" /etc/netwhoami | /bin/grep -o '[a-z]\+[0-9]' | /usr/bin/tail -n 1 |grep -o '[a-z]\+')
+fi
+# shellcheck disable=SC2039
+if [ "$dc" == "" ]; then
+  # If role is still not found, check if cached hostname exists
+  if [ -f /mnt/data/hostname ]; then
+    echo "Using the cached hostname to infer the datacenter location."
+    dc=$(/bin/grep -o '[a-z]\+[0-9]' /mnt/data/hostname | /usr/bin/tail -n 1 |grep -o '[a-z]\+')
+  fi
+fi
+# shellcheck disable=SC2039
+if [ "$dc" == "" ]; then
+  # Finally, infer the role from the current hostname
+  if [ -f /etc/hostname ]; then
+    echo "Using the hostname to infer the datacenter location."
+    dc=$(/bin/grep -o '[a-z]\+[0-9]' /etc/hostname | /usr/bin/tail -n 1 |grep -o '[a-z]\+')
+  fi
+fi
+case $dc in
+  vll)
+    profile="/etc/fsc-config-vll.json"
+    ;;
+  *)
+    profile="/etc/fsc-config.json"
+    ;;
+esac
+echo "Setting up the thermal profile for datacenter: $dc. Filename: $profile"
+# shellcheck disable=SC2039
+if [ "$profile" != "$default_fsc_config" ]; then
+  if [ -f $profile ]; then 
+    /bin/cp -f $profile $default_fsc_config
+  else 
+    echo "Unable to find the config file. Using the default file"
+  fi
+else
+  echo "Using the default fscd config file"
+fi
+
 if [ "$#" -ne 2 ] && [ "$#" -ne 1 ]; then
     usage
     exit 1
