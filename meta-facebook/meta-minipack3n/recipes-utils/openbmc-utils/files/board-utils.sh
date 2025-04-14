@@ -56,24 +56,9 @@ wedge_board_type() {
 }
 
 wedge_board_rev_from_idprom() {
-    product_state=$(weutil | grep 'Product Production State' | cut -d ' ' -f4)
-    product_sub_state=$(weutil | grep 'Product Version' | cut -d ' ' -f3)
-    if [ -n "$product_state" ]; then
-        case "$((product_state))" in
-            1)
-                echo "EVT$product_sub_state"
-                ;;
-            2)
-                echo "DVT$product_sub_state"
-                ;;
-            3)
-                echo "PVT$product_sub_state"
-                ;;
-            4)
-                echo "MP$product_sub_state"
-                ;;
-        esac
-    fi
+    product_state=$(weutil | grep 'Production State' | cut -d ' ' -f3)
+    product_sub_state=$(weutil | grep 'Production Sub-State' | cut -d ' ' -f3)
+    echo "$product_state$product_sub_state"
 }
 
 wedge_board_rev_from_hw_strapping() {

@@ -146,9 +146,9 @@ EepromContents expectedContentsV6 = {
     {"Meta PCB Part Number", "PCB12345678 "},
     {"ODM/JDM PCBA Part Number", "MYODM1234567"},
     {"ODM/JDM PCBA Serial Number", "OS123456789AB"},
-    {"Product Production State", "1"},
-    {"Product Version", "0"},
-    {"Product Sub-Version", "1"},
+    {"Production State", "1"},
+    {"Production Sub-State", "0"},
+    {"Re-Spin/Variant Indicator", "1"},
     {"Product Serial Number", "PS1234567890A"},
     {"System Manufacturer", "UNA_MAS"},
     {"System Manufacturing Date", "20130203"},
@@ -203,7 +203,7 @@ bool testOne(const EepromData& raw, const EepromContents& expected) {
 
   facebook::fboss::platform::FbossEepromParser parser(filename, 0);
   EepromContents actual = parser.getContents();
-  
+
   if (actual.size() != expected.size()) {
     std::cerr << "Bad parsed size " << actual.size() << ", expected " << expected.size() << std::endl;
     printParsed(actual, std::cerr);
