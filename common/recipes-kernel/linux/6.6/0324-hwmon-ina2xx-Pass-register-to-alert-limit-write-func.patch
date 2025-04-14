@@ -1,7 +1,7 @@
-From e29e9986dd1c17e2824c9503757b77fa11ff3015 Mon Sep 17 00:00:00 2001
+From da0e3601c75e2b5dac008ebb0ce0687342ced96e Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Wed, 28 Aug 2024 15:18:51 -0700
-Subject: [PATCH 325/331] hwmon: (ina2xx) Pass register to alert limit write
+Subject: [PATCH 324/330] hwmon: (ina2xx) Pass register to alert limit write
  functions
 
 Pass the to-be-limited register to alert functions and use it to determine
@@ -86,5 +86,5 @@ index 339d41dfa10e..1cd6fffb1495 100644
  		return -EOPNOTSUPP;
  	}
 -- 
-2.44.2
+2.45.3
 

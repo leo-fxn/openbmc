@@ -1,7 +1,7 @@
-From b50e10c29e7dfe83f732118b5f0cbff9a231cb85 Mon Sep 17 00:00:00 2001
+From 3d779e274aa005fdbeaee1bf66ed9c36352cecfe Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 23 Jul 2024 13:21:12 -0700
-Subject: [PATCH 314/331] hwmon: (ina2xx) Reorder include files to alphabetic
+Subject: [PATCH 313/330] hwmon: (ina2xx) Reorder include files to alphabetic
  order
 
 Simplify driver maintenance by reordering include files to alphabetic
@@ -49,5 +49,5 @@ index 9ab4205622e2..a6a619a85eb6 100644
  #include <linux/platform_data/ina2xx.h>
  
 -- 
-2.44.2
+2.45.3
 

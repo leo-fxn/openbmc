@@ -1,7 +1,7 @@
-From bb01a2a9361e0c66e42a3cde10663f5959876e6b Mon Sep 17 00:00:00 2001
+From 118f6c30a2ce201374a0d8dcf8fbfa47c76007d2 Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Wed, 24 Jul 2024 09:42:16 -0700
-Subject: [PATCH 320/331] hwmon: (ina2xx) Fix various overflow issues
+Subject: [PATCH 319/330] hwmon: (ina2xx) Fix various overflow issues
 
 Module tests show various overflow problems when writing limits
 and other attributes.
@@ -129,5 +129,5 @@ index db6432523e59..2aea461b8c6d 100644
  	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
  	if (IS_ERR(data->regmap)) {
 -- 
-2.44.2
+2.45.3
 

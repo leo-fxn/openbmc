@@ -1,7 +1,7 @@
-From f8efb7c6a1f329266179eff74f35e71604c756e4 Mon Sep 17 00:00:00 2001
+From a85c546946155c399e471b1f7f6bf4a9491c6e3c Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Thu, 1 Aug 2024 15:34:48 -0700
-Subject: [PATCH 323/331] hwmon: (ina2xx) Move ina2xx_get_value()
+Subject: [PATCH 322/330] hwmon: (ina2xx) Move ina2xx_get_value()
 
 ina2xx_get_value() will be needed earlier in the next patch, so move it.
 No functional change.
@@ -103,5 +103,5 @@ index 98338b7e7437..fe850ee06024 100644
  				 struct device_attribute *da, char *buf)
  {
 -- 
-2.44.2
+2.45.3
 

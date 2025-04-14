@@ -1,7 +1,7 @@
-From 567beb8d02145a5a1746ced001d6e520d34a44fc Mon Sep 17 00:00:00 2001
+From 837e5f0e52df6724d82f34767ce5c88a4ae6b992 Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Tue, 27 Aug 2024 10:23:10 -0700
-Subject: [PATCH 329/331] hwmon: (ina2xx) Add support for INA260
+Subject: [PATCH 328/330] hwmon: (ina2xx) Add support for INA260
 
 INA260 is similar to other chips of the series, except it has an internal
 shunt resistor. The calibration register is therefore not present. Also,
@@ -224,5 +224,5 @@ index 03a011c9b73d..cecc80a41a97 100644
  };
  MODULE_DEVICE_TABLE(of, ina2xx_of_match);
 -- 
-2.44.2
+2.45.3
 

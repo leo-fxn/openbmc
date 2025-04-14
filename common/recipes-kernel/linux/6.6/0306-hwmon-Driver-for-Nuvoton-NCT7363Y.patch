@@ -1,7 +1,7 @@
-From 6279a35a8a62c156f689bf98f09f1455157d21c3 Mon Sep 17 00:00:00 2001
+From daccebbaa9ce34837e9ad0a3562d5f05be840316 Mon Sep 17 00:00:00 2001
 From: Eric <Eric_LC_Chen@wiwynn.com>
 Date: Wed, 20 Mar 2024 11:45:42 +0800
-Subject: [PATCH 307/331] hwmon: Driver for Nuvoton NCT7363Y
+Subject: [PATCH 306/330] hwmon: Driver for Nuvoton NCT7363Y
 
 NCT7363Y is an I2C based hardware monitoring chip from Nuvoton.
 
@@ -89,10 +89,10 @@ index 000000000000..17139cb99010
 +        };
 +   };
 diff --git a/Documentation/hwmon/index.rst b/Documentation/hwmon/index.rst
-index 946a380210ef..0fede0d894a5 100644
+index 8da1591aa247..47847951482a 100644
 --- a/Documentation/hwmon/index.rst
 +++ b/Documentation/hwmon/index.rst
-@@ -165,6 +165,7 @@ Hardware Monitoring Kernel Drivers
+@@ -166,6 +166,7 @@ Hardware Monitoring Kernel Drivers
     mp5990
     nct6683
     nct6775
@@ -140,10 +140,10 @@ index 000000000000..89699c95aa4b
 +pwmX			get or set PWM fan control value.
 +======================= =======================================================
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 9b03981859d5..c6a5fcf8f04f 100644
+index a296bb862c45..b0d560446671 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -14768,6 +14768,14 @@ S:	Maintained
+@@ -14775,6 +14775,14 @@ S:	Maintained
  F:	Documentation/devicetree/bindings/hwmon/nuvoton,nct6775.yaml
  F:	drivers/hwmon/nct6775-i2c.c
  
@@ -611,5 +611,5 @@ index 000000000000..c79d3ca4f111
 +MODULE_DESCRIPTION("NCT7363 Hardware Monitoring Driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.44.2
+2.45.3
 
