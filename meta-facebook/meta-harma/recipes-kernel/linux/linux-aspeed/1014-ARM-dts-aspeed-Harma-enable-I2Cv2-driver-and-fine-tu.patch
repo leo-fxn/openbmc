@@ -1,0 +1,31 @@
+From 7e1be01a8414a6b41d90762ff233e98ce8cd4254 Mon Sep 17 00:00:00 2001
+From: Peter Yin <peter.yin@quantatw.com>
+Date: Mon, 31 Mar 2025 14:36:07 +0800
+Subject: [PATCH 1014/1014] ARM: dts: aspeed: Harma: enable I2Cv2 driver and
+ fine-tune freq
+
+I2C in old mode is less efficient. When the BMC is busy with numerous
+I2C transactions, it may hold the SCL line low for extended periods,
+causing long ACK.
+Not all devices are affected by these long ACK times. The impact depends
+on the I2C timeout value specific to each device.
+In order to have better margin, modify the duty cycle of the i2c bus.
+---
+ arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-harma.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-harma.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-harma.dts
+index ac073096e028..ecca7e6d8058 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-harma.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-harma.dts
+@@ -601,6 +601,7 @@ rtc@51 {
+ &i2c14 {
+ 	status = "okay";
+ 	multi-master;
++	aspeed,enable-byte;
+ 
+ 	ipmb@10 {
+ 		compatible = "ipmb-dev";
+-- 
+2.25.1
+

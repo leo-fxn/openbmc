@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/linux-aspeed:"
 
-SRC_URI:append = " file://harma-uart.cfg"
+SRC_URI:append = " file://harma-local.cfg"
 
 SRC_URI:append = " \
     file://1000-ARM-dts-aspeed-Harma-Revise-node-name.patch \
@@ -17,4 +17,5 @@ SRC_URI:append = " \
     file://1011-ARM-dts-aspeed-Harma-add-e1s-power-monitor.patch \
     file://1012-ARM-dts-aspeed-Harma-fan-board-io-expander.patch \
     file://1013-ARM-dts-aspeed-Harma-add-adc128d818.patch \
+    file://1014-ARM-dts-aspeed-Harma-enable-I2Cv2-driver-and-fine-tu.patch \
 "
