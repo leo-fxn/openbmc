@@ -11,11 +11,23 @@ PHOSPHOR_LOG2_USING;
 namespace redfish_client_daemon
 {
 
+using EventSeverity = redfish_binding::LogEntry::EventSeverity;
+
+namespace
+{
+
+template <typename T>
+T makeCPER(const auto& source, const auto& cper)
+{
+    return T("SOURCE", sdbusplus::message::object_path(source), "CPER",
+             cper.toJson().dump());
+}
+
 class UnhandledException : public sdbusplus::exception::generated_event_base
 {
   public:
-    explicit UnhandledException(int eventSeverity,
-                                const nlohmann::json& eventData) :
+    UnhandledException(EventSeverity eventSeverity,
+                       const nlohmann::json& eventData) :
         eventSeverity(eventSeverity), eventData(eventData)
     {}
 
@@ -44,15 +56,26 @@ class UnhandledException : public sdbusplus::exception::generated_event_base
 
     int severity() const noexcept override
     {
-        return eventSeverity;
+        switch (eventSeverity)
+        {
+            case EventSeverity::OK:
+                return LOG_INFO;
+            case EventSeverity::Warning:
+                return LOG_WARNING;
+            case EventSeverity::Critical:
+                return LOG_CRIT;
+            default:
+                return LOG_ERR;
+        }
     }
 
   private:
-    int eventSeverity;
+    EventSeverity eventSeverity;
     nlohmann::json eventData;
     static constexpr const char* kExceptionName =
         "com.meta.RedfishClient.UnexpectedException";
 };
+} // anonymous namespace
 
 void LogServiceHandler::runOnce(std::shared_ptr<IRedfishSource> redfishSource)
 {
@@ -71,10 +94,10 @@ void LogServiceHandler::runOnce(std::shared_ptr<IRedfishSource> redfishSource)
 
     try
     {
-        auto coll =
+        auto logEntryCollection =
             redfish_binding::LogEntryCollection::parseLogEntryCollection(
                 logEntryJson);
-        applyLogEntryCollection(coll);
+        commit(logEntryCollection);
     }
     catch (const std::exception& exn)
     {
@@ -84,7 +107,7 @@ void LogServiceHandler::runOnce(std::shared_ptr<IRedfishSource> redfishSource)
     };
 }
 
-void LogServiceHandler::applyLogEntryCollection(
+void LogServiceHandler::commit(
     redfish_binding::LogEntryCollection::LogEntryCollection& collection)
 {
     auto& maybeMembers = collection.getMembers();
@@ -92,32 +115,12 @@ void LogServiceHandler::applyLogEntryCollection(
     {
         for (auto& member : maybeMembers.value())
         {
-            applyLogEntry(member);
+            commit(member);
         }
     }
 }
 
-int LogServiceHandler::getLogEntrySeverity(
-    redfish_binding::LogEntry::EventSeverity severity)
-{
-    switch (severity)
-    {
-        case redfish_binding::LogEntry::EventSeverity::OK:
-            return LOG_INFO;
-
-        case redfish_binding::LogEntry::EventSeverity::Warning:
-            return LOG_WARNING;
-
-        case redfish_binding::LogEntry::EventSeverity::Critical:
-            return LOG_CRIT;
-
-        default:
-            return LOG_ERR;
-    }
-}
-
-void LogServiceHandler::applyLogEntry(
-    redfish_binding::LogEntry::LogEntry& entry)
+void LogServiceHandler::commit(redfish_binding::LogEntry::LogEntry& entry)
 {
     namespace CPER = sdbusplus::error::xyz::openbmc_project::state::CPER;
 
@@ -125,7 +128,7 @@ void LogServiceHandler::applyLogEntry(
     {
         return;
     }
-    auto& entryId = entry.getId().value();
+    const auto& entryId = entry.getId().value();
     if (!entry.getCreated().hasValue())
     {
         return;
@@ -139,13 +142,11 @@ void LogServiceHandler::applyLogEntry(
     seenEntries[entryId] = timestamp;
     try
     {
-        auto& maybeRedfishSeverity = entry.getSeverity();
+        auto eventSeverity = entry.getSeverity().hasValue()
+                                 ? entry.getSeverity().value()
+                                 : EventSeverity::Critical;
         auto& maybeCPER = entry.getCPER();
         auto& maybeLinks = entry.getLinks();
-
-        auto severity = maybeRedfishSeverity.hasValue()
-                            ? getLogEntrySeverity(maybeRedfishSeverity.value())
-                            : LOG_CRIT;
 
         // If the event has a CPER section, it must be a CPER.  Translate
         // it into the GenericCPER* exceptions.
@@ -171,26 +172,26 @@ void LogServiceHandler::applyLogEntry(
                 return id.value();
             }();
 
-            if (severity == LOG_CRIT)
+            if (eventSeverity == EventSeverity::Critical)
             {
-                lg2::commit(makeCPER<CPER::GenericCPERFault>(
-                    source, maybeCPER.value()));
+                lg2::commit(makeCPER<CPER::GenericCPERFault>(source,
+                                                        maybeCPER.value()));
             }
             else
             {
-                lg2::commit(makeCPER<CPER::GenericCPERWarning>(
-                    source, maybeCPER.value()));
+                lg2::commit(makeCPER<CPER::GenericCPERWarning>(source,
+                                                          maybeCPER.value()));
             }
             return;
         }
 
-        lg2::commit(UnhandledException(severity, entry.toJson()));
+        lg2::commit(UnhandledException(eventSeverity, entry.toJson()));
     }
     catch (const std::exception& e)
     {
         error(
             "Could not commit event log entry for entry id {ENTRY_ID}: {ERROR}",
-            "ENTRY_ID", entryId.c_str(), "ERROR", e);
+            "ENTRY_ID", entryId, "ERROR", e);
         return;
     }
 }
