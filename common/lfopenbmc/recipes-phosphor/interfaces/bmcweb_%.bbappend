@@ -5,6 +5,7 @@ SRC_URI:append = " \
     file://0101-mutual-tls-meta-Support-svc-and-host-entity-types.patch \
     file://0102-Set-request-timeout-to-40s-on-bmcweb-http-http_conne.patch \
     file://0103-Up-the-max-connections-from-200-to-1000.patch \
+    file://0104-fallback-to-meta-mode-when-UPN-mode-failed.patch \
 "
 
 EXTRA_OEMESON:append = " -Dredfish-updateservice-use-dbus=enabled"
