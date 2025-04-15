@@ -38,6 +38,8 @@ SRC_URI = " \
     file://http_client.hpp \
     file://log_service_handler.cpp \
     file://log_service_handler.hpp \
+    file://persist_map.cpp \
+    file://persist_map.hpp \
     file://sensor.cpp \
     file://sensor.hpp \
     file://source.cpp \

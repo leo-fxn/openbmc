@@ -26,6 +26,7 @@ daemon_test_files = [
     'eventlog_parser_tests.cpp',
     'http_client_tests.cpp',
     'logentry_tests.cpp',
+    'persist_map_test.cpp',
     'redfish_binding_common_tests.cpp',
     'redfish_binding_tests.cpp',
     'sensor_tests.cpp',
