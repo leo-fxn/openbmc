@@ -73,7 +73,7 @@ const std::vector<std::string> BMC_PATCH_TARGETS_DVT = {
   "HGX_FW_ERoT_BMC_0", "HGX_FW_BMC_0"
 };
 
-constexpr auto TIME_OUT = 6;
+constexpr auto TIME_OUT = 12;
 
 using nlohmann::json;
 
