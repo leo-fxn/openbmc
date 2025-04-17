@@ -256,7 +256,7 @@ PAL_SENSOR_MAP ubb_sensor_map[] = {
   {"HSC_8_TEMP" , 0 , read_snr, true, {100.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x19
   {"HSC_9_TEMP" , 0 , read_snr, true, {100.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x1A
   {"Standby_HSC_TEMP", 0 , read_snr, true, {100.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP}, //0x1B
-  {"Inlet_0_TEMP", 0, read_snr, true, {85.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP},  //0x1C
+  {"Outlet_0_TEMP", 0, read_snr, true, {85.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP},  //0x1C
   {"Inlet_1_TEMP", 0, read_snr, true, {55.0, 0, 0, 5.0, 0, 0, 0, 0}, TEMP},  //0x1D
   {NULL, 0,  NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0},                          //0x1E
   {"IBC_TEMP"    , 0 , read_snr, true, {0, 0, 0, 0, 0, 0, 0, 0}, TEMP},      //0x1F
