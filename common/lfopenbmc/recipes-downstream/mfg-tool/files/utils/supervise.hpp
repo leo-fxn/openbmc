@@ -44,9 +44,19 @@ int supervise(std::function<int()> fn, int timeout, int retries)
             alarm(0);
             if (was_killed)
             {
-                exit(137);
+                continue;
+            }
+            if (es == 0)
+            {
+                return es;
             }
         }
+    }
+    // If the last attempt was killed by the timeout, then we
+    // return 137 to mimic the returncode from the timeout binary
+    if (was_killed)
+    {
+        exit(137);
     }
     return es;
 }
