@@ -156,6 +156,60 @@ class RedfishEventHandler(web.Application):
             logging.error("Failed to subscribe: " + str(e))
             self.sel("Failed to register for events")
 
+    def FormatACA(self, jsonACA: str) -> str:
+        formattedString = ""
+        isPoison = "No"
+        isScrub = "No"
+
+        if jsonACA:
+            if 'RawData' in jsonACA and 'StatusReg' in jsonACA['RawData']:
+                status_reg = jsonACA['RawData'].get("StatusReg")
+                temp = int(status_reg, 16)
+                BIT_POISON = 43
+                BIT_SCRUB = 40
+                isPoison = "Yes" if (temp >> BIT_POISON) & 1 else "No"
+                isScrub = "Yes" if (temp >> BIT_SCRUB) & 1 else "No"
+            if 'DecodedData' in jsonACA:
+                severityACA = jsonACA['DecodedData'].get("severity")
+
+                filteredData = {
+                    "error_category": jsonACA['DecodedData'].get("error_category"),
+                    "error_location": jsonACA['DecodedData'].get("error_location"),
+                    "error_type": jsonACA['DecodedData'].get("error_type"),
+                    "address": jsonACA['DecodedData'].get("address"),
+                }
+                formattedString = (
+                    f"; ACA data {{"
+                    f"Error_Category: {filteredData['error_category']}, "
+                    f"Error_Location: {filteredData['error_location']}, "
+                    f"Error_Type: {filteredData['error_type']}, "
+                    f"Address: {filteredData['address']}, "
+                    f"Poison_Consumed: {isPoison}, "
+                    f"Severity: {severityACA}, "
+                    f"Found_by_scrub: {isScrub}}}; "
+                )
+        return formattedString
+
+    def decodeACA(self) -> list[str]:
+        url = self.target_url + "/redfish/v1/Systems/UBB/LogServices/Dump/Entries"
+        req = request.Request(url)
+        resp = request.urlopen(req)
+        obj = json.loads(resp.read().decode())
+        decodedList = ["", ""]
+
+        if 'Members' in obj and obj['Members']:
+            lastMember = obj['Members'][-1]
+            if ('Oem' in lastMember and
+                'ErrDataArr' in lastMember['Oem'] and
+                lastMember['Oem']['ErrDataArr']):
+                if len(lastMember['Oem']['ErrDataArr']) == 1:
+                    decodedList[0] = self.FormatACA(lastMember['Oem']['ErrDataArr'][0])
+                    decodedList[1] = ""
+                else:
+                    decodedList[0] = self.FormatACA(lastMember['Oem']['ErrDataArr'][0])
+                    decodedList[1] = self.FormatACA(lastMember['Oem']['ErrDataArr'][-1])
+        return decodedList
+
     def handleEvent(self, event: Dict[str, Any]):
         # eid = event.get('EventId', 'Unknown')
         # egid = event.get('EventGroupId', 'Unknown')
@@ -179,22 +233,41 @@ class RedfishEventHandler(web.Application):
             url = self.target_url + data
             data = request.urlopen(request.Request(url)).read()
             if data_type == "CPER":
-               cper_path = "/mnt/data/cper/"
-               if not os.path.exists(cper_path):
-                   os.makedirs(cper_path)
-               data_path = cper_path + event_id + "_" + tsp + ".cper"
+                formerACA = ""
+                latterACA = ""
+                prefix_log = log
+                cper_path = "/mnt/data/cper/"
+                if not os.path.exists(cper_path):
+                    os.makedirs(cper_path)
+                data_path = cper_path + event_id + "_" + tsp + ".cper"
+
+                formerACA, latterACA = self.decodeACA()
+                if formerACA.find("Poison_Consumed: Yes") != -1:
+                    log = prefix_log.replace("UnCorrected Non-Fatal", "Fatal Error")
+                formerLog = log + formerACA + " AdditionalData: " + data_path
+                logging.info(formerLog)
+                self.sel(formerLog)
+
+                if len(latterACA) > 1:
+                    if latterACA.find("Poison_Consumed: Yes") != -1:
+                        log = prefix_log.replace("UnCorrected Non-Fatal", "Fatal Error")
+                    latterLog = log + latterACA + " AdditionalData: " + data_path
+                    logging.info(latterLog)
+                    self.sel(latterLog)
             else:
                 data_path = "/mnt/data/" + mid + str(time.time()) + ".dat"
+                log += " AdditionalData: " + data_path
+                logging.info(log)
+                self.sel(log)
             if len(data) != data_size:
                 logging.warning(
                     f"{data_path} is {len(data)} bytes and not expected {data_size}"
                 )
             with open(data_path, "wb") as f:
                 f.write(data)
-            log += " AdditionalData: " + data_path
-        logging.info(log)
-        # TODO Probably we might want to do this only for certain msev
-        self.sel(log)
+        else:
+            logging.info(log)
+            self.sel(log)
 
     def handleMetricReport(self, metrics: Dict[str, Any], name: str):
         log = f"Metric Name: {name}"
@@ -307,3 +380,4 @@ if __name__ == "__main__":
     initLoggers(logPath)
     handler = RedfishEventHandler(host, port, target, fruid, fruname, timeout)
     handler.run()
+
