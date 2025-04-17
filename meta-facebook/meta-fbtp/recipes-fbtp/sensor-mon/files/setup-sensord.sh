@@ -55,13 +55,14 @@ do
   byte4=$(echo $response | cut -d ' ' -f 4)
   byte5=$(echo $response | cut -d ' ' -f 5)
 
+  # always read from ME
+  kv set read_12v ME
   if [ "$byte4" = "1E" ] && [ "$byte5" = "3F" ]; then
-    kv set read_12v ME
     logger -t "sensord" -p daemon.info "Read 12v_OUT from ME"
     break
   elif [ $count -ge 30 ]; then
-    kv set read_12v ADC
-    logger -t "sensord" -p daemon.info "Read 12v_OUT from ADC"
+  #  kv set read_12v ADC
+    logger -t "sensord" -p daemon.crit "Fail to enable HSC 12Vout sensor, ME resp: $response"
     break
   else
     # Vout is not enabled, set HSC_0xD4 register to 3F1Eh to enable Vout

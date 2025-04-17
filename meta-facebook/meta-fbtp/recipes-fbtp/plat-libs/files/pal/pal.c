@@ -1115,8 +1115,9 @@ read_hsc_vdelta_value(float *value) {
   int rlen = 0;
   float hsc_b = 0;
   ipmb_req_t *req;
-  int ret = 0;
-  static int retry = 0;
+  int ret = 0, MAX_ME_RETRY = 30;
+  static int retry = 0, retry_for_ME = 0;
+  static bool logged = false;
   uint8_t revision_id = 0;
   uint8_t sku_id = 0;
   uint8_t hsc_volt_reg[2] = {0x88, 0x8B}; //VIN, VOUT
@@ -1158,17 +1159,37 @@ read_hsc_vdelta_value(float *value) {
   for ( int i = 0; i < 2; i++ ) {
     req->data[9] = hsc_volt_reg[i];
     rlen = ipmb_send_buf(bus_id, tlen);
-    if ( rlen > 0 ) {
+    if ( rlen > 0 && rbuf[6] == CC_SUCCESS ) {
+      ret = CC_SUCCESS;
       memset(rbuf, 0, sizeof(rbuf));
       memcpy(rbuf, ipmb_rxb(), rlen);
-    }
-
-    if ( rlen <= 0 || rbuf[6] != 0 ) {
-      syslog(LOG_WARNING, "something went wrong, rlen=%d, req->data[9]=%02X, comp_code=%02X\n", rlen, req->data[9], rbuf[6]);
-      ret = READING_NA;
-    } else if ( rbuf[6] == 0 ) {
       hsc_volt[i] = ((float) (rbuf[11] << 8 | rbuf[10])*100-hsc_b )/(19599);
     }
+    else {
+      ret = READING_NA;
+      break;
+    }
+  }
+
+  if ( ret == CC_SUCCESS ) {
+    retry_for_ME = 0;
+    logged = false;
+  }
+  else if ( rbuf[6] == CC_NODE_BUSY ) {
+    if ( retry_for_ME < MAX_ME_RETRY ) {
+      retry_for_ME++;
+      syslog(LOG_WARNING, "%s, ME node busy, retry count: %d", __FUNCTION__, retry_for_ME);
+    }
+    else if ( retry_for_ME >= MAX_ME_RETRY && !logged ) {
+      logged = true;
+      syslog(LOG_CRIT, "%s, ME node busy, reach MAX retry count: %d", __FUNCTION__, retry_for_ME);
+    }
+    return ret;
+  }
+  else {
+    syslog(LOG_CRIT, "%s, ME error occured, rlen=%d, req->data[9]=%02X, comp_code=%02X\n",
+                      __FUNCTION__, rlen, req->data[9], rbuf[6]);
+    return ret;
   }
 
   kv_get(kv_str, "read_12v", NULL, 0);
