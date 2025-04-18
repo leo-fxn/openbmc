@@ -1,8 +1,8 @@
-From 9c3e48f1b0477b3e17ac6f4d34818c22efb478f5 Mon Sep 17 00:00:00 2001
+From 2c6d616c69cceb62ba903b28752d262a9c92b212 Mon Sep 17 00:00:00 2001
 From: Zhihao Cheng <chengzhihao1@huawei.com>
 Date: Wed, 10 Apr 2024 15:37:43 +0800
-Subject: [PATCH 2007/2014] ubifs: Fix unattached xattr inode if powercut
- happens after deleting
+Subject: [PATCH 607/614] ubifs: Fix unattached xattr inode if powercut happens
+ after deleting
 
 When powercut happens after deleting file, the xattr inode could be
 alone existing in TNC but its' xattr entry cannot be found in TNC.
@@ -82,5 +82,5 @@ index 4909321d84cf..ddeb125e6930 100644
  					goto out_ro;
  			}
 -- 
-2.44.2
+2.45.3
 

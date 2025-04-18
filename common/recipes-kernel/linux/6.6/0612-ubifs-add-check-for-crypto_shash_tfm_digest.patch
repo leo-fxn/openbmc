@@ -1,7 +1,7 @@
-From cb6e1ddfe8b19c14896b160a3416b02a99f9168c Mon Sep 17 00:00:00 2001
+From 404a5ae9b54b02080b96553cc3c173d2a92aae73 Mon Sep 17 00:00:00 2001
 From: Chen Ni <nichen@iscas.ac.cn>
 Date: Thu, 20 Jun 2024 16:19:26 +0800
-Subject: [PATCH 2012/2014] ubifs: add check for crypto_shash_tfm_digest
+Subject: [PATCH 612/614] ubifs: add check for crypto_shash_tfm_digest
 
 Add check for the return value of crypto_shash_tfm_digest() and return
 the error if it fails in order to catch the error.
@@ -34,5 +34,5 @@ index 7adc37c10b6a..a148760fa49e 100644
  	if (ubifs_check_hash(c, expected, calc))
  		return -EPERM;
 -- 
-2.44.2
+2.45.3
 

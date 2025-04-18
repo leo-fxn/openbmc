@@ -1,8 +1,7 @@
-From ddba8a2f3f64f8fbf381391642b15c5719a42c05 Mon Sep 17 00:00:00 2001
+From d49664b38c74418572a7d5ff5524a7d6d1f8737c Mon Sep 17 00:00:00 2001
 From: Kunwu Chan <chentao@kylinos.cn>
 Date: Thu, 11 Jan 2024 14:36:56 +0800
-Subject: [PATCH 2004/2014] ubifs: Remove unreachable code in
- dbg_check_ltab_lnum
+Subject: [PATCH 604/614] ubifs: Remove unreachable code in dbg_check_ltab_lnum
 
 Because there is no break statement in the dead loop above,it is
 impossible to execute the 'err=0' statement.Delete the code that
@@ -31,5 +30,5 @@ index c4d079328b92..07351fdce722 100644
  	vfree(buf);
  	return err;
 -- 
-2.44.2
+2.45.3
 

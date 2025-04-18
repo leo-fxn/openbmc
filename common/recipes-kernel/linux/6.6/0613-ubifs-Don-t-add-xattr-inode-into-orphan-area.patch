@@ -1,7 +1,7 @@
-From 0c6a73e67d128b4d8deb8d38aac05af197d635a3 Mon Sep 17 00:00:00 2001
+From 1ebabd6ea10ca7909ed279aece08614051ce00c8 Mon Sep 17 00:00:00 2001
 From: Zhihao Cheng <chengzhihao1@huawei.com>
 Date: Wed, 10 Apr 2024 15:37:44 +0800
-Subject: [PATCH 2013/2014] ubifs: Don't add xattr inode into orphan area
+Subject: [PATCH 613/614] ubifs: Don't add xattr inode into orphan area
 
 Now, the entire inode with its' xattrs are removed while replaying
 orphan nodes. There is no need to add xattr inodes into orphan area,
@@ -218,5 +218,5 @@ index 4e15a1559595..5936d42711bd 100644
  	struct ubifs_orphan *dnext;
  	ino_t inum;
 -- 
-2.44.2
+2.45.3
 

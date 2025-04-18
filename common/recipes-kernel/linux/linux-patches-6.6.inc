@@ -170,6 +170,27 @@ SRC_URI:append = " \
 "
 
 #
+# Backport UBIFS fixes.
+#
+SRC_URI:append = " \
+    file://0600-ubifs-Fix-memory-leak-of-bud-log_hash.patch \
+    file://0601-ubifs-ubifs_link-Fix-wrong-name-len-calculating-when.patch \
+    file://0602-ubifs-Check-c-dirty_-n-p-n_cnt-and-c-nroot-state-und.patch \
+    file://0603-ubifs-fix-sort-function-prototype.patch \
+    file://0604-ubifs-Remove-unreachable-code-in-dbg_check_ltab_lnum.patch \
+    file://0605-ubifs-dbg_check_idx_size-Fix-kmemleak-if-loading-zno.patch \
+    file://0606-ubifs-Queue-up-space-reservation-tasks-if-retrying-m.patch \
+    file://0607-ubifs-Fix-unattached-xattr-inode-if-powercut-happens.patch \
+    file://0608-ubifs-Fix-adding-orphan-entry-twice-for-the-same-ino.patch \
+    file://0609-ubifs-Fix-space-leak-when-powercut-happens-in-linkin.patch \
+    file://0610-ubifs-Fix-unattached-inode-when-powercut-happens-in-.patch \
+    file://0611-ubifs-dbg_orphan_check-Fix-missed-key-type-checking.patch \
+    file://0612-ubifs-add-check-for-crypto_shash_tfm_digest.patch \
+    file://0613-ubifs-Don-t-add-xattr-inode-into-orphan-area.patch \
+    file://0614-ubifs-Remove-insert_dead_orphan-from-replaying-orpha.patch \
+"
+
+#
 # Misc kernel tweaks for OpenBMC platforms.
 #
 SRC_URI:append = " \

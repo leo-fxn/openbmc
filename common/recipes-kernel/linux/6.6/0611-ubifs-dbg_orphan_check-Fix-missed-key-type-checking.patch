@@ -1,8 +1,7 @@
-From d7c8b48bd91056d1fad66c934037e49e079cef66 Mon Sep 17 00:00:00 2001
+From 18ebbfc0afc251070ce07cb1019d190e6174303c Mon Sep 17 00:00:00 2001
 From: Zhihao Cheng <chengzhihao1@huawei.com>
 Date: Wed, 10 Apr 2024 15:37:51 +0800
-Subject: [PATCH 2011/2014] ubifs: dbg_orphan_check: Fix missed key type
- checking
+Subject: [PATCH 611/614] ubifs: dbg_orphan_check: Fix missed key type checking
 
 When selinux/encryption is enabled, xattr entry node is added into TNC
 before host inode when creating new file. So it is possible to find
@@ -38,5 +37,5 @@ index 87c680e26ebc..38303d311dd9 100644
  				  (unsigned long)inum, key_type(c, &zbr->key));
  		ci->last_ino = inum;
 -- 
-2.44.2
+2.45.3
 

@@ -1,7 +1,7 @@
-From 9354b9ad5c529be94874b29c561b73632d9f5e61 Mon Sep 17 00:00:00 2001
+From 6c32c40dca821960bace1ddece98ec6e3e4c2d8e Mon Sep 17 00:00:00 2001
 From: Vincent Whitchurch <vincent.whitchurch@axis.com>
 Date: Tue, 18 Jul 2023 14:41:45 +0200
-Subject: [PATCH 2000/2014] ubifs: Fix memory leak of bud->log_hash
+Subject: [PATCH 600/614] ubifs: Fix memory leak of bud->log_hash
 
 Ensure that the allocated bud->log_hash (if any) is freed in all cases
 when the bud itself is freed, to fix this leak caught by kmemleak:
@@ -59,5 +59,5 @@ index 3409488d39ba..725736297b9f 100644
  	}
  	ubifs_destroy_idx_gc(c);
 -- 
-2.44.2
+2.45.3
 

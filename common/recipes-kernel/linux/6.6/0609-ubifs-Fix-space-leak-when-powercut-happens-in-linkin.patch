@@ -1,7 +1,7 @@
-From 6a1fcde8778adf6c5611ce9146d34d4583016129 Mon Sep 17 00:00:00 2001
+From a9c9ed63e412858dc1cbfd6b43f4a4f553f136ba Mon Sep 17 00:00:00 2001
 From: Zhihao Cheng <chengzhihao1@huawei.com>
 Date: Wed, 10 Apr 2024 15:37:49 +0800
-Subject: [PATCH 2009/2014] ubifs: Fix space leak when powercut happens in
+Subject: [PATCH 609/614] ubifs: Fix space leak when powercut happens in
  linking tmpfile
 
 There is a potential space leak problem when powercut happens in linking
@@ -194,5 +194,5 @@ index 406c82eab513..b7b512070d76 100644
  		goto out_cancel;
  	ubifs_set_inode_flags(host);
 -- 
-2.44.2
+2.45.3
 

@@ -1,7 +1,7 @@
-From 818ab6c4bd43ede445a7b4a8bd9a524e599d0724 Mon Sep 17 00:00:00 2001
+From 9d1051efc14660c2c8a786b517a20c26d4ebec93 Mon Sep 17 00:00:00 2001
 From: Zhihao Cheng <chengzhihao1@huawei.com>
 Date: Wed, 10 Apr 2024 15:37:46 +0800
-Subject: [PATCH 2014/2014] ubifs: Remove insert_dead_orphan from replaying
+Subject: [PATCH 614/614] ubifs: Remove insert_dead_orphan from replaying
  orphan process
 
 UBIFS will do commit at the end of mounting process(rw mode), dead
@@ -94,5 +94,5 @@ index f1f939e192e4..fb957d963ba6 100644
  
  		*last_cmt_no = cmt_no;
 -- 
-2.44.2
+2.45.3
 

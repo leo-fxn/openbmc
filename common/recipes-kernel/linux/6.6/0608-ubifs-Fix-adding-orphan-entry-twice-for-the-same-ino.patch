@@ -1,7 +1,7 @@
-From 82d10b627db923c94c06173866756f4ec671bcdc Mon Sep 17 00:00:00 2001
+From 88631a298b5d723a7b2b32a5dbdf2e86618adee7 Mon Sep 17 00:00:00 2001
 From: Zhihao Cheng <chengzhihao1@huawei.com>
 Date: Wed, 10 Apr 2024 15:37:47 +0800
-Subject: [PATCH 2008/2014] ubifs: Fix adding orphan entry twice for the same
+Subject: [PATCH 608/614] ubifs: Fix adding orphan entry twice for the same
  inode
 
 The tmpfile could be added into orphan list twice, first time is
@@ -64,5 +64,5 @@ index ddeb125e6930..87c680e26ebc 100644
  		c->tot_orphans -= 1;
  		dbg_gen("deleting orphan ino %lu", (unsigned long)orphan->inum);
 -- 
-2.44.2
+2.45.3
 
