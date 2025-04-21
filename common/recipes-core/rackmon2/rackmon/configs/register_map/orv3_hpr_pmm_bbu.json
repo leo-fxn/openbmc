@@ -514,6 +514,18 @@
                 ]
             ],
             "name": "Digital_Outputs_Test"
+        },
+        {
+            "begin": 4096,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Module_ID"
+        },
+        {
+            "begin": 4097,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Vendor_ID"
         }
     ]
 }

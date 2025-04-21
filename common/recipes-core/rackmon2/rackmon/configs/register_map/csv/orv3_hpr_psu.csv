@@ -99,6 +99,7 @@ begin,length,keep,changes_only,flags_bit,flags_name,format,endian,interval,preci
 101,1,,,,,FLOAT,,,6,,,,Vin_Min
 102,1,,,,,FLOAT,,,6,,,,Vin_Max
 103,1,,,,,FLOAT,,,10,,,,Vout_Setpoint
+104,1,,,,,FLOAT,,,6,,,,Bus_Clip_OTP_Set
 105,4,,,,,STRING,,,,,,,PSU_FBL_FW_Revision
 109,2,,,,,INTEGER,,,,,,,Power_Off_Unix_Time
 111,1,,,,,FLOAT,,,7,TRUE,,,Bus_Clip_Temp_Pos
@@ -128,3 +129,5 @@ begin,length,keep,changes_only,flags_bit,flags_name,format,endian,interval,preci
 122,1,,,,,INTEGER,,,,,,,Pulse_Mgmt_Count_Requested
 124,1,,,,,INTEGER,,,,,,,Shelf_Location
 125,1,,,,,INTEGER,,,,,,,Size_Module_Reg_Map
+4096,1,,,,,INTEGER,,,,,,,Module_ID
+4097,1,,,,,INTEGER,,,,,,,Vendor_ID

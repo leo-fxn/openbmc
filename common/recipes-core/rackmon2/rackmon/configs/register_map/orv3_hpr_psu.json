@@ -610,6 +610,13 @@
             "name": "Vout_Setpoint"
         },
         {
+            "begin": 104,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "Bus_Clip_OTP_Set"
+        },
+        {
             "begin": 105,
             "length": 4,
             "format": "STRING",
@@ -767,6 +774,18 @@
             "length": 1,
             "format": "INTEGER",
             "name": "Size_Module_Reg_Map"
+        },
+        {
+            "begin": 4096,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Module_ID"
+        },
+        {
+            "begin": 4097,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Vendor_ID"
         }
     ]
 }
