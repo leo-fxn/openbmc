@@ -1,4 +1,4 @@
-From 2cf92c6edbc8104b1e9511d7b83ed6d4f59bd531 Mon Sep 17 00:00:00 2001
+From db9d19eb4507383f66235b34e8c9230bbf3d2fd9 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 25 Sep 2023 11:10:46 +0800
 Subject: [PATCH 3/7] Add mctp eids configuration for Yosemite 4
@@ -75,10 +75,10 @@ index 1ea3215..0714152 100644
      ],
      "Name": "Yosemite 4 Sentinel Dome T1 Slot $bus % 15",
 diff --git a/configurations/meta/yosemite4_sentineldome_t1_retimer.json b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
-index 48151ef..32be361 100644
+index e573f44..38db79f 100644
 --- a/configurations/meta/yosemite4_sentineldome_t1_retimer.json
 +++ b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
-@@ -418,6 +418,14 @@
+@@ -419,6 +419,14 @@
              "Zones": [
                  "Zone 1"
              ]
@@ -113,10 +113,10 @@ index 074471b..f51248f 100644
      ],
      "Name": "Yosemite 4 Sentinel Dome T2 Slot $bus % 15",
 diff --git a/configurations/meta/yosemite4_sentineldome_t2_retimer.json b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
-index c12afdd..ea4646b 100644
+index 513dd5f..425c423 100644
 --- a/configurations/meta/yosemite4_sentineldome_t2_retimer.json
 +++ b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
-@@ -489,6 +489,14 @@
+@@ -490,6 +490,14 @@
              "Zones": [
                  "Zone 1"
              ]
@@ -167,7 +167,7 @@ index cdbae8c..214be6b 100644
      ],
      "Name": "Yosemite 4 Wailua Falls Slot $bus % 15",
 diff --git a/schemas/legacy.json b/schemas/legacy.json
-index bc04791..fc31470 100644
+index 819db95..808a1bd 100644
 --- a/schemas/legacy.json
 +++ b/schemas/legacy.json
 @@ -11,6 +11,9 @@
@@ -180,7 +180,7 @@ index bc04791..fc31470 100644
                  "Name": {
                      "$ref": "#/$defs/Types/Name"
                  },
-@@ -1178,6 +1181,9 @@
+@@ -1189,6 +1192,9 @@
              "EntityInstance": {
                  "type": "number"
              },

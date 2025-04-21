@@ -1,4 +1,4 @@
-From 6e27f7e06a9804ef87597cad60699483ce45666d Mon Sep 17 00:00:00 2001
+From 528b18943bfe82942f06ebea0b3fac9785201d83 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Tue, 26 Sep 2023 14:24:08 +0800
 Subject: [PATCH 02/11] PSUSensor: add adm1281 support
@@ -15,7 +15,7 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/src/psu/PSUSensorMain.cpp b/src/psu/PSUSensorMain.cpp
-index 179cbd4..679482b 100644
+index af94f2a..4c31498 100644
 --- a/src/psu/PSUSensorMain.cpp
 +++ b/src/psu/PSUSensorMain.cpp
 @@ -70,6 +70,7 @@ static const I2CDeviceTypeMap sensorTypes{

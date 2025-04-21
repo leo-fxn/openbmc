@@ -1,4 +1,4 @@
-From 2893e4ce4561f47afda21c4e6b6b8e31d7e42ae6 Mon Sep 17 00:00:00 2001
+From ee75aceac14e34a15b9703749562058bba6bc72d Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Wed, 17 Jul 2024 11:33:26 +0800
 Subject: [PATCH 5/7] configurations: Revise the Terminus NIC sensor name
@@ -6,11 +6,11 @@ Subject: [PATCH 5/7] configurations: Revise the Terminus NIC sensor name
 1. Revise the Terminus NIC temperature sensor name to NICX_TEMP_C.
 2. Revise the temperature threshold.
 ---
- configurations/meta/terminus_2x100g_nic_tsff.json | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ configurations/meta/terminus_2x100g_nic_tsff.json | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/configurations/meta/terminus_2x100g_nic_tsff.json b/configurations/meta/terminus_2x100g_nic_tsff.json
-index 35dbf6f..19e8548 100644
+index 0d19e6b..c40e222 100644
 --- a/configurations/meta/terminus_2x100g_nic_tsff.json
 +++ b/configurations/meta/terminus_2x100g_nic_tsff.json
 @@ -3,7 +3,7 @@
@@ -22,24 +22,16 @@ index 35dbf6f..19e8548 100644
              "Type": "EEPROM"
          },
          {
-@@ -12,8 +12,15 @@
+@@ -12,7 +12,7 @@
              "Labels": [
                  "temp1"
              ],
 -            "Name": "NIC TEMP $bus",
 +            "Name": "NIC$bus % 24 TEMP_C",
              "Thresholds": [
-+                {
-+                    "Direction": "greater than",
-+                    "Index": 2,
-+                    "Name": "upper non recoverable",
-+                    "Severity": 4,
-+                    "Value": 115
-+                },
                  {
                      "Direction": "greater than",
-                     "Index": 2,
-@@ -25,7 +32,7 @@
+@@ -32,7 +32,7 @@
              "Type": "EMC1403"
          }
      ],

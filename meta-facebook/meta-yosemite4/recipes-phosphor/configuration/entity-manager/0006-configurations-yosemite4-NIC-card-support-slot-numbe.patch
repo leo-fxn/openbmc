@@ -1,4 +1,4 @@
-From 8816e99593bd4b39e7b13c7946463bd3d74ebbb9 Mon Sep 17 00:00:00 2001
+From 915dc89f7e5b7a552d8e9b3a0488946bdc6e0f54 Mon Sep 17 00:00:00 2001
 From: IngridChen-wiwynn <Ingrid_Chen@wiwynn.com>
 Date: Mon, 12 Aug 2024 11:41:09 +0800
 Subject: [PATCH 6/7] configurations: yosemite4: NIC card support slot number
@@ -37,7 +37,7 @@ index 9403a23..ce705ae 100644
      }
  }
 diff --git a/configurations/meta/terminus_2x100g_nic_tsff.json b/configurations/meta/terminus_2x100g_nic_tsff.json
-index 19e8548..d9ddd14 100644
+index c40e222..5f51e4f 100644
 --- a/configurations/meta/terminus_2x100g_nic_tsff.json
 +++ b/configurations/meta/terminus_2x100g_nic_tsff.json
 @@ -40,5 +40,8 @@

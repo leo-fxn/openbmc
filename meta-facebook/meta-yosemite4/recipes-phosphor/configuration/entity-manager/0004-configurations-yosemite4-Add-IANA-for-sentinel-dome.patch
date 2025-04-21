@@ -1,4 +1,4 @@
-From 3febe6783d491e1fd1e5bffc910b517a0f762b6a Mon Sep 17 00:00:00 2001
+From fb24ca5443031f6aa9bfa1ae172d054bcfdc525c Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Thu, 7 Mar 2024 10:41:16 +0800
 Subject: [PATCH 4/7] configurations: yosemite4: Add IANA for sentinel dome
@@ -34,10 +34,10 @@ index 0714152..659eae4 100644
              "Type": "MCTPEndpoint"
          }
 diff --git a/configurations/meta/yosemite4_sentineldome_t1_retimer.json b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
-index 32be361..ca71291 100644
+index 38db79f..e3f0568 100644
 --- a/configurations/meta/yosemite4_sentineldome_t1_retimer.json
 +++ b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
-@@ -424,6 +424,7 @@
+@@ -425,6 +425,7 @@
              "Bus": "$bus / 4 - 4",
              "Class": "I3C",
              "EndpointId": "$bus % 15 * 10",
@@ -58,10 +58,10 @@ index f51248f..718a435 100644
              "Type": "MCTPEndpoint"
          }
 diff --git a/configurations/meta/yosemite4_sentineldome_t2_retimer.json b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
-index ea4646b..a23e533 100644
+index 425c423..ce0f50c 100644
 --- a/configurations/meta/yosemite4_sentineldome_t2_retimer.json
 +++ b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
-@@ -495,6 +495,7 @@
+@@ -496,6 +496,7 @@
              "Bus": "$bus / 4 - 4",
              "Class": "I3C",
              "EndpointId": "$bus % 15 * 10",
@@ -70,7 +70,7 @@ index ea4646b..a23e533 100644
              "Type": "MCTPEndpoint"
          }
 diff --git a/schemas/legacy.json b/schemas/legacy.json
-index fc31470..d42e6e7 100644
+index 808a1bd..8a92991 100644
 --- a/schemas/legacy.json
 +++ b/schemas/legacy.json
 @@ -14,6 +14,9 @@
@@ -83,7 +83,7 @@ index fc31470..d42e6e7 100644
                  "Name": {
                      "$ref": "#/$defs/Types/Name"
                  },
-@@ -1193,6 +1196,9 @@
+@@ -1204,6 +1207,9 @@
              "GpioPolarity": {
                  "enum": ["Low"]
              },

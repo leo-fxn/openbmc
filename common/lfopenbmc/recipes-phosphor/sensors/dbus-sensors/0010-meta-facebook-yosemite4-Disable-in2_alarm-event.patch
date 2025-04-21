@@ -1,4 +1,4 @@
-From b715300787ca35e529354f17b765575d3f30c679 Mon Sep 17 00:00:00 2001
+From fa3cc5415f5b3e433a4b715244c9aaaeef933df4 Mon Sep 17 00:00:00 2001
 From: KayYCHuang-wiwynn <kay.yc.huang.wiwynn@gmail.com>
 Date: Mon, 17 Mar 2025 02:25:46 +0000
 Subject: [PATCH 10/11] meta-facebook: yosemite4: Disable in2_alarm event
@@ -39,10 +39,10 @@ index c9405ce..c4c21a7 100644
 +    description: 'Disable in2_alarm event.',
 +)
 diff --git a/src/psu/PSUSensorMain.cpp b/src/psu/PSUSensorMain.cpp
-index b1286df..5cf8bc7 100644
+index c029ea6..c87e121 100644
 --- a/src/psu/PSUSensorMain.cpp
 +++ b/src/psu/PSUSensorMain.cpp
-@@ -1170,7 +1170,9 @@ void propertyInitialize()
+@@ -1171,7 +1171,9 @@ void propertyInitialize()
                         {"Failure", {"crit_alarm", "lcrit_alarm"}}};
  
      eventMatch = {{"PredictiveFailure", {"power1_alarm"}},
