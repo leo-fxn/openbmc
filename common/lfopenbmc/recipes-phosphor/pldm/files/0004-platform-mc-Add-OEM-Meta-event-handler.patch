@@ -1,4 +1,4 @@
-From 9631868671c19a72ddd4df7b6d6254ec0413181b Mon Sep 17 00:00:00 2001
+From e8d1dd7c486a5dfecf4a5d66d74dd7dd6e8fbd25 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/18] platform-mc: Add OEM Meta event handler
@@ -56,14 +56,14 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Upstream-Status: Pending
 ---
  meson.build                             |   1 +
- oem/meta/platform-mc/event_oem_meta.cpp | 915 ++++++++++++++++++++++++
+ oem/meta/platform-mc/event_oem_meta.cpp | 947 ++++++++++++++++++++++++
  oem/meta/platform-mc/event_oem_meta.hpp |  21 +
  platform-mc/event_manager.cpp           |  42 +-
  platform-mc/event_manager.hpp           |  15 +-
  platform-mc/manager.hpp                 |  27 +-
  platform-mc/test/meson.build            |   2 +
  pldmd/pldmd.cpp                         |  16 +-
- 8 files changed, 1026 insertions(+), 13 deletions(-)
+ 8 files changed, 1058 insertions(+), 13 deletions(-)
  create mode 100644 oem/meta/platform-mc/event_oem_meta.cpp
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
@@ -81,10 +81,10 @@ index 4c78d06..f616f69 100644
      install: true,
 diff --git a/oem/meta/platform-mc/event_oem_meta.cpp b/oem/meta/platform-mc/event_oem_meta.cpp
 new file mode 100644
-index 0000000..fc6afda
+index 0000000..0dba526
 --- /dev/null
 +++ b/oem/meta/platform-mc/event_oem_meta.cpp
-@@ -0,0 +1,915 @@
+@@ -0,0 +1,947 @@
 +#include "event_oem_meta.hpp"
 +
 +#include "common/utils.hpp"
@@ -267,6 +267,7 @@ index 0000000..fc6afda
 +        POST_HTTP_BOOT_FAIL = 0x6,
 +        POST_GET_CERT_FAIL = 0x7,
 +        POST_AMD_ABL_FAIL = 0xA,
++        POST_CXL_NOT_READY = 0xD,
 +    };
 +
 +    enum class PcieEvent : uint8_t
@@ -279,6 +280,7 @@ index 0000000..fc6afda
 +        MEM_PPR = 0x0,
 +        MEM_ADDDC = 0x5,
 +        MEM_NO_DIMM = 0x7,
++        MEM_CXL_POST_PPR = 0x8,
 +    };
 +
 +    enum class UpiError : uint8_t
@@ -342,7 +344,8 @@ index 0000000..fc6afda
 +         "Received invalid boot order request from BMC",
 +         "System HTTP boot fail", "BIOS fails to get the certificate from BMC",
 +         "Password cleared by jumper", "DXE FV check failure",
-+         "AMD ABL failure", "Reserved"});
++         "AMD ABL failure", "DRAM Page Retired",
++         "DRAM Channel Retired", "CXL not ready", "Reserved"});
 +
 +    static constexpr auto cxlError = std::to_array(
 +        {"CXL_ELOG_IO", "CXL_ELOG_CACHE_MEM", "CXL_ELOG_COMPONENT_EVENT",
@@ -358,7 +361,8 @@ index 0000000..fc6afda
 +        {"Memory PPR event", "Memory Correctable Error logging limit reached",
 +         "Memory disable/map-out for FRB", "Memory SDDC",
 +         "Memory Address range/Partial mirroring", "Memory ADDDC",
-+         "Memory SMBus hang recovery", "No DIMM in System", "Reserved"});
++         "Memory SMBus hang recovery", "No DIMM in System", 
++         "CXL POST PPR event", "Reserved"});
 +
 +    static constexpr auto memoryPprRepairTime =
 +        std::to_array({"Boot time", "Autonomous", "Run time", "Reserved"});
@@ -379,6 +383,9 @@ index 0000000..fc6afda
 +
 +    static constexpr auto upiError =
 +        std::to_array({"UPI Init error", "Reserved"});
++
++    static constexpr auto memoryCxlEvent =
++        std::to_array({"DIMM A0", "DIMM B0", "DIMM A1", "DIMM B1", "Reserved"});
 +
 +    RecordType recordType = static_cast<RecordType>(eventData[0]);
 +    uint8_t generalInfo = eventData[1];
@@ -803,6 +810,17 @@ index 0000000..fc6afda
 +                                to_hex_string(ablErrCode, 4);
 +                            break;
 +                        }
++                        case PostError::POST_CXL_NOT_READY:
++                        {
++                            errorLog +=
++                                "GeneralInfo: POST(0x" +
++                                to_hex_string(generalInfo) +
++                                "), Bus " + to_hex_string(eventData[7]) + "/Dev " +
++                                to_hex_string(eventData[8] >> 3) + "/Fun " +
++                                to_hex_string(eventData[8] & 0x7) +
++                                ", POST Failure Event: " + postError[estrIdx];
++                            break;
++                        }
 +                        default:
 +                        {
 +                            errorLog +=
@@ -892,6 +910,20 @@ index 0000000..fc6afda
 +                                memoryEvent[static_cast<uint8_t>(eventType)];
 +                            break;
 +                        }
++                        case MemoryEvent::MEM_CXL_POST_PPR:
++                        {
++                            errorLog +=
++                                "GeneralInfo: MemEvent(0x" +
++                                to_hex_string(generalInfo) +
++                                "), Bus " + to_hex_string(eventData[12]) + "/Dev " +
++                                to_hex_string(eventData[13] >> 3) + "/Fun " +
++                                to_hex_string(eventData[13] & 0x7) +
++                                ", DIMM Failure Event: " +
++                                memoryEvent[static_cast<uint8_t>(eventType)] +
++                                ", " + memoryPprEvent[eventData[11] >> 7 & 0x1] +
++                                ", " + memoryCxlEvent[eventData[11] & 0x03];
++                            break;
++                        }
 +                        default:
 +                        {
 +                            uint8_t estrIdx =
@@ -959,10 +991,10 @@ index 0000000..fc6afda
 +                        "GeneralInfo: CXL Memory Error(0x" +
 +                        to_hex_string(generalInfo) + "), Bus " +
 +                        to_hex_string(eventData[7]) + "/Dev " +
-+                        to_hex_string(eventData[8] >> 4) + "/Fun " +
-+                        to_hex_string(eventData[8] & 0xF) +
-+                        ", Controller ID(0x" + to_hex_string(eventData[11]) +
-+                        "), DIMM Failure Event: " + memoryError[eventType];
++                        to_hex_string(eventData[8] >> 3) + "/Fun " +
++                        to_hex_string(eventData[8] & 0x7) +
++                        ", DIMM Failure Event: " + memoryError[eventType] +
++                        ", " + memoryCxlEvent[eventData[11]];
 +                    break;
 +                }
 +                default:
