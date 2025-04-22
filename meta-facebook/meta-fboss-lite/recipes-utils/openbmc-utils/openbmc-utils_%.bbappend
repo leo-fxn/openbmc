@@ -19,6 +19,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 LOCAL_URI += "\
     file://board-utils.sh \
+    file://fboss-utils.sh \
     file://power-on.sh \
     file://power-on.service \
     file://setup-gpio.sh \
@@ -31,6 +32,7 @@ LOCAL_URI += "\
 
 OPENBMC_UTILS_FILES += " \
     board-utils.sh \
+    fboss-utils.sh \
     power-on.sh \
     setup-gpio.sh \
     setup_board.sh \

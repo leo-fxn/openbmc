@@ -111,6 +111,10 @@ if [ -f "/usr/local/bin/soc-utils.sh" ]; then
     source "/usr/local/bin/soc-utils.sh"
 fi
 
+if [ -f "/usr/local/bin/fboss-utils.sh" ]; then
+    source "/usr/local/bin/fboss-utils.sh"
+fi
+
 if [ -f "/usr/local/bin/board-utils.sh" ]; then
     source "/usr/local/bin/board-utils.sh"
 fi
