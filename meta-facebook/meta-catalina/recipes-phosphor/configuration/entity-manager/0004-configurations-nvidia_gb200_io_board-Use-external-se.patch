@@ -1,0 +1,100 @@
+From 58398e6018a53af26bad38b12d1d6075c67f7630 Mon Sep 17 00:00:00 2001
+From: Potin Lai <potin.lai@quantatw.com>
+Date: Sun, 23 Mar 2025 11:03:46 +0800
+Subject: [PATCH 1/1] configurations: nvidia_gb200_io_board: Use external
+ sensor service for temperature monitoring
+
+Due to a hardware design limitation, the port temperature is only
+accessible via pldmtool.
+
+Switch Backend NIC die temperature and port temperature monitoring to
+external sensor service, this allows a other service to update sensor
+readings.
+
+Signed-off-by: Potin Lai <potin.lai@quantatw.com>
+Change-Id: Iee90f1b75cf3a7ddabcd5f5cd640897431d4a6ea
+---
+ configurations/nvidia_gb200_io_board.json | 44 +++++++++++++++--------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
+
+diff --git a/configurations/nvidia_gb200_io_board.json b/configurations/nvidia_gb200_io_board.json
+index 7a00978..4c9d4f0 100644
+--- a/configurations/nvidia_gb200_io_board.json
++++ b/configurations/nvidia_gb200_io_board.json
+@@ -7,13 +7,11 @@
+             "Type": "EEPROM"
+         },
+         {
+-            "Address": "0x1f",
+-            "Bus": "$bus - 5",
+-            "Labels": [
+-                "temp2"
+-            ],
+             "Name": "IOB$bus - 29 % 11 NIC0_TEMP_C",
+-            "Name1": "IOB$bus - 29 % 11 NIC0_TEMP_C",
++            "Units": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
++            "MinValue": -255.0,
++            "MaxValue": 255,
++            "Timeout": 30.0,
+             "PowerState": "On",
+             "Thresholds": [
+                 {
+@@ -38,16 +36,14 @@
+                     "Value": 5
+                 }
+             ],
+-            "Type": "TMP421"
++            "Type": "ExternalSensor"
+         },
+         {
+-            "Address": "0x1f",
+-            "Bus": "$bus - 3",
+-            "Labels": [
+-                "temp2"
+-            ],
+             "Name": "IOB$bus - 29 % 11 NIC1_TEMP_C",
+-            "Name1": "IOB$bus - 29 % 11 NIC1_TEMP_C",
++            "Units": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
++            "MinValue": -255.0,
++            "MaxValue": 255,
++            "Timeout": 30.0,
+             "PowerState": "On",
+             "Thresholds": [
+                 {
+@@ -72,7 +68,25 @@
+                     "Value": 5
+                 }
+             ],
+-            "Type": "TMP421"
++            "Type": "ExternalSensor"
++        },
++        {
++            "Name": "IOB$bus - 29 % 11 NIC0_OSFP_TEMP_C",
++            "Units": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
++            "MinValue": -255.0,
++            "MaxValue": 255,
++            "Timeout": 30.0,
++            "PowerState": "On",
++            "Type": "ExternalSensor"
++        },
++        {
++            "Name": "IOB$bus - 29 % 11 NIC1_OSFP_TEMP_C",
++            "Units": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC",
++            "MinValue": -255.0,
++            "MaxValue": 255,
++            "Timeout": 30.0,
++            "PowerState": "On",
++            "Type": "ExternalSensor"
+         }
+     ],
+     "Name": "NVIDIA GB200 IO Board $bus - 29 % 11",
+@@ -97,4 +111,4 @@
+     "xyz.openbmc_project.Inventory.Decorator.Revision": {
+         "Version": "$PRODUCT_VERSION"
+     }
+-}
++}
+\ No newline at end of file
+-- 
+2.31.1
+
