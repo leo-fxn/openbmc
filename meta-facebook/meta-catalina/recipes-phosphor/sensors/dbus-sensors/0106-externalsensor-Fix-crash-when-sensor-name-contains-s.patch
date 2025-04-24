@@ -1,0 +1,70 @@
+From 1e5c9983c6fc918675ae1d1b40a4ad4543ca3d48 Mon Sep 17 00:00:00 2001
+From: Potin Lai <potin.lai@quantatw.com>
+Date: Tue, 11 Feb 2025 17:00:47 +0800
+Subject: [PATCH 1/1] externalsensor: Fix crash when sensor name contains
+ spaces
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Object paths cannot contain spaces.
+To prevent crashes, use `name` instead of `sensorName` from the
+EntityManager config.
+
+Test Results:
+- entity-manager test config
+```
+{
+    "MaxValue": 255,
+    "MinValue": -255.0,
+    "Name": "IOB0 NIC0_OSFP_TEMP_C",
+    "PowerState": "On",
+    "Timeout": 10.0,
+    "Type": "ExternalSensor",
+    "Units": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC"
+},
+{
+    "MaxValue": 255,
+    "MinValue": -255.0,
+    "Name": "IOB0 NIC1_OSFP_TEMP_C",
+    "PowerState": "On",
+    "Timeout": 10.0,
+    "Type": "ExternalSensor",
+    "Units": "xyz.openbmc_project.Sensor.Value.Unit.DegreesC"
+}
+```
+- externalsensor tree list
+```
+root@potin-catalina-bmc:~# busctl tree xyz.openbmc_project.ExternalSensor
+└─ /xyz
+  └─ /xyz/openbmc_project
+    └─ /xyz/openbmc_project/sensors
+      └─ /xyz/openbmc_project/sensors/temperature
+        ├─ /xyz/openbmc_project/sensors/temperature/IOB0_NIC0_OSFP_TEMP_C
+        └─ /xyz/openbmc_project/sensors/temperature/IOB0_NIC1_OSFP_TEMP_C
+```
+
+Change-Id: Ic49912f0cfed8c89cedaed6a612d13a636058b93
+Signed-off-by: Potin Lai <potin.lai@quantatw.com>
+---
+Gerrit: https://gerrit.openbmc.org/c/openbmc/dbus-sensors/+/78237
+---
+ src/external/ExternalSensor.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/external/ExternalSensor.cpp b/src/external/ExternalSensor.cpp
+index 92f0f0f..3a6a407 100644
+--- a/src/external/ExternalSensor.cpp
++++ b/src/external/ExternalSensor.cpp
+@@ -47,7 +47,7 @@ ExternalSensor::ExternalSensor(
+     std::string objectPath = "/xyz/openbmc_project/sensors/";
+     objectPath += dbusPath;
+     objectPath += '/';
+-    objectPath += sensorName;
++    objectPath += name;
+ 
+     sensorInterface = objectServer.add_interface(
+         objectPath, "xyz.openbmc_project.Sensor.Value");
+-- 
+2.31.1
+
