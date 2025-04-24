@@ -1,18 +1,18 @@
-From 526eff92f6ce372b0fd633b6211b49016012a13d Mon Sep 17 00:00:00 2001
+From 06643791aac87c531d4a3a65114da9b12ae92e8b Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai@quantatw.com>
 Date: Wed, 25 Sep 2024 23:36:54 +0800
-Subject: [PATCH 3/3] configurations: Revise CX7 NIC card temperature sensor
+Subject: [PATCH 3/4] configurations: Revise CX7 NIC card temperature sensor
 
 Revise the CX7 NIC temperature sensor name for Catalina system.
 
 Signed-off-by: Potin Lai <potin.lai@quantatw.com>
 Change-Id: I7ac22c0fb872f091141f2d77ef97b9686ddfcbae
 ---
- configurations/cx7_ocp.json | 15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ configurations/cx7_ocp.json | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/configurations/cx7_ocp.json b/configurations/cx7_ocp.json
-index 3f11519..5c831ed 100644
+index 3f11519..ceeb924 100644
 --- a/configurations/cx7_ocp.json
 +++ b/configurations/cx7_ocp.json
 @@ -3,7 +3,7 @@
@@ -24,7 +24,7 @@ index 3f11519..5c831ed 100644
              "Type": "EEPROM"
          },
          {
-@@ -12,16 +12,9 @@
+@@ -12,19 +12,21 @@
              "Labels": [
                  "temp2"
              ],
@@ -33,17 +33,24 @@ index 3f11519..5c831ed 100644
 +            "Name": "NIC$bus % 2 TEMP_C",
 +            "Name1": "NIC$bus % 2 TEMP_C",
              "Thresholds": [
--                {
--                    "Direction": "less than",
+                 {
+                     "Direction": "less than",
 -                    "Index": 2,
--                    "Name": "lower critical",
--                    "Severity": 1,
--                    "Value": 5
--                },
++                    "Hysteresis": 0.1,
++                    "Label": "temp2",
+                     "Name": "lower critical",
+                     "Severity": 1,
+                     "Value": 5
+                 },
                  {
                      "Direction": "greater than",
-                     "Index": 2,
-@@ -33,7 +26,7 @@
+-                    "Index": 2,
++                    "Hysteresis": 2.1,
++                    "Label": "temp2",
+                     "Name": "upper critical",
+                     "Severity": 1,
+                     "Value": 105
+@@ -33,7 +35,7 @@
              "Type": "TMP421"
          }
      ],
