@@ -23,3 +23,6 @@
 
 # set LPC signal strength pin to 0 (weakest)
 setup_LPC_signal_strength 0
+
+# set MAC4 TX4 clock delay to 8, RX4 clock delay to 4
+ast2600_setup_RGMII34_clock_delay MAC4_TX=8 MAC4_RX=4
