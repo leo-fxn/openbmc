@@ -18,21 +18,15 @@
 # Boston, MA 02110-1301 USA
 #
 
-echo -e  "\n################################"
-echo "########## dmesg log ###########"
-echo "################################"
-dmesg
+# shellcheck source=/dev/null
+source /usr/local/bin/openbmc-utils.sh
 
-echo -e  "\n################################"
-echo "##### /var/log/messages log ####"
-echo "################################"
-if [ ! -f "/var/log/messages" ]; then
-	echo "/var/log/messages doesn't exist!"
-else
-	cat /var/log/messages
-fi
-
-echo -e  "\n################################"
-echo "########## journal log ###########"
-echo "##################################"
-journalctl -a
+echo -e "\n##### gpio dump #####"
+printf "%-1s | %-3s | %-30s\n" "v" "dir" "GPIONAME"
+for i in /tmp/gpionames/*
+do
+   gpio="$(basename "$i")"
+   val="$(gpio_get_value "$gpio")"
+   direction="$(gpio_get_direction "$gpio")"
+   printf "%-1s | %-3s | %-30s\n" "$val" "$direction" "$gpio"
+done

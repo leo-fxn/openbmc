@@ -40,6 +40,9 @@ echo -e "\n##### BMC VERSION #####"
 built=$(cat /etc/version)
 echo "built : $built"
 
+echo -e "\n##### BMC OS VERSION #####"
+uname -a
+
 bmc_version=$(cat /etc/issue)
 echo "$bmc_version"
 
@@ -66,5 +69,5 @@ echo -e  "\n##### Executing plugins in /etc/showtech/rules/ #####"
 for showtech_file in /etc/showtech/rules/*
 do
 	echo -e "\n##### Running $showtech_file #####"
-	$showtech_file
+	$showtech_file || echo "ERROR: $showtech_file failed. Continuing..."
 done

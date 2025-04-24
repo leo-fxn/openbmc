@@ -18,21 +18,7 @@
 # Boston, MA 02110-1301 USA
 #
 
-echo -e  "\n################################"
-echo "########## dmesg log ###########"
-echo "################################"
-dmesg
+# shellcheck source=/dev/null
 
-echo -e  "\n################################"
-echo "##### /var/log/messages log ####"
-echo "################################"
-if [ ! -f "/var/log/messages" ]; then
-	echo "/var/log/messages doesn't exist!"
-else
-	cat /var/log/messages
-fi
-
-echo -e  "\n################################"
-echo "########## journal log ###########"
-echo "##################################"
-journalctl -a
+echo -e "\n##### x86 mTerm Logs #####"
+cat /var/volatile/log/mTerm_wedge.log

@@ -19,20 +19,6 @@
 #
 
 echo -e  "\n################################"
-echo "########## dmesg log ###########"
-echo "################################"
-dmesg
-
-echo -e  "\n################################"
-echo "##### /var/log/messages log ####"
-echo "################################"
-if [ ! -f "/var/log/messages" ]; then
-	echo "/var/log/messages doesn't exist!"
-else
-	cat /var/log/messages
-fi
-
-echo -e  "\n################################"
-echo "########## journal log ###########"
-echo "##################################"
-journalctl -a
+echo "########## Uboot Environment ###########"
+echo "########################################"
+fw_printenv

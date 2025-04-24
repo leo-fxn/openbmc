@@ -18,21 +18,11 @@
 # Boston, MA 02110-1301 USA
 #
 
-echo -e  "\n################################"
-echo "########## dmesg log ###########"
-echo "################################"
-dmesg
+# shellcheck source=/dev/null
+source /usr/local/bin/openbmc-utils.sh
 
-echo -e  "\n################################"
-echo "##### /var/log/messages log ####"
-echo "################################"
-if [ ! -f "/var/log/messages" ]; then
-	echo "/var/log/messages doesn't exist!"
-else
-	cat /var/log/messages
-fi
-
-echo -e  "\n################################"
-echo "########## journal log ###########"
-echo "##################################"
-journalctl -a
+echo -e "\n##### MCB FPGA i2c dump #####"
+for NUM_I2C in {0..255}; do
+    VALUE=$(i2cget -f -y 12 0x72 "$NUM_I2C")
+    echo "$NUM_I2C: $VALUE"
+done

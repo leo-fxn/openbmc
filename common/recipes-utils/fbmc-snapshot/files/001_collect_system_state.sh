@@ -19,20 +19,23 @@
 #
 
 echo -e  "\n################################"
-echo "########## dmesg log ###########"
+echo "########## CPU Usage ###########"
 echo "################################"
-dmesg
+top -b -n 1
 
 echo -e  "\n################################"
-echo "##### /var/log/messages log ####"
+echo "########## Memory Info ###########"
 echo "################################"
-if [ ! -f "/var/log/messages" ]; then
-	echo "/var/log/messages doesn't exist!"
-else
-	cat /var/log/messages
+cat /proc/meminfo
+
+echo -e  "\n################################"
+echo "########## Disk Usage ###########"
+echo "#################################"
+if [ ! -f "/mnt/data" ]; then
+	df -h /mnt/data/
 fi
 
 echo -e  "\n################################"
-echo "########## journal log ###########"
-echo "##################################"
-journalctl -a
+echo "########## Network Info ###########"
+echo "###################################"
+ifconfig -a

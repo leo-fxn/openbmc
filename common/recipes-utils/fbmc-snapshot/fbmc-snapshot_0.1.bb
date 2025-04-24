@@ -28,10 +28,14 @@ UNPACKDIR="${S}"
 LOCAL_URI = " \
     file://showtech.sh \
     file://000_collect_log_messages.sh \
+    file://001_collect_system_state.sh \
+    file://002_collect_uboot_info.sh \
     "
 
 SHOWTECH_RULES_FILES = " \
     000_collect_log_messages.sh \
+    001_collect_system_state.sh \
+    002_collect_uboot_info.sh \
     "
 
 do_install() {

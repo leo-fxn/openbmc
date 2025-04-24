@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Copyright (c) Meta Platforms, Inc. and affiliates. (http://www.meta.com)
 #
 # This program file is free software; you can redistribute it and/or modify it
@@ -16,23 +14,25 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
-#
 
-echo -e  "\n################################"
-echo "########## dmesg log ###########"
-echo "################################"
-dmesg
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-echo -e  "\n################################"
-echo "##### /var/log/messages log ####"
-echo "################################"
-if [ ! -f "/var/log/messages" ]; then
-	echo "/var/log/messages doesn't exist!"
-else
-	cat /var/log/messages
-fi
+LOCAL_URI += "\
+    file://900_dump_gpio.sh \
+    file://901_dump_mcb_fpga.sh \
+    file://902_dump_scm_fpga.sh \
+    file://903_collect_bios_info.sh \
+    "
 
-echo -e  "\n################################"
-echo "########## journal log ###########"
-echo "##################################"
-journalctl -a
+do_install:append() {
+    showtech_rules_dir="${D}/etc/showtech/rules/"
+    install -d ${showtech_rules_dir}
+
+    install -m 755 900_dump_gpio.sh ${showtech_rules_dir}/900_dump_gpio.sh
+    install -m 755 901_dump_mcb_fpga.sh ${showtech_rules_dir}/901_dump_mcb_fpga.sh
+    install -m 755 902_dump_scm_fpga.sh ${showtech_rules_dir}/902_dump_scm_fpga.sh
+    install -m 755 903_collect_bios_info.sh ${showtech_rules_dir}/903_collect_bios_info.sh
+}
+
+RDEPENDS:${PN} += "bash"
+FILES:${PN} += "/etc/showtech/rules/"
