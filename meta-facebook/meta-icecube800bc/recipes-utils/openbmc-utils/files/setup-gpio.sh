@@ -31,3 +31,4 @@
 . /usr/local/bin/openbmc-utils.sh
 
 setup_gpio BMC_READY_N  GPIOP0 out 1
+setup_gpio BMC_I2C2_EN  GPIOF1 out 1
