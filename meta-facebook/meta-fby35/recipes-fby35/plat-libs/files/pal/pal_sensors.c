@@ -81,6 +81,12 @@ enum {
   UNKNOWN_SOLUTION = 0xff,
 };
 
+typedef struct
+{
+    int16_t mantissa : 11;
+    int16_t exponent : 5;
+} linear11_t;
+
 static int read_adc_val(uint8_t adc_id, float *value);
 static int read_temp(uint8_t snr_id, float *value);
 static int read_hsc_vin(uint8_t hsc_id, float *value);
@@ -2305,6 +2311,51 @@ read_snr_from_all_slots(uint8_t target_snr_num, uint8_t action, float *val) {
 }
 
 static int
+get_pdb_linear11_reading(uint8_t pdb_id, uint8_t type, uint16_t cmd, float *value) {
+  const uint8_t pdb_bus = 11;
+  uint8_t addr = pdb_info_list[pdb_id].target_addr;
+  static int fd = -1;
+  uint8_t rbuf[PMBUS_RESP_LEN_MAX] = {0x00}, tbuf[PMBUS_CMD_LEN_MAX] = {cmd};
+  uint8_t rlen = 2;
+  uint8_t tlen = 1;
+  int retry = MAX_RETRY;
+  int ret = ERR_NOT_READY;
+  linear11_t linear = {0};
+
+  if (value == NULL) {
+    return READING_NA;
+  }
+
+  if ( fd < 0 ) {
+    fd = i2c_cdev_slave_open(pdb_bus, addr >> 1, I2C_SLAVE_FORCE_CLAIM);
+    if ( fd < 0 ) {
+      syslog(LOG_WARNING, "Failed to open bus %d", pdb_bus);
+      return READING_NA;
+    }
+  }
+
+  for (retry = MAX_RETRY; retry > 0; retry--) {
+    ret = i2c_rdwr_msg_transfer(fd, addr, tbuf, tlen, rbuf, rlen);
+    if (ret == 0) {
+      break;
+    }
+  }
+  if ( ret < 0 ) {
+    ret = READING_NA;
+    goto exit;
+  }
+  memcpy(&linear, rbuf, sizeof(linear11_t));
+  *value = (float)(linear.mantissa * pow(2, linear.exponent));
+
+exit:
+  if ( fd >= 0 ) {
+    close(fd);
+    fd = -1;
+  }
+  return ret;
+}
+
+static int
 get_pdb_reading(uint8_t pdb_id, uint8_t type, uint16_t cmd, float *value) {
   const uint8_t pdb_bus = 11;
   uint8_t addr = pdb_info_list[pdb_id].target_addr;
@@ -2419,10 +2470,16 @@ read_pdb_temp(uint8_t pdb_id, float *value) {
     return READING_NA;
   }
 
-  if (get_pdb_reading(pdb_id, PDB_TEMP, PMBUS_READ_TEMP1, value) < 0 ) {
-    return READING_NA;
+  if (fby35_common_get_slot_type(FRU_SLOT1) == SERVER_TYPE_CL_EMR) {
+    if (get_pdb_linear11_reading(pdb_id, PDB_TEMP, PMBUS_READ_TEMP1, value) < 0 ) {
+      return READING_NA;
+    }
+  } else {
+    if (get_pdb_reading(pdb_id, PDB_TEMP, PMBUS_READ_TEMP1, value) < 0 ) {
+      return READING_NA;
+    }
+    *value *= pdb_info_list[pdb_id].coefficient[PDB_TEMP].data;
   }
-  *value *= pdb_info_list[pdb_id].coefficient[PDB_TEMP].data;
   return PAL_EOK;
 }
 
@@ -3152,7 +3209,7 @@ read_hsc_peak_pin(uint8_t hsc_id, float *value) {
 
 #ifdef CONFIG_JAVAISLAND
 static int
-calculate_ein(struct HSC_EIN *st_ein, float *value) {
+calculate_ein(const struct HSC_EIN *st_ein, float *value) {
   int ret = READING_NA;
   uint32_t energy, rollover, sample;
   uint32_t sample_diff;
@@ -3233,7 +3290,7 @@ read_dpv2_efuse(uint8_t info, float *value) {
   float m = 0, b = 0, r = 0;
   int raw_val = 0;
   int fru = 0, type = 0;
-  PAL_SNR_INFO* snr_info = (PAL_SNR_INFO*)&info;
+  const PAL_SNR_INFO* snr_info = (PAL_SNR_INFO*)&info;
 
   if (value == NULL) {
     syslog(LOG_WARNING, "Invalid parameter");
@@ -3290,7 +3347,7 @@ pal_all_slot_power_ctrl(uint8_t opt, char *sel_desc) {
 }
 
 static void
-pal_nic_otp_check(float *value, float unr, float ucr) {
+pal_nic_otp_check(const float *value, float unr, float ucr) {
   static int retry = MAX_RETRY;
   static bool is_otp_asserted = false;
   char sel_str[128] = {0};
@@ -3416,7 +3473,7 @@ pal_bic_sensor_read_raw(uint8_t fru, uint8_t sensor_num, float *value, uint8_t b
   int ret = 0, slot_type = SERVER_TYPE_NONE;
   uint8_t power_status = 0;
   ipmi_extend_sensor_reading_t sensor = {0};
-  sdr_full_t *sdr = NULL;
+  const sdr_full_t *sdr = NULL;
   char path[128];
   sprintf(path, SLOT_SENSOR_LOCK, fru);
   uint8_t *bic_skip_list;
