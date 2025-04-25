@@ -16,5 +16,6 @@ SRC_URI += " \
     file://1013-yosemite4-support-CAT9532-led-controller.patch \
     file://1014-adc128-filter-out-0x1ff.patch \
     file://2015-ncsi-Add-a-apply-mac-stage-for-mellanox-NICs.patch \
+    file://2016-net-ncsi-check-for-netlink-driven-responses-before-r.patch \
     file://yosemite4-local.cfg \
 "
