@@ -3,6 +3,7 @@
 # Copyright 2020-present Facebook. All Rights Reserved.
 
 # shellcheck disable=SC2034
+# shellcheck disable=SC2317
 
 SCMCPLD_SYSFS_DIR="$(i2c_device_sysfs_abspath 12-0043)"
 SMBCPLD_SYSFS_DIR="$(i2c_device_sysfs_abspath 4-0023)"
@@ -23,6 +24,8 @@ DS4520_DEV=$(( 0x50 ))
 DS4520_IO0_REG=0xf2
 UCD_SECURITY_REG=0xf1
 WRITE_PROTECT_REG=0x10
+
+LAYOUT_FILE="/etc/elbert_flash.layout"
 
 wedge_iso_buf_enable() {
     return 0
@@ -396,6 +399,33 @@ power_off_pim() {
        touch "${pim_off_cache}"
     fi
     logger pim_enable: powered off PIM"${pim}"
+}
+
+get_section_start() {
+    local name="$1"
+    local startstr
+    startstr=$(awk -v name="$name" '$2 == name {print $1}' $LAYOUT_FILE | \
+               cut -d ':' -f1)
+    echo "0x$startstr"
+}
+
+get_section_size() {
+    local name="$1"
+    local endstr
+    local section_start
+    local size
+
+    section_start=$(get_section_start "$name")
+    endstr=$(awk -v name="$name" '$2 == name {print $1}' $LAYOUT_FILE | \
+             cut -d ':' -f2)
+    section_end="0x$endstr"
+
+    size=$((section_end + 1 - section_start))
+    echo $size
+}
+
+get_total_size() {
+    get_section_size total
 }
 
 retry_command() {

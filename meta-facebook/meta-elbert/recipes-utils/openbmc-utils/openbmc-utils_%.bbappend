@@ -21,13 +21,17 @@ PACKAGECONFIG += "disable-watchdog"
 PACKAGECONFIG += "boot-info"
 
 LOCAL_URI += "\
+    file://aconf_util.sh \
     file://board-utils.sh \
     file://bios_util.sh \
-    file://fpga_util.sh \
-    file://fpga_ver.sh \
+    file://bmc_aboot.conf \
+    file://cpu_aboot.conf \
     file://dump_pim_serials.sh \
     file://dump_gpios.sh \
+    file://elbert_flash.layout \
     file://eth0_mac_fixup.sh \
+    file://fpga_util.sh \
+    file://fpga_ver.sh \
     file://oob-eeprom-util.sh \
     file://oob-mdio-util.sh \
     file://oob-status.sh \
@@ -60,6 +64,7 @@ LOCAL_URI += "\
     "
 
 OPENBMC_UTILS_FILES += " \
+    aconf_util.sh \
     board-utils.sh \
     bios_util.sh \
     fpga_util.sh \
@@ -166,6 +171,12 @@ do_work_systemd() {
 
 }
 
+do_install_bios_layout() {
+    install -m 0644 ${UNPACKDIR}/bmc_aboot.conf ${D}${sysconfdir}/bmc_aboot.conf
+    install -m 0644 ${UNPACKDIR}/cpu_aboot.conf ${D}${sysconfdir}/cpu_aboot.conf
+    install -m 0644 ${UNPACKDIR}/elbert_flash.layout ${D}${sysconfdir}/elbert_flash.layout
+}
+
 do_install_board() {
   # for backward compatible, create /usr/local/fbpackages/utils/ast-functions
   olddir="/usr/local/fbpackages/utils"
@@ -183,6 +194,7 @@ do_install_board() {
 }
 
 do_install:append() {
+  do_install_bios_layout
   do_install_board
 }
 

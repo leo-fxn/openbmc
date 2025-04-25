@@ -1,0 +1,6 @@
+A00000:FCFFFF normal
+FD0000:FEFFFF microcode
+FF0000:FFFFFF bootblock
+400000:9EFFFF fallback
+9FA000:9FEFFF aboot_conf
+0:FFFFFF total
