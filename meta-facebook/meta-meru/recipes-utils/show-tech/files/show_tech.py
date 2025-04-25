@@ -24,8 +24,8 @@ import argparse
 import subprocess
 
 
-VERSION = "1.2"
-
+VERSION = "1.3"
+SC_POWERGOOD = "/sys/bus/i2c/devices/9-0023/smb_power_status"
 
 def runCmd(cmd, echo=False, verbose=False, timeout=60, ignoreReturncode=False):
     try:
@@ -169,6 +169,17 @@ def showtech(quietLevel=0):
     print("##### SHOWTECH VERSION {} #####".format(VERSION))
     print("################################\n")
 
+    print(
+        "##### USER PWR STATUS #####\n{}".format(
+            runCmd("/usr/local/bin/wedge_power.sh status", verbose=True)
+        )
+    )
+
+    print(
+        "##### SWITCHCARD POWERGOOD STATUS #####\n{}".format(
+            runCmd("head -n 1 {}".format(SC_POWERGOOD))
+        )
+    )
     print("##### BMC SYSTEM TIME #####\n{}".format(runCmd("date")))
     print("##### BMC HOSTNAME #####\n{}".format(runCmd("hostname")))
     print(
