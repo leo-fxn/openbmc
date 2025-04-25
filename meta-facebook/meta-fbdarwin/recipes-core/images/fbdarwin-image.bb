@@ -4,6 +4,7 @@ require recipes-core/images/fboss-lite-image.inc
 require fbdarwin-image-layout.inc
 
 IMAGE_INSTALL += " \
+  fio \
   prefdl-eeprom \
   serfmon-cache \
   show-tech \
