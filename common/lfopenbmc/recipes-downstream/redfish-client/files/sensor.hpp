@@ -9,24 +9,26 @@ namespace redfish_client_daemon
 class Sensor
 {
   public:
+    Sensor() = default;
+    virtual ~Sensor() = default;
     static std::optional<Sensor> parseSensor(const std::string& sensorJson);
 
-    double getReading()
+    double getReading() const
     {
         return reading;
     }
 
-    const std::string& getSensorUnitText()
+    const std::string& getSensorUnitText() const
     {
         return sensorUnit;
     }
 
-    std::optional<double> getMinValue()
+    std::optional<double> getMinValue() const
     {
         return minValue;
     }
 
-    std::optional<double> getMaxValue()
+    std::optional<double> getMaxValue() const
     {
         return maxValue;
     }
@@ -45,7 +47,7 @@ class Sensor
     }
 
   private:
-    double reading;
+    double reading = 0;
     std::string sensorUnit;
     std::optional<double> minValue;
     std::optional<double> maxValue;
