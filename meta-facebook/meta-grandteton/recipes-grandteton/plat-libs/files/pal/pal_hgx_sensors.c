@@ -3,7 +3,7 @@
 #include <syslog.h>
 #include "pal.h"
 #include <openbmc/kv.h>
-
+#include <openbmc/libgpio.h>
 struct hgx_snr_info {
   char *evt_hgx_comp;
   char *evt_snr_name;
@@ -197,6 +197,10 @@ read_snr(uint8_t fru, uint8_t sensor_num, float *value) {
   char tmp[8] = {0};
   static int build_stage = NONE;
   static uint8_t snr_retry = 0;
+
+  if (!gpio_get_value_by_shadow("GPU_BASE_HMC_READY_ISO_R"))  {
+    return READING_NA;
+  }
 
   ret = kv_get("is_usbnet_ready", tmp, NULL, 0);
   if (ret || !strncmp(tmp, "0", 1)) {
