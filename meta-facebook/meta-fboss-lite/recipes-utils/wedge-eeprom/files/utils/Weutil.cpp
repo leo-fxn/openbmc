@@ -29,18 +29,18 @@
 using ojson = nlohmann::ordered_json;
 
 namespace {
-  std::string getProductionStateString(const std::string& value) {
-    if (value == "1") {
-      return "EVT";
-    } else if (value == "2") {
-      return "DVT";
-    } else if (value == "3") {
-      return "PVT";
-    } else if (value == "4") {
-      return "MP";
-    }
-    return "UNKNOWN";
+std::string getProductionStateString(const std::string& value) {
+  if (value == "1") {
+    return "EVT";
+  } else if (value == "2") {
+    return "DVT";
+  } else if (value == "3") {
+    return "PVT";
+  } else if (value == "4") {
+    return "MP";
   }
+  throw std::runtime_error("Invalid Production State with value: " + value);
+}
 } // namespace
 
 static void usage() {
@@ -56,38 +56,41 @@ static void usage() {
 
 static void printEepromData(const std::string& eDeviceName, bool jFlag) {
   if (USE_NEW_EEPROM_LIB) {
-      std::vector<std::pair<std::string, std::string>> parsedData = eepromParseNew(eDeviceName);
-      auto production_state = std::find_if(parsedData.begin(), parsedData.end(), [](const auto& item) {
-        return item.first == "Production State";
-      });
-      if (production_state != parsedData.end()) {
-        production_state->second = getProductionStateString(production_state->second);
+    std::vector<std::pair<std::string, std::string>> parsedData =
+        eepromParseNew(eDeviceName);
+    auto production_state = std::find_if(
+        parsedData.begin(), parsedData.end(), [](const auto& item) {
+          return item.first == "Production State";
+        });
+    if (production_state != parsedData.end()) {
+      production_state->second =
+          getProductionStateString(production_state->second);
+    }
+    if (jFlag) {
+      ojson j;
+      for (auto item : parsedData) {
+        j[item.first] = item.second;
       }
-      if (jFlag) {
-        ojson j;
-        for (auto item : parsedData) {
-          j[item.first] = item.second;
-        }
-        std::cout << std::setw(4) << j << '\n';
-      } else {
-        for (auto item : parsedData) {
-          std::cout << item.first << ": " << item.second << '\n';
-        }
+      std::cout << std::setw(4) << j << '\n';
+    } else {
+      for (auto item : parsedData) {
+        std::cout << item.first << ": " << item.second << '\n';
       }
+    }
   } else {
-      std::map<fieldId, std::pair<std::string, std::string>> devTbl =
-          eepromParse(eDeviceName);
-      if (jFlag) {
-        ojson j;
-        for (auto& item : devTbl) {
-          j[item.second.first] = item.second.second;
-        }
-        std::cout << std::setw(4) << j << '\n';
-      } else {
-        for (auto& item : devTbl) {
-          std::cout << item.second.first << ": " << item.second.second << '\n';
-        }
+    std::map<fieldId, std::pair<std::string, std::string>> devTbl =
+        eepromParse(eDeviceName);
+    if (jFlag) {
+      ojson j;
+      for (auto& item : devTbl) {
+        j[item.second.first] = item.second.second;
       }
+      std::cout << std::setw(4) << j << '\n';
+    } else {
+      for (auto& item : devTbl) {
+        std::cout << item.second.first << ": " << item.second.second << '\n';
+      }
+    }
   }
   return;
 }
