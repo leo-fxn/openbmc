@@ -1,3 +1,3 @@
 #!/bin/bash
 
-exec python3 -m fixmybmc.main
+exec python3 -m fixmybmc.main "$@"

@@ -7,6 +7,8 @@ from typing import Dict, List
 from fixmybmc import status
 
 from fixmybmc.bmccheck import _checks, BmcCheck, load_checks
+
+from fixmybmc.cli_wrapper import CliWrapper
 from fixmybmc.remediation import Remediation
 from fixmybmc.utils import (
     bold,
@@ -19,6 +21,22 @@ from fixmybmc.utils import (
 )
 
 
+def list_checks() -> None:
+    load_checks()
+    print("List of checks:")
+    for i, check in enumerate(_checks.items()):
+        print(f"{i + 1}. {check[0]}:\n{check[1].func.__doc__}")
+    sys.exit(0)
+
+
+@CliWrapper(
+    name="fixmybmc",
+    description=(
+        "This tool will run a set of checks and remediations to help you fix your "
+        "BMC SoC."
+    ),
+    options={"list-checks": ("Show list of performed checks.", list_checks)},
+)
 def main() -> int:
     load_checks()
     overwrite_print(f"Loaded {len(_checks)} checks")
