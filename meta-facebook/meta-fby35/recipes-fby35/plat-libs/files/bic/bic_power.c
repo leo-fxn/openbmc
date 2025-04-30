@@ -40,6 +40,7 @@
 
 //The delay of the value in S5 state
 #define DELAY_POWER_CYCLE 5
+#define DELAY_POWER_CYCLE_OP2 10
 #define DELAY_POWER_OFF 6
 #define DELAY_GRACEFUL_SHUTDOWN 1
 
@@ -155,6 +156,7 @@ bic_server_power_cycle(uint8_t slot_id) {
   int i;
   int retry = 10;
   uint8_t status;
+  uint8_t server_type = 0;
 
   for (i = 0; i < sts_cnt; i++) {
     ret = pwr_seq[i].change_power(slot_id);
@@ -164,7 +166,12 @@ bic_server_power_cycle(uint8_t slot_id) {
     }
 
     if ( POWER_BTN_LOW == pwr_seq[i].pwr_sts ) {
-      sleep(DELAY_POWER_CYCLE);
+      server_type = fby35_common_get_slot_type(slot_id);
+      if (server_type == SERVER_TYPE_GL) {
+        sleep(DELAY_POWER_CYCLE_OP2);
+      } else {
+        sleep(DELAY_POWER_CYCLE);
+      }
       do {
         if (bic_get_server_power_status(slot_id, &status) < 0) {
             return -1;

@@ -3293,6 +3293,33 @@ pal_parse_sys_sts_event(uint8_t fru, uint8_t *event_data, char *error_log) {
     E1S_INA233_ALERT   = 0x86,
     E1S_12V_OV_ALERT   = 0x87,
     EXPA_CLOCK_BUFFER  = 0x88,
+    // NE = Not Enable
+    NE_FM_EXP_MAIN_PWR_EN = 0x89,
+    NE_PWRGD_P12V_MAIN = 0x90,
+    NE_OPB_BIC_MAIN_PWR_EN_R = 0x91,
+    NE_OPA_PWRGD_P1V8_VR = 0x92,
+    NE_OPA_PWRGD_P0V9_VR = 0x93,
+    NE_OPA_PWRGD_EXP_PWR = 0x94,
+    NE_OPA_CLKBUF_RTM_OE_N = 0x95,
+    NE_OPA_RESET_BIC_RTM_N = 0x96,
+    NE_OPA_PERST_BIC_RTM_N = 0x97,
+    NE_E1S_PRESENT = 0x98,
+    NE_E1S_P12V_EFUSE_PWRG = 0x99,
+    NE_E1S_P3V3_EFUSE_PWRG = 0x9A,
+    NE_E1S_CLKBUF_OE_EN = 0x9B,
+    NE_E1S_PCIE_RESET = 0x9C,
+    // ND = Not Disable
+    ND_E1S_PWR_OFF = 0x9D,
+    ND_OPA_PERST_BIC_RTM_N = 0x9E,
+    ND_OPA_RESET_BIC_RTM_N = 0x9F,
+    ND_OPA_CLKBUF_RTM_OE_N = 0xA0,
+    ND_OPA_PWRGD_EXP_PWR = 0xA1,
+    ND_OPA_PWRGD_P0V9_VR = 0xA2,
+    ND_OPB_BIC_MAIN_PWR_EN_R = 0xA3,
+    ND_E1S_PCIE_RESET = 0xA4,
+    ND_CLKBUF_OE_EN = 0xA5,
+    ND_E1S_P12V_EFUSE_PWRG = 0xA6,
+    ND_E1S_P3V3_EFUSE_PWRG = 0xA7
   };
   uint8_t event = event_data[0];
   char log_msg[MAX_ERR_LOG_SIZE] = {0};
@@ -3466,6 +3493,105 @@ pal_parse_sys_sts_event(uint8_t fru, uint8_t *event_data, char *error_log) {
       break;
     case EXPA_CLOCK_BUFFER :
       snprintf(log_msg, sizeof(log_msg), "%dOU BIC set the CLOCK buffer register data failed", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_FM_EXP_MAIN_PWR_EN :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC FM_EXP_MAIN_PWR_EN is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_PWRGD_P12V_MAIN :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC PWRGD_P12V_MAIN is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPB_BIC_MAIN_PWR_EN_R:
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC BIC_MAIN_PWR_EN_R is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPA_PWRGD_P1V8_VR :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC OPA_PWRGD_P1V8_VR is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPA_PWRGD_P0V9_VR :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC OPA_PWRGD_P0V9_VR is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPA_PWRGD_EXP_PWR :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC OPA_PWRGD_EXP_PWR is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPA_CLKBUF_RTM_OE_N :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC OPA_CLKBUF_RTM_OE_N is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPA_RESET_BIC_RTM_N :
+      snprintf(log_msg, sizeof(log_msg), "power_on_handler : %dOU BIC OPA_PERST_BIC_RTM_N is not enabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case NE_OPA_PERST_BIC_RTM_N :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_on_handler : %dOU BIC E1s%d is not present!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case NE_E1S_PRESENT :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_on_handler : %dOU BIC E1s%d is not present!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case NE_E1S_P12V_EFUSE_PWRG :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_on_handler : %dOU BIC E1s%d p12v_efuse_power_good is not power good!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case NE_E1S_P3V3_EFUSE_PWRG :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_on_handler : %dOU BIC E1s%d p3v3_efuse_power_good is not power good! ", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case NE_E1S_CLKBUF_OE_EN :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_on_handler : %dOU BIC E1s%d clkbuf_oe_en is not enabled!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case NE_E1S_PCIE_RESET :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_on_handler : %dOU BIC E1s%d pcie_reset is not enabled!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case ND_E1S_PWR_OFF :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC E1s%d power off fall!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case ND_OPA_PERST_BIC_RTM_N :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC OPA_PERST_BIC_RTM_N is not disabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case ND_OPA_RESET_BIC_RTM_N :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC OPA_RESET_BIC_RTM_N is not disabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case ND_OPA_CLKBUF_RTM_OE_N :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC OPA_CLKBUF_RTM_OE_N is not disabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case ND_OPA_PWRGD_EXP_PWR :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC OPA_PWRGD_EXP_PWR is not disabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case ND_OPA_PWRGD_P0V9_VR :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC OPA_PWRGD_P0V9_VR is not disabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case ND_OPB_BIC_MAIN_PWR_EN_R :
+      snprintf(log_msg, sizeof(log_msg), "power_off_handler : %dOU BIC OPB_BIC_MAIN_PWR_EN_R is not disabled!", event_data[1] + 1);
+      strcat(error_log, log_msg);
+      break;
+    case ND_E1S_PCIE_RESET :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_off_handler : %dOU BIC E1s%d pcie_reset is not disabled!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case ND_CLKBUF_OE_EN :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_off_handler : %dOU BIC E1s%d clkbuf_oe_en is not disabled!", event_data[1] + 1, event_data[2]);
+      break;
+    case ND_E1S_P12V_EFUSE_PWRG :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_off_handler : %dOU BIC E1s%d p12v_efuse_enable is not disabled!", event_data[1] + 1, event_data[2]);
+      strcat(error_log, log_msg);
+      break;
+    case ND_E1S_P3V3_EFUSE_PWRG :
+      snprintf(log_msg, sizeof(log_msg), "e1s_power_off_handler : %dOU BIC E1s%d p3v3_efuse_enable is not disabled!", event_data[1] + 1, event_data[2]);
       strcat(error_log, log_msg);
       break;
     default:
