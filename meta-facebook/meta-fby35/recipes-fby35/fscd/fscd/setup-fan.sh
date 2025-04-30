@@ -139,7 +139,7 @@ init_class1_fsc() {
       config_type="JI"
       target_fsc_config="/etc/FSC_CLASS1_JI_config.json"
     elif [[ $server_type -eq 6 ]]; then
-      config_type="VF"
+      config_type="EMR"
       target_fsc_config="/etc/FSC_CLASS1_CL_EMR_config.json"
       update_emr_fan_table
     else
@@ -175,11 +175,12 @@ init_class1_fsc() {
       board_type_1ou=$(get_1ou_board_type slot1)
       case $board_type_1ou in
         4)
-          config_type="VF"
           if [[ $server_type -eq 6 ]]; then
+            config_type="EMR"
             target_fsc_config="/etc/FSC_CLASS1_CL_EMR_config.json"
             update_emr_fan_table
           else
+            config_type="VF"
             target_fsc_config="/etc/FSC_CLASS1_type3_10_config.json"
           fi
           ;;
@@ -253,7 +254,7 @@ reload_sled_fsc() {
 
     #Check number of slots
     sys_config="$($KV_CMD get sled_system_conf persistent)"
-    if [[ "$sys_config" =~ ^(Type_(1|10|VF|JI))$ && "$cnt" -eq 4 ]]; then
+    if [[ "$sys_config" =~ ^(Type_(1|10|VF|EMR|JI))$ && "$cnt" -eq 4 ]]; then
       run_fscd=true
     elif [[ "$sys_config" =~ ^(Type_(DPV2|HD|GL))$ && "$cnt" -eq 2 ]]; then
       run_fscd=true

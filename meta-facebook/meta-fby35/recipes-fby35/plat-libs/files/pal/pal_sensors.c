@@ -2268,6 +2268,7 @@ read_snr_from_all_slots(uint8_t target_snr_num, uint8_t action, float *val) {
     else if ( strcmp(sys_conf, "Type_HD") == 0 ) config = CONFIG_B;
     else if ( (strcmp(sys_conf, "Type_17") == 0) || (strcmp(sys_conf, "Type_8") == 0)) config = CONFIG_D;
     else if ( strcmp(sys_conf, "Type_VF") == 0 ) config = CONFIG_C;
+    else if ( strcmp(sys_conf, "Type_EMR") == 0 ) config = CONFIG_C;
     else if ( strcmp(sys_conf, "Type_GL") == 0 ) config = CONFIG_B;
     else if ( strcmp(sys_conf, "Type_JI") == 0 ) config = CONFIG_A;
     else syslog(LOG_WARNING, "%s() Couldn't identify the system type: %s", __func__, sys_conf);
@@ -3925,7 +3926,7 @@ pal_bmc_fan_threshold_init() {
 }
 
 static int
-pal_medusa_hsc_threshold_init() {
+pal_medusa_hsc_threshold_init(int slot_type) {
   static bool is_inited = false;
   bool is_48v_medusa = false;
   char hsc_type[MAX_VALUE_LEN] = {0};
@@ -3965,6 +3966,9 @@ pal_medusa_hsc_threshold_init() {
       index = medusa_sensor[i].sensor_num;
       memcpy(&sensor_map[index].snr_thresh, &medusa_sensor[i].thres, sizeof(PAL_SENSOR_THRESHOLD));
     }
+  }
+  if (slot_type == SERVER_TYPE_CL_EMR) {
+    sensor_map[BMC_SENSOR_HSC_TEMP].snr_thresh.ucr_thresh = 55;
   }
   is_inited = true;
   return 0;
@@ -4008,7 +4012,7 @@ pal_get_sensor_threshold(uint8_t fru, uint8_t sensor_num, uint8_t thresh, void *
     }
   }
   if (fru == FRU_BMC) {
-    if ((pal_medusa_hsc_threshold_init() < 0) || (pal_vpdb_threshold_init() < 0)) {
+    if ((pal_medusa_hsc_threshold_init(slot_type) < 0) || (pal_vpdb_threshold_init() < 0)) {
       return -1;
     }
   }
@@ -4162,6 +4166,35 @@ pal_is_sdr_from_file(uint8_t fru, uint8_t snr_num) {
   return true;
 }
 
+static void correct_emr_threshold(sdr_full_t *sdr, uint8_t snr_num)
+{
+  switch (snr_num) {
+    case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2A:
+    case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2B:
+    case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2C:
+      sdr->uc_thresh = 0xAA;
+      break;
+    case BIC_1OU_VF_SENSOR_NUM_T_MB_OUTLET_TEMP_T:
+      sdr->uc_thresh = 58;
+      break;
+    case BIC_SENSOR_OUTLET_TEMP:
+      sdr->uc_thresh = 78;
+      break;
+    case BIC_SENSOR_FIO_TEMP:
+      sdr->uc_thresh = 46;
+      break;
+    case BIC_SENSOR_PCH_TEMP:
+      sdr->uc_thresh = 71;
+      break;
+    case BIC_SENSOR_CPU_TEMP:
+      sdr->uc_thresh = 75;
+      break;
+    case BIC_SENSOR_HSC_TEMP:
+      sdr->uc_thresh = 76;
+      break;
+  }
+}
+
 static int
 _sdr_init(char *path, sensor_info_t *sinfo, uint8_t bmc_location, \
           const uint8_t config_status, const uint8_t board_type, uint8_t fru) {
@@ -4244,13 +4277,7 @@ _sdr_init(char *path, sensor_info_t *sinfo, uint8_t bmc_location, \
     }
 
     if (slot_type == SERVER_TYPE_CL_EMR) {
-      switch (snr_num) {
-        case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2A:
-        case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2B:
-        case BIC_1OU_VF_SENSOR_NUM_INA231_PWR_M2C:
-          sdr->uc_thresh = 0xAA;
-	break;
-      }
+      correct_emr_threshold(sdr, snr_num);
     }
     memcpy(&sinfo[snr_num].sdr, sdr, sizeof(sdr_full_t));
     //syslog(LOG_WARNING, "%s() copy num: 0x%x:%s success", __func__, snr_num, sdr->str);
