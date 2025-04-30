@@ -1,3 +1,4 @@
+#
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 #
 # This program file is free software; you can redistribute it and/or modify it
@@ -14,11 +15,17 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
+#
+[Unit]
+Description=Run leakage-mond in OpenBMC
+After=setup_i2c.service setup_gpio.service
+Wants=setup_i2c.service setup_gpio.service
 
-require recipes-core/images/fboss-lite-image.inc
+# use GPIO interrupt event for LEAK_BMC_L
+[Service]
+ExecStartPre=/bin/sh -c '/usr/bin/echo "both" > /tmp/gpionames/LEAK_BMC_L/edge'
+ExecStart=/usr/local/bin/leakage-mond -e -i -o -I /tmp/gpionames/LEAK_BMC_L/value -O /tmp/gpionames/LEAK_DISABLE_PWR_L/value
+ExecReload=/bin/kill -HUP $MAINPID
 
-IMAGE_INSTALL += " \
-    host-recovery \
-    ssd-mond \
-    leakage-mond \
-    "
+[Install]
+WantedBy=multi-user.target
