@@ -24,6 +24,8 @@ typedef enum GPUConfig {
 
 namespace hgx {
 
+constexpr auto DEFAULT_TIMEOUT_SEC = 12;
+
 enum class DiagnosticDataType { MANAGER, OEM_EROT, OEM_SELF_TEST, OEM_FPGA, OEM_RETIMER };
 
 // Standard HTTP Exception
@@ -48,7 +50,9 @@ struct TaskStatus {
 
 // Get a subpath after /redfish/v1
 // Example, get on 192.168.31.1/redfish/v1/blah, the subpath = blah
-std::string redfishGet(const std::string& subpath);
+std::string redfishGet(
+    const std::string& subpath,
+    int timeoutSec = DEFAULT_TIMEOUT_SEC);
 // Post a subpath after /redfish/v1
 // Example, get on 192.168.31.1/redfish/v1/blah, the subpath = blah
 std::string redfishPost(const std::string& subpath, std::string&& args);

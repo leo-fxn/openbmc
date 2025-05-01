@@ -75,8 +75,8 @@ do_sensor(const std::string& fru, const std::string& name, bool json_fmt) {
   }
 }
 
-static void do_get(const std::string& subpath) {
-  std::string out = hgx::redfishGet(subpath);
+static void do_get(const std::string& subpath, int timeout_sec) {
+  std::string out = hgx::redfishGet(subpath, timeout_sec);
   std::cout << out << std::endl;
 }
 
@@ -227,9 +227,11 @@ int main(int argc, char* argv[]) {
   sensor->callback([&]() { do_sensor(fru, sensorName, json_fmt); });
 
   std::string subpath{};
+  int timeout_sec = hgx::DEFAULT_TIMEOUT_SEC;
   auto get = app.add_subcommand("get", "Perform a GET on the redfish subpath");
   get->add_option("SUBPATH", subpath, "Subpath after /redfish/v1")->required();
-  get->callback([&]() { do_get(subpath); });
+  get->add_option("--timeout-sec", timeout_sec, "Timeout in seconds");
+  get->callback([&]() { do_get(subpath, timeout_sec); });
 
   std::string taskID{};
   auto taskid = app.add_subcommand("get-task", "Get Task Status");

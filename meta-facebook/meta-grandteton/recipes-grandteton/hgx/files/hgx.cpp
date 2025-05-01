@@ -73,8 +73,6 @@ const std::vector<std::string> BMC_PATCH_TARGETS_DVT = {
   "HGX_FW_ERoT_BMC_0", "HGX_FW_BMC_0"
 };
 
-constexpr auto TIME_OUT = 12;
-
 using nlohmann::json;
 
 namespace hgx {
@@ -87,11 +85,13 @@ class HGXMgr {
   ~HGXMgr() {
     RestClient::disable();
   }
-  static std::string get(const std::string& url) {
+  static std::string get(
+      const std::string& url,
+      int timeoutSec = DEFAULT_TIMEOUT_SEC) {
     RestClient::Response result;
     RestClient::Connection conn(url);
 
-    conn.SetTimeout(TIME_OUT);
+    conn.SetTimeout(timeoutSec);
     conn.SetBasicAuth(HMC_USR, HMC_PWD);
 
     result = conn.get("");
@@ -202,11 +202,11 @@ GPUConfig getConfig() {
   }
 }
 
-std::string redfishGet(const std::string& subpath) {
+std::string redfishGet(const std::string& subpath, int timeoutSec) {
   if (subpath.starts_with("/redfish/v1")) {
-    return hgx.get(HMC_BASE_URL + subpath);
+    return hgx.get(HMC_BASE_URL + subpath, timeoutSec);
   }
-  return hgx.get(HMC_URL + subpath);
+  return hgx.get(HMC_URL + subpath, timeoutSec);
 }
 
 std::string redfishPost(const std::string& subpath, std::string&& args) {
