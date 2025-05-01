@@ -15,6 +15,18 @@ output = run_command(
 
 redfish_binding = custom_target(
     'redfish-binding',
+    depend_files: [
+        'codegen/__init__.py',
+        'codegen/commands.py',
+        'codegen/cpp.py',
+        'codegen/definition.py',
+        'codegen/generator.py',
+        'codegen/main.py',
+        'codegen/schema.py',
+        'codegen/util.py',
+        'codegen/templates/common.hpp',
+        'codegen/templates/hpp.mako',
+    ],
     input: ['codegen.py'],
     output: output,
     command: [prog_python, '@INPUT@', '-o', '@OUTDIR@', '-s', dsp_spec_jsondir],

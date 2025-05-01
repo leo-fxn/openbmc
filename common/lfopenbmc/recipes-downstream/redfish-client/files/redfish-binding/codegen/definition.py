@@ -52,6 +52,7 @@ class Definition(ABC):
     def get_cpp_identifier(self) -> CppIdentifier:
         if self.name is None:
             raise ValueError("No cpp identifier for unnamed definition")
+        assert isinstance(self.name, str)
         return CppIdentifier(self.get_cpp_namespace(), self.name)
 
     @abstractmethod

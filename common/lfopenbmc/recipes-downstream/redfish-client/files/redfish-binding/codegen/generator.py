@@ -1,3 +1,4 @@
+import importlib.resources
 import os
 from collections import deque
 
@@ -17,6 +18,8 @@ from .cpp import (
 
 from .definition import create_definition_map, Definition
 from .schema import Schema
+
+COMMON_HPP_FILE_NAME = "common.hpp"
 
 
 def generate_cpp_defs(schemas: List[Schema]) -> List[CppDef]:
@@ -84,22 +87,29 @@ def get_cpp_file_name(cpp_def: CppDef) -> str:
 
 def generate_cpp_files(
     cpp_defs: List[CppDef],
-    template_lookup: TemplateLookup,
     output_dir: str,
-    cpp_include_dir: str,
 ) -> None:
-    hpp_template = template_lookup.get_template("hpp.mako")
-    cpp_object_identifiers = {
-        cpp_def.identifier for cpp_def in cpp_defs if isinstance(cpp_def, CppObjectDef)
-    }
-    for cpp_def in cpp_defs:
-        output_path = os.path.join(output_dir, get_cpp_file_name(cpp_def))
-        with open(output_path, "w") as f:
-            f.write(
-                hpp_template.render(
-                    cpp_def=cpp_def,
-                    forward_declarations=get_forward_declarations(
-                        cpp_def, cpp_object_identifiers
-                    ),
+    with importlib.resources.path(__package__, "templates") as template_dir:
+        template_lookup = TemplateLookup(
+            directories=[template_dir],
+            imports=[f"from {__package__} import cpp"],
+        )
+        hpp_template = template_lookup.get_template("hpp.mako")
+        cpp_object_identifiers = {
+            cpp_def.identifier
+            for cpp_def in cpp_defs
+            if isinstance(cpp_def, CppObjectDef)
+        }
+        for cpp_def in cpp_defs:
+            output_path = os.path.join(output_dir, get_cpp_file_name(cpp_def))
+            with open(output_path, "w") as f:
+                f.write(
+                    hpp_template.render(
+                        cpp_def=cpp_def,
+                        forward_declarations=get_forward_declarations(
+                            cpp_def, cpp_object_identifiers
+                        ),
+                    )
                 )
-            )
+        with open(os.path.join(output_dir, COMMON_HPP_FILE_NAME), "w") as f:
+            f.write(template_lookup.get_template(COMMON_HPP_FILE_NAME).render())

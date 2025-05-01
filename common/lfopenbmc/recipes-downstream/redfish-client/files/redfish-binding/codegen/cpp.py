@@ -1,6 +1,5 @@
 import re
 from abc import ABC, abstractmethod
-from functools import reduce
 from typing import List
 
 from inflection import camelize
@@ -120,11 +119,11 @@ class CppDef(object):
 class CppObjectDef(CppDef):
     def __init__(self, identifier: CppIdentifier, properties: List[CppProperty]):
         super().__init__(identifier)
-        self.include_headers = reduce(
-            set.union, [p.cpp_type.include_headers for p in properties], set()
+        self.include_headers = set().union(
+            *[p.cpp_type.include_headers for p in properties]
         )
-        self.include_generated_headers = reduce(
-            set.union, [p.cpp_type.include_generated_headers for p in properties], set()
+        self.include_generated_headers = set().union(
+            *[p.cpp_type.include_generated_headers for p in properties]
         )
         self.properties = properties
 
