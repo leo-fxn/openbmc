@@ -23,6 +23,20 @@ enable_ACA () {
   fi
 }
 
+enable_err_inj() {
+  for i in 0 1 2 3 4 5 6 7 ;
+  do
+    response=$(curl -ks http://192.168.31.1/redfish/v1/Chassis/OAM_${i}  | grep "EINJState")
+    if echo "$response" | grep -i "enable"; then
+      continue
+    else
+      curl -k -X POST http://192.168.31.1/redfish/v1/Chassis/OAM_${i}/Actions/Oem/AMD/Chassis.ErrInjection -d '{"ErrInjection" : "Enable"}';
+    fi
+  done
+}
+
+enable_err_inj
+
 # Since ACA feature is crucial for debugging GPU issue
 # Keep enabling it in the background until successful
 while [ 1 ]; 
