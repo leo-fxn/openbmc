@@ -63,7 +63,7 @@ class Definition(ABC):
             self.get_cpp_identifier(), self.get_cpp_type(definition_map)
         )
 
-    def should_skip(self) -> bool:
+    def should_skip(self, definition_map) -> bool:
         return False
 
     def get_deps(self, definition_map) -> List[Definition]:
@@ -97,7 +97,7 @@ class RefDefinition(Definition):
     def get_cpp_type(self, definition_map) -> CppType:
         return CppObjectType(self.deref(definition_map).get_cpp_identifier())
 
-    def should_skip(self) -> bool:
+    def should_skip(self, definition_map) -> bool:
         return not self.ref_definition_id.startswith(SCHEMA_BASE_URL)
 
     def get_deps(self, definition_map) -> List[Definition]:
@@ -128,7 +128,7 @@ class AnyOfDefinition(Definition):
         filtered_definitions: List[Definition] = []
         latest_version_refs: Dict[CppIdentifier, Tuple[Version, RefDefinition]] = {}
         for definition in self.any_of_definitions:
-            if definition.should_skip():
+            if definition.should_skip(definition_map):
                 continue
             if isinstance(definition, PrimitiveDefinition) or isinstance(
                 definition, ObjectDefinition
@@ -196,6 +196,9 @@ class AnyOfDefinition(Definition):
             for dep in definition.get_deps(definition_map)
         ]
 
+    def should_skip(self, definition_map) -> bool:
+        return len(self.get_filtered_any_of_definitions(definition_map)) == 0
+
 
 class VariantDefinition(Definition):
     def __init__(
@@ -262,15 +265,19 @@ class ObjectDefinition(Definition):
             ).items()
         ]
 
-    def get_filtered_properties(self) -> List[Property]:
-        return [prop for prop in self.properties if not prop.definition.should_skip()]
+    def get_filtered_properties(self, definition_map) -> List[Property]:
+        return [
+            prop
+            for prop in self.properties
+            if not prop.definition.should_skip(definition_map)
+        ]
 
     def get_cpp_def(self, definition_map) -> CppDef:
         return CppObjectDef(
             self.get_cpp_identifier(),
             [
                 prop.get_cpp_property(definition_map)
-                for prop in self.get_filtered_properties()
+                for prop in self.get_filtered_properties(definition_map)
             ],
         )
 
@@ -280,7 +287,7 @@ class ObjectDefinition(Definition):
     def get_deps(self, definition_map) -> List[Definition]:
         return [
             dep
-            for prop in self.get_filtered_properties()
+            for prop in self.get_filtered_properties(definition_map)
             for dep in prop.definition.get_deps(definition_map)
         ]
 
@@ -302,8 +309,8 @@ class ArrayDefinition(Definition):
     def get_deps(self, definition_map) -> List[Definition]:
         return self.item_definition.get_deps(definition_map)
 
-    def should_skip(self) -> bool:
-        return self.item_definition.should_skip()
+    def should_skip(self, definition_map) -> bool:
+        return self.item_definition.should_skip(definition_map)
 
 
 class PrimitiveDefinition(Definition):
@@ -324,7 +331,7 @@ class PrimitiveDefinition(Definition):
     def get_cpp_type(self, definition_map) -> CppType:
         return CppPrimitiveType(self.definition_type)
 
-    def should_skip(self) -> bool:
+    def should_skip(self, definition_map) -> bool:
         return self.definition_type == DefinitionType.NULL
 
 

@@ -16,6 +16,10 @@ def sanitize_name(name: str) -> str:
     )
 
 
+def sanitize_enum_key(key: str) -> str:
+    return "_" + key if (len(key) == 0 or key[0].isdigit()) else key
+
+
 class CppIdentifier(object):
     def __init__(self, namespace: str, id: str):
         self.namespace = sanitize_name(namespace)
@@ -140,4 +144,4 @@ class CppTypeAliasDef(CppDef):
 class CppEnumDef(CppDef):
     def __init__(self, identifier: CppIdentifier, enum: List[str]):
         super().__init__(identifier)
-        self.enum = {sanitize_name(e): e for e in enum}
+        self.enum = {sanitize_enum_key(sanitize_name(e)): e for e in enum}
