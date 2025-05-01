@@ -5,7 +5,8 @@ Wants=network-online.target xyz.openbmc_project.EntityManager.service xyz.openbm
 
 [Service]
 Restart=on-failure
-ExecStart=/usr/bin/redfish-client /usr/share/redfish-client/configurations/catalina.json
+ExecStartPre=/bin/mkdir -p /var/lib/redfish-client
+ExecStart=/usr/bin/redfish-client /usr/share/redfish-client/configurations/catalina.json -p /var/lib/redfish-client
 
 [Install]
 WantedBy=multi-user.target

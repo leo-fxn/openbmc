@@ -11,6 +11,7 @@ DEPENDS += " \
     ${PYTHON_PN}-mako-native \
     ${PYTHON_PN}-inflection-native \
     boost \
+    cli11 \
     curl \
     nlohmann-json \
     phosphor-dbus-interfaces \

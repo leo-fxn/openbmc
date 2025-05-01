@@ -13,6 +13,7 @@ nlohmann_json_dep = dependency('nlohmann_json', include_type: 'system')
 curl_dep = dependency('libcurl')
 boost_dep = dependency('boost', required: true)
 dl_dep = dependency('dl')
+CLI11_dep = dependency('CLI11', include_type: 'system')
 
 redfish_schema_dep = dependency('redfish-schema-pack', native: true)
 dsp_spec_jsondir = ''.join(
@@ -41,6 +42,7 @@ foreach conf : configurations
 endforeach
 
 base_deps = [
+    CLI11_dep,
     boost_dep,
     curl_dep,
     dl_dep,

@@ -70,7 +70,7 @@ void installSignalHandlers();
 // shutdown after that.
 void runDbusServerTillInterrupted(
     const DaemonConfig& daemonConfig, sdbusplus::async::context& ctx,
-    std::shared_ptr<IRedfishSource> redfishSource);
+    std::shared_ptr<IRedfishSource> redfishSource, std::string persistDir = "");
 
 // The following helpers are exposed for unit testing purposes.
 // This is the interface to use for sensor values before emitting the data.

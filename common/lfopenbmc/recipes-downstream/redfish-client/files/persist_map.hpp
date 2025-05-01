@@ -12,7 +12,7 @@ class PersistMap
     // persist in memory
     PersistMap() = default;
 
-    // persist to file
+    // persist to file if path is not empty, otherwise persist in memory
     explicit PersistMap(const std::string& path) : path(path)
     {
         load();

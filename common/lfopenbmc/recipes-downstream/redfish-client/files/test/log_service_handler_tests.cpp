@@ -8,6 +8,7 @@
 #include <xyz/openbmc_project/Logging/event.hpp>
 
 #include <condition_variable>
+#include <filesystem>
 #include <mutex>
 #include <thread>
 
@@ -216,7 +217,6 @@ TEST_F(LogServiceHandlerTest, BasicTest)
 
     using namespace std::string_literals;
 
-    // Commit collection once.
     logServiceHandler->commit(logEntryCollection);
     EXPECT_EQ(2, logManager.logs->size());
 
@@ -226,10 +226,10 @@ TEST_F(LogServiceHandlerTest, BasicTest)
         EXPECT_EQ(LoggingLevel::Warning, log.severity);
         EXPECT_EQ("com.meta.RedfishClient.UnexpectedException"s, log.message);
 
-        auto js = nlohmann::json::parse(log.additionalData["REDFISH_EVENT"]);
+        auto event = nlohmann::json::parse(log.additionalData["REDFISH_EVENT"]);
 
         EXPECT_EQ("OpenBMC.0.4.SensorThresholdWarningHighGoingHigh"s,
-                  js.at("MessageId").get<std::string>());
+                  event.at("MessageId").get<std::string>());
     }
 
     // Validate record at index 1 (CPER event).
@@ -247,10 +247,50 @@ TEST_F(LogServiceHandlerTest, BasicTest)
         EXPECT_EQ("3d61a466-ab40-409a-a698-f362d464b38f"s,
                   cper.at("NotificationType").get<std::string>());
     }
+}
 
-    // Commit same collection again.
+TEST_F(LogServiceHandlerTest, InMemoryPersistTest)
+{
+    auto logServiceHandler = std::make_shared<LogServiceHandler>("fake.url");
+    auto logEntryCollection =
+        redfish_binding::LogEntryCollection::parseLogEntryCollection(
+            kEventlogEntryCollectionJson);
+    EXPECT_EQ(0, logManager.logs->size());
     logServiceHandler->commit(logEntryCollection);
     EXPECT_EQ(2, logManager.logs->size());
+    logServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(2, logManager.logs->size());
+    // mimic a restart
+    auto restartedLogServiceHandler =
+        std::make_shared<LogServiceHandler>("fake.url");
+    restartedLogServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(4, logManager.logs->size());
+    restartedLogServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(4, logManager.logs->size());
+}
+
+TEST_F(LogServiceHandlerTest, OnFilePersistTest)
+{
+    std::string tmpdir = std::tmpnam(nullptr);
+    std::filesystem::create_directory(tmpdir);
+    auto logServiceHandler = std::make_shared<LogServiceHandler>(
+        "https://fake.url/redfish/v1", tmpdir);
+    auto logEntryCollection =
+        redfish_binding::LogEntryCollection::parseLogEntryCollection(
+            kEventlogEntryCollectionJson);
+    EXPECT_EQ(0, logManager.logs->size());
+    logServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(2, logManager.logs->size());
+    logServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(2, logManager.logs->size());
+    // mimic a restart
+    auto restartedLogServiceHandler = std::make_shared<LogServiceHandler>(
+        "https://fake.url/redfish/v1", tmpdir);
+    restartedLogServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(2, logManager.logs->size());
+    restartedLogServiceHandler->commit(logEntryCollection);
+    EXPECT_EQ(2, logManager.logs->size());
+    std::filesystem::remove_all(tmpdir);
 }
 
 } // namespace redfish_client_daemon

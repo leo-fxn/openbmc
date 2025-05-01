@@ -1,4 +1,5 @@
 #include "daemon.hpp"
+
 #include "log_service_handler.hpp"
 
 #include <boost/stacktrace.hpp>
@@ -324,8 +325,10 @@ class DbusServer
 
     explicit DbusServer(sdbusplus::async::context& ctx,
                         const DaemonConfig& daemonConfig,
-                        std::shared_ptr<IRedfishSource> redfishSource) :
-        ctx(ctx), daemonConfig(daemonConfig), redfishSource(redfishSource)
+                        std::shared_ptr<IRedfishSource> redfishSource,
+                        std::string persistDir) :
+        ctx(ctx), daemonConfig(daemonConfig), redfishSource(redfishSource),
+        persistDir(persistDir)
     {
         info("Creating Dbus Server with sensor config size {SIZE}", "SIZE",
              daemonConfig.sensorConfigs.size());
@@ -353,8 +356,10 @@ class DbusServer
             for (const auto& url : eventLogConfigs.urls)
             {
                 info("eventLogConfigs url = {URL}", "URL", url.c_str());
+                info("persistDir = {PERSIST_DIR}", "PERSIST_DIR", persistDir);
+
                 logServiceHandlers.push_back(
-                    std::make_shared<LogServiceHandler>(url));
+                    std::make_shared<LogServiceHandler>(url, persistDir));
             }
         }
 
@@ -473,6 +478,7 @@ class DbusServer
     DaemonConfig daemonConfig;
     std::shared_ptr<IRedfishSource> redfishSource;
     std::thread sensorThread;
+    std::string persistDir;
 };
 
 void installSignalHandlers()
@@ -487,9 +493,9 @@ void installSignalHandlers()
     std::signal(SIGABRT, printStackTraceOnCrashHandler);
 }
 
-void runDbusServerTillInterrupted(const DaemonConfig& daemonConfig,
-                                  sdbusplus::async::context& ctx,
-                                  std::shared_ptr<IRedfishSource> redfishSource)
+void runDbusServerTillInterrupted(
+    const DaemonConfig& daemonConfig, sdbusplus::async::context& ctx,
+    std::shared_ptr<IRedfishSource> redfishSource, std::string persistDir)
 {
     sdbusplus::server::manager_t manager{ctx, getSensorRootPath()};
 
@@ -501,7 +507,7 @@ void runDbusServerTillInterrupted(const DaemonConfig& daemonConfig,
         co_return;
     }(ctx, daemonConfig));
 
-    DbusServer server(ctx, daemonConfig, redfishSource);
+    DbusServer server(ctx, daemonConfig, redfishSource, persistDir);
 
     ctx.run();
 }

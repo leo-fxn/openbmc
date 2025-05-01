@@ -5,6 +5,8 @@
 #include <xyz/openbmc_project/State/CPER/event.hpp>
 
 #include <exception>
+#include <filesystem>
+#include <regex>
 
 PHOSPHOR_LOG2_USING;
 
@@ -134,12 +136,10 @@ void LogServiceHandler::commit(redfish_binding::LogEntry::LogEntry& entry)
         return;
     }
     const auto& timestamp = entry.getCreated().value();
-    auto it = seenEntries.find(entryId);
-    if (it != seenEntries.end() && it->second == timestamp)
+    if (!committedEntries.update(entryId, timestamp))
     {
         return;
     }
-    seenEntries[entryId] = timestamp;
     try
     {
         auto eventSeverity = entry.getSeverity().hasValue()
@@ -174,13 +174,13 @@ void LogServiceHandler::commit(redfish_binding::LogEntry::LogEntry& entry)
 
             if (eventSeverity == EventSeverity::Critical)
             {
-                lg2::commit(makeCPER<CPER::GenericCPERFault>(source,
-                                                        maybeCPER.value()));
+                lg2::commit(makeCPER<CPER::GenericCPERFault>(
+                    source, maybeCPER.value()));
             }
             else
             {
-                lg2::commit(makeCPER<CPER::GenericCPERWarning>(source,
-                                                          maybeCPER.value()));
+                lg2::commit(makeCPER<CPER::GenericCPERWarning>(
+                    source, maybeCPER.value()));
             }
             return;
         }
@@ -194,6 +194,16 @@ void LogServiceHandler::commit(redfish_binding::LogEntry::LogEntry& entry)
             "ENTRY_ID", entryId, "ERROR", e);
         return;
     }
+}
+
+std::string LogServiceHandler::getPersistPath(const std::string& url,
+                                              const std::string& persistDir)
+{
+    return persistDir.empty()
+               ? ""
+               : std::filesystem::path(persistDir) /
+                     std::filesystem::path(std::regex_replace(
+                         url, std::regex("[^a-zA-Z0-9]"), "_"));
 }
 
 } // namespace redfish_client_daemon

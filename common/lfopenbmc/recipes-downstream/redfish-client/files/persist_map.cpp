@@ -58,6 +58,12 @@ void PersistMap::flush()
         return;
     }
     std::ofstream file(path);
+    if (!file.is_open())
+    {
+        warning("Unable to flush persist map to {PATH}: file is not opened",
+                "PATH", path);
+        return;
+    }
     file << nlohmann::json(map);
     file.close();
 }
