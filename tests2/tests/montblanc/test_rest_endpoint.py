@@ -47,8 +47,13 @@ class RestEndpointTest(FbossRestEndpointTest, unittest.TestCase):
 
     # "/api/sys/mb/fruid"
     def set_endpoint_fruid_attributes(self):
+        version = self.get_endpoint_fruid_version()
+        if version >= 6:
+            self.endpoint_fruid_attrb = self.FRUID_ATTRIBUTES_V6
+        else:
+            self.endpoint_fruid_attrb = self.FRUID_ATTRIBUTES_V5
         self.endpoint_fruid_attrb = (
-            self.FRUID_ATTRIBUTES_V5
+            self.endpoint_fruid_attrb
             + self.FRUID_ATTRIBUTES_V5_BMC
             + self.FRUID_ATTRIBUTES_V5_SWITCH_ASIC
         )

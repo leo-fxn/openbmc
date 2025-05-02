@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 #
+import re
 import unittest
 from abc import abstractmethod
 
@@ -31,6 +32,7 @@ class BaseEepromTest(object):
         Logger.start(name=self._testMethodName)
         self.eeprom_cmd = None
         self.eeprom_info = None
+        self.eeprom_version = None
         pass
 
     def tearDown(self):
@@ -70,11 +72,15 @@ class CommonEepromTest(BaseEepromTest):
         self.set_eeprom_cmd()
         if not self.eeprom_info:
             self.eeprom_info = self.run_eeprom_cmd()
+        if not self.eeprom_version:
+            self.eeprom_version = int(
+                self.eeprom_info.split("Version:")[1].split("\n")[0].strip()
+            )
         return self.eeprom_info
 
     def test_version(self):
         self.get_eeprom_info()
-        self.assertIn("Version", self.eeprom_info)
+        self.assertTrue(re.search(r"^Version\s*:", self.eeprom_info, re.MULTILINE))
 
     def get_product_name(self):
         self.get_eeprom_info()
@@ -157,26 +163,37 @@ class CommonEepromTest(BaseEepromTest):
 
 
 class EepromV5Test(CommonEepromTest):
-    # overide for FBOSS EEPROMv4,v5 format, display different
+    # overide for FBOSS EEPROMv4,v5,v6 format, display different
     def set_eeprom_location(self):
         self.test_eeprom_location = "EEPROM location on Fabric"
 
-    # overide for FBOSS EEPROMv4,v5 format, display different
+    # overide for FBOSS EEPROMv4,v5,v6 format, display different
     def set_odm_pcba_number(self):
         self.odm_pcba_part_number = "ODM/JDM PCBA Part Number"
         self.odm_pcba_serial_number = "ODM/JDM PCBA Serial Number"
 
-    # not asset tag field for FBOSS EEPROMv4,v5 format
+    # not asset tag field for FBOSS EEPROMv4,v5,v6 format
     def test_asset_tag(self):
         pass
 
-    # not local_mac field for FBOSS EEPROMv5 format
+    # not local_mac field for FBOSS EEPROMv4,v5,v6 format
     def test_local_mac(self):
         pass
 
-    # not asset tag field for FBOSS EEPROMv5 format
+    # not asset tag field for FBOSS EEPROMv4,v5,v6 format
     def test_extended_mac_base(self):
         pass
+
+    def test_product_serial_number(self):
+        self.get_eeprom_info()
+        # overide EEPROMv6 format, display different
+        if self.eeprom_version >= 6:
+            self.assertIn("Product Serial Number", self.eeprom_info)
+            self.assertIn("Production State", self.eeprom_info)
+            self.assertIn("Production Sub-State", self.eeprom_info)
+            self.assertIn("Re-Spin/Variant Indicator", self.eeprom_info)
+        else:
+            super().test_product_serial_number()
 
     def test_bmc_mac(self):
         self.get_eeprom_info()

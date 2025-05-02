@@ -34,10 +34,8 @@ try:
     # For Python 3+
     from urllib.request import urlopen
 except ImportError:
-    from urllib2 import HTTPError
-
     # Fall back to Python 2's urllib2
-    from urllib2 import urlopen
+    from urllib2 import HTTPError, urlopen
 
 # Some endpoints may respond with a code != 200 on tests environments
 ALLOWED_NON_OK_RESPONSES = {
@@ -261,6 +259,24 @@ class CommonRestEndpointTest(BaseRestEndpointTest):
         "Assembled At",
         "EEPROM location on Fabric",
     ]
+    FRUID_ATTRIBUTES_V6 = [
+        "Product Name",
+        "Product Part Number",
+        "System Assembly Part Number",
+        "Meta PCBA Part Number",
+        "Meta PCB Part Number",
+        "ODM/JDM PCBA Part Number",
+        "ODM/JDM PCBA Serial Number",
+        "Production State",
+        "Production Sub-State",
+        "Re-Spin/Variant Indicator",
+        "Product Serial Number",
+        "System Manufacturer",
+        "System Manufacturing Date",
+        "PCB Manufacturer",
+        "Assembled At",
+        "EEPROM location on Fabric",
+    ]
     FRUID_ATTRIBUTES_V5_X86 = [
         "X86 CPU MAC Base",
         "X86 CPU MAC Address Size",
@@ -360,6 +376,14 @@ class CommonRestEndpointTest(BaseRestEndpointTest):
     # "/api/sys/mb/fruid"
     def set_endpoint_fruid_attributes(self):
         self.endpoint_fruid_attrb = self.FRUID_ATTRIBUTES
+
+    def get_endpoint_fruid_version(self):
+        """
+        Get the FRUID version from the endpoint
+        """
+        info = self.get_from_endpoint(CommonRestEndpointTest.FRUID_ENDPOINT)
+        dict_info = json.loads(info)
+        return int(dict_info["Information"]["Version"])
 
     @unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
     def test_endpoint_api_sys_mb_fruid(self):

@@ -47,14 +47,17 @@ class RestEndpointTest(FbossRestEndpointTest, unittest.TestCase):
 
     # "/api/sys/mb/fruid"
     def set_endpoint_fruid_attributes(self):
-        self.fail("this test case needs to define the fru format")
-        # need to define the format, depend on "weutil" output
-        # self.endpoint_fruid_attrb = (
-        #     self.FRUID_ATTRIBUTES_V5
-        #     + self.FRUID_ATTRIBUTES_V5_X86
-        #     + self.FRUID_ATTRIBUTES_V5_BMC
-        #     + self.FRUID_ATTRIBUTES_V5_SWITCH_ASIC
-        # )
+        version = self.get_endpoint_fruid_version()
+        if version >= 6:
+            self.endpoint_fruid_attrb = self.FRUID_ATTRIBUTES_V6
+        else:
+            self.endpoint_fruid_attrb = self.FRUID_ATTRIBUTES_V5
+        self.endpoint_fruid_attrb = (
+            self.endpoint_fruid_attrb
+            + self.FRUID_ATTRIBUTES_V5_X86
+            + self.FRUID_ATTRIBUTES_V5_BMC
+            + self.FRUID_ATTRIBUTES_V5_SWITCH_ASIC
+        )
 
     @unittest.skip("not available")
     # "/api/sys/firmware_info/all"
