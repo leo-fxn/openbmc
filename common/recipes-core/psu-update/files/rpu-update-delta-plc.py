@@ -12,10 +12,24 @@ from pyrmd import RackmonInterface as rmd
 
 
 parser = get_parser()
+parser.add_argument(
+    "--oem-block",
+    action="store_true",
+    default=False,
+    help="Use OEM Block programming",
+)
 
 
 def get_rpu_revision(addr):
     return rmd.get(addr, "RPU_PLC_FW_Revision", True)
+
+
+def check_rpu_size(addr):
+    size_raw = rmd.read(addr, 0x13EA, 0x1, timeout=3000)
+    if len(size_raw) != 1:
+        print("WARNING: Read wrong number of registers")
+    if size_raw[0] != 0x61A8:
+        raise ValueError("Device does not support the current FW Image")
 
 
 @contextmanager
@@ -92,29 +106,57 @@ def load_fw(path):
     return fw
 
 
-def write_block(addr, block):
-    rmd.write(addr, block.addr, block.data, timeout=3000)
+def write_block(addr, block, oem_block):
+    if oem_block:
+        baddr = block.addr
+        data = block.data
+        bdata = b"".join([d.to_bytes(2, "big") for d in data])
+        datalen = len(data)  # Number of words
+        bdatalen = len(bdata)  # Number of bytes
+        hdr = (
+            addr.to_bytes(1, "big")
+            + b"\x75"
+            + baddr.to_bytes(2, "big")
+            + datalen.to_bytes(2, "big")
+            + bdatalen.to_bytes(1, "big")
+        )
+        cmd = hdr + bdata
+        resp = rmd.raw(cmd, expected=datalen + 9)
+        expected_resp = (
+            addr.to_bytes(1, "big")
+            + b"\x75"
+            + baddr.to_bytes(2, "big")
+            + datalen.to_bytes(2, "big")
+        )
+        if resp != expected_resp:
+            raise ValueError("Unexpected response header: " + bh(resp))
+    else:
+        rmd.write(addr, block.addr, block.data, timeout=3000)
 
 
-def write_fw(addr, fw_file):
+def write_fw(addr, fw_file, oem_block):
     for idx, block in enumerate(fw_file):
         print_perc(
             100.0 * idx / len(fw_file),
             "Writing Block %d out of %d" % (idx + 1, len(fw_file)),
         )
-        write_block(addr, block)
+        write_block(addr, block, oem_block)
     print_perc(100.0, "Writing Block %d out of %d" % (len(fw_file), len(fw_file)))
 
 
-def update_rpu(addr, filename):
+def update_rpu(addr, filename, oem_block):
     print("Current Version: %s" % (get_rpu_revision(addr)))
     addr_b = addr.to_bytes(1, "big")
     fwimg = load_fw(filename)
+    # The image requires a new protocol not supported by all devices.
+    # Check if the device can in fact do this and abort early.
+    if oem_block:
+        check_rpu_size(addr)
     with rpu_stopped(addr_b):
         with fw_upgrade_enabled(addr_b):
-            write_fw(addr, fwimg)
+            write_fw(addr, fwimg, oem_block)
         syntax_check(addr_b)
-    time.sleep(5.0)
+    time.sleep(8.0)
     print("Version After Upgrade: %s" % (get_rpu_revision(addr)))
 
 
@@ -122,7 +164,7 @@ def main():
     args = parser.parse_args()
     with suppress_monitoring():
         try:
-            update_rpu(args.addr, args.file)
+            update_rpu(args.addr, args.file, args.oem_block)
         except Exception:
             print("Update Failed")
             traceback.print_exc()
