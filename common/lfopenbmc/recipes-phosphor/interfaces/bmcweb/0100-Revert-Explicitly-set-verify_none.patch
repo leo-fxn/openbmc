@@ -1,7 +1,7 @@
-From 1ac0317f9d423b58b84bf82c4317a985d5c36d29 Mon Sep 17 00:00:00 2001
+From 2ec01f7704f0e803e33610732d869215503c94a6 Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Mon, 11 Nov 2024 18:10:41 -0500
-Subject: [PATCH 100/103] Revert "Explicitly set verify_none"
+Subject: [PATCH 100/104] Revert "Explicitly set verify_none"
 
 This reverts commit 463a0e3e880340a119bf986bab039d1afbe1a432.
 ---
@@ -24,7 +24,7 @@ index 52779816..790cf93d 100644
          }
          // If tls strict mode is disabled
 diff --git a/src/ssl_key_handler.cpp b/src/ssl_key_handler.cpp
-index b2a78b8e..25ec7245 100644
+index cc113601..235d08e0 100644
 --- a/src/ssl_key_handler.cpp
 +++ b/src/ssl_key_handler.cpp
 @@ -545,21 +545,20 @@ std::shared_ptr<boost::asio::ssl::context> getSslServerContext()

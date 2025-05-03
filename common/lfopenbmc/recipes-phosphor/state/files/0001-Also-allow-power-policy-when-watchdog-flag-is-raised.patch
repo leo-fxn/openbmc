@@ -1,17 +1,18 @@
-From 6337e506c2e335de92e5ddb724b933dedf538c48 Mon Sep 17 00:00:00 2001
+From 7cffaf43305671adf780ab977325c952889e4e06 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Wed, 3 Apr 2024 15:13:25 +0800
-Subject: [PATCH] Also allow power policy when watchdog flag is raised.
+Subject: [PATCH 1/2] Also allow power policy when watchdog flag is raised
 
+Change-Id: I333abc0313a6560ce509c9481e9b92e592f5ad80
 ---
  discover_system_state.cpp | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/discover_system_state.cpp b/discover_system_state.cpp
-index 0a20bb3..c4b89ee 100644
+index f6542ef..1f6974d 100644
 --- a/discover_system_state.cpp
 +++ b/discover_system_state.cpp
-@@ -97,8 +97,7 @@ int main(int argc, char** argv)
+@@ -99,8 +99,7 @@ int main(int argc, char** argv)
      else if (bmcRebootCause == BMC::RebootCause::Watchdog)
      {
          info(
@@ -22,5 +23,5 @@ index 0a20bb3..c4b89ee 100644
  
      /* The logic here is to first check the one-time PowerRestorePolicy setting.
 -- 
-2.25.1
+2.45.3
 

@@ -1,4 +1,4 @@
-From ca90570d1a22f2c2884b97a3cb3d16778c34a493 Mon Sep 17 00:00:00 2001
+From 18f874d00e611c3b1f98c0f55ca67e3ab0841b9c Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Thu, 27 Feb 2025 14:52:54 -0500
 Subject: [PATCH 200/206] registries: make registration dynamic
@@ -1031,10 +1031,10 @@ index 01160b7a..6440ca59 100644
 -}
 -} // namespace redfish::registries
 diff --git a/redfish-core/lib/event_service.hpp b/redfish-core/lib/event_service.hpp
-index fa003e3e..bfa02fc6 100644
+index 66f49abc..a9093b3b 100644
 --- a/redfish-core/lib/event_service.hpp
 +++ b/redfish-core/lib/event_service.hpp
-@@ -17,7 +17,6 @@
+@@ -16,7 +16,6 @@
  #include "query.hpp"
  #include "registries.hpp"
  #include "registries/privilege_registry.hpp"
@@ -1042,7 +1042,7 @@ index fa003e3e..bfa02fc6 100644
  #include "snmp_trap_event_clients.hpp"
  #include "subscription.hpp"
  #include "utils/json_utils.hpp"
-@@ -42,7 +41,6 @@
+@@ -41,7 +40,6 @@
  #include <memory>
  #include <optional>
  #include <ranges>
@@ -1157,7 +1157,7 @@ index 6bbdb48f..325fe6bd 100644
      for (const registries::MessageEntry& message : registryEntries)
      {
 diff --git a/redfish-core/src/error_messages.cpp b/redfish-core/src/error_messages.cpp
-index 1be7e027..4f8b1290 100644
+index 9637bd49..1d6a5448 100644
 --- a/redfish-core/src/error_messages.cpp
 +++ b/redfish-core/src/error_messages.cpp
 @@ -40,16 +40,16 @@ namespace redfish
@@ -2697,7 +2697,7 @@ index ebc7cf64..1521a4a6 100644
  }
  
 diff --git a/scripts/parse_registries.py b/scripts/parse_registries.py
-index 992bdc8a..c12f556c 100755
+index a07803f5..28b1c5e3 100755
 --- a/scripts/parse_registries.py
 +++ b/scripts/parse_registries.py
 @@ -36,7 +36,9 @@ INCLUDES = """
@@ -2763,7 +2763,7 @@ index 992bdc8a..c12f556c 100755
  
  
  def get_privilege_string_from_list(
-@@ -264,6 +278,7 @@ def make_error_function(
+@@ -265,6 +279,7 @@ def make_error_function(
      registry_name: str,
      namespace_name: str,
  ) -> str:
@@ -2771,7 +2771,7 @@ index 992bdc8a..c12f556c 100755
      arg_nonstring_types = {
          "const boost::urls::url_view_base&": {
              "AccessDenied": [1],
-@@ -348,7 +363,7 @@ def make_error_function(
+@@ -349,7 +364,7 @@ def make_error_function(
                      outargs.append(f"arg{index}")
              argstring = ", ".join(outargs)
              arg_param = f"std::to_array{to_array_type}({{{argstring}}})"
@@ -2780,7 +2780,7 @@ index 992bdc8a..c12f556c 100755
          out += "\n}\n\n"
      if registry_name == "Base":
          args.insert(0, "crow::Response& res")
-@@ -419,6 +434,7 @@ def create_error_registry(
+@@ -420,6 +435,7 @@ def create_error_registry(
  ) -> None:
      file, json_dict, namespace, url = registry_info
      base_filename = filename + "_messages"
@@ -2788,7 +2788,7 @@ index 992bdc8a..c12f556c 100755
  
      error_messages_hpp = os.path.join(
          SCRIPT_DIR, "..", "redfish-core", "include", f"{base_filename}.hpp"
-@@ -538,20 +554,20 @@ namespace messages
+@@ -539,20 +555,20 @@ namespace messages
          )
          out.write(
              """

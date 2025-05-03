@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += " \
     file://phosphor-reset-host-reboot-attempts_override.conf \
-    file://0001-Add-retry-mechanism-with-configurable-Meson-option.patch \
+    file://1000-Add-retry-mechanism-with-configurable-Meson-option.patch \
 "
 EXTRA_OEMESON:append = " \
     -Dretry_attempts=5 \

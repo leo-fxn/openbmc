@@ -31,13 +31,13 @@ class SimpleTestHttpServer
         const std::unordered_map<std::string, std::string>& responseHeaders) :
         responseStr(responseStr), responseHeaders(responseHeaders),
         // Start on port 0 to let the OS pick an available port.
-        acceptor(ioService,
+        acceptor(ioContext,
                  boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 0)),
         port(acceptor.local_endpoint().port())
     {
         startAccept();
         serverThread = std::make_unique<std::thread>([this]() {
-            ioService.run();
+            ioContext.run();
             serverThreadStopped = true;
         });
     }
@@ -144,7 +144,7 @@ class SimpleTestHttpServer
 
     void startAccept()
     {
-        auto socket = std::make_shared<boost::asio::ip::tcp::socket>(ioService);
+        auto socket = std::make_shared<boost::asio::ip::tcp::socket>(ioContext);
         acceptor.async_accept(
             *socket, boost::bind(&SimpleTestHttpServer::handleAccept, this,
                                  boost::asio::placeholders::error, socket));
@@ -154,7 +154,7 @@ class SimpleTestHttpServer
     std::unordered_map<std::string, std::string> responseHeaders;
     std::vector<ReceivedHttpRequest> requests;
     std::mutex requestsMutex;
-    boost::asio::io_service ioService;
+    boost::asio::io_context ioContext;
     boost::asio::ip::tcp::acceptor acceptor;
     unsigned short port;
     std::unique_ptr<std::thread> serverThread;

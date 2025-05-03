@@ -1,18 +1,13 @@
-From 8d6590ba301548b59ba178df35a837033f1406c8 Mon Sep 17 00:00:00 2001
+From 59aabfcfac3de828a68766b2c42804dc69950d7d Mon Sep 17 00:00:00 2001
 From: Patrick NC Lin <patrick.nc.lin.wiwynn@gmail.com>
 Date: Fri, 14 Mar 2025 14:25:05 +0800
-Subject: [PATCH] Add bmc reboot event log # Description: - Modify the function
- "lastRebootCause" to not only log the message in   journal but also record it
- in the event log after a BMC reboot.
+Subject: [PATCH 2/2] Add bmc reboot event log
 
-# Motivation:
 - Since the BMC currently does not have a reboot event log, adding this
   feature will help with debugging when issues occur.
 
-# Test Plan:
 - Reset the BMC and check the event log - pass
 
-# Test result:
 - WatchdogReset
 ```
 root@bmc:~# reboot
@@ -45,15 +40,17 @@ root@bmc:~# mfg-tool log-display | grep -i Reset
 <7> Examining xyz.openbmc_project.Logging.Entry at /xyz/openbmc_project/logging/entry/2.
         "message": "xyz.openbmc_project.State.PowerOnReset",
 ```
+
+Change-Id: Iea03d771cc06bf632826f07d71b5c9f55460d887
 ---
- bmc_state_manager.cpp | 31 +++++++++++++++++++++++++------
- 1 file changed, 25 insertions(+), 6 deletions(-)
+ bmc_state_manager.cpp | 30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
 
 diff --git a/bmc_state_manager.cpp b/bmc_state_manager.cpp
-index faab43f..6f4f43c 100644
+index faab43f..e6da74b 100644
 --- a/bmc_state_manager.cpp
 +++ b/bmc_state_manager.cpp
-@@ -252,9 +252,33 @@ BMC::BMCState BMC::currentBMCState(BMCState value)
+@@ -252,9 +252,32 @@ BMC::BMCState BMC::currentBMCState(BMCState value)
  
  BMC::RebootCause BMC::lastRebootCause(RebootCause value)
  {
@@ -80,14 +77,13 @@ index faab43f..6f4f43c 100644
 +    }
 +
 +    phosphor::state::manager::utils::createError(
-+            this->bus, errorMsg,
-+            sdbusplus::server::xyz::openbmc_project::logging::Entry::Level::
-+                Notice);
++        this->bus, errorMsg,
++        sdbusplus::server::xyz::openbmc_project::logging::Entry::Level::Notice);
 +
      return server::BMC::lastRebootCause(value);
  }
  
-@@ -322,15 +346,10 @@ void BMC::discoverLastRebootCause()
+@@ -322,15 +345,10 @@ void BMC::discoverLastRebootCause()
      // A 0 indicates a pinhole reset occurred
      if (0 == gpioval)
      {
@@ -105,5 +101,5 @@ index faab43f..6f4f43c 100644
      }
  
 -- 
-2.34.1
+2.45.3
 

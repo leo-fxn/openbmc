@@ -1,7 +1,7 @@
-From 6137cd5ab2a8888b28b12fbe5bacad2d20419930 Mon Sep 17 00:00:00 2001
+From 36dc6ab573345e69be54d7efe7f5cac038f2b5ee Mon Sep 17 00:00:00 2001
 From: Marco Kawajiri <kawajiri@meta.com>
 Date: Fri, 19 Jul 2024 16:07:49 -0700
-Subject: [PATCH 101/103] mutual-tls-meta: Support "svc" and "host" entity
+Subject: [PATCH 101/104] mutual-tls-meta: Support "svc" and "host" entity
  types
 
 Change-Id: I9aa157f34f8f7ba11706ef0c07fbb1a1e1243c13

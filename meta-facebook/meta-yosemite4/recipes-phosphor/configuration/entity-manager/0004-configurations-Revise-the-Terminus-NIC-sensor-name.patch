@@ -1,10 +1,12 @@
-From ee75aceac14e34a15b9703749562058bba6bc72d Mon Sep 17 00:00:00 2001
+From 491dbf17a05b52dad0f03726f1005d8d240fa186 Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Wed, 17 Jul 2024 11:33:26 +0800
-Subject: [PATCH 5/7] configurations: Revise the Terminus NIC sensor name
+Subject: [PATCH 4/6] configurations: Revise the Terminus NIC sensor name
 
 1. Revise the Terminus NIC temperature sensor name to NICX_TEMP_C.
 2. Revise the temperature threshold.
+
+Change-Id: I46a611d4a4c2a29f320baedcdbe1c9112898de4a
 ---
  configurations/meta/terminus_2x100g_nic_tsff.json | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)

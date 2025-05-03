@@ -1,4 +1,4 @@
-From 429fb14777f63b5efb4879f79eec903039ac85c1 Mon Sep 17 00:00:00 2001
+From eb8700374eedfd8901baf1d2d6b8b1afe2a2143b Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Mon, 24 Feb 2025 12:50:55 +0000
 Subject: [PATCH 202/206] Add generation for Vendor registries and a DBus to RF
@@ -31,7 +31,7 @@ Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
  1 file changed, 341 insertions(+), 64 deletions(-)
 
 diff --git a/scripts/parse_registries.py b/scripts/parse_registries.py
-index 8b03a6b3..20d3b6d3 100755
+index 5bfead4c..351d7396 100755
 --- a/scripts/parse_registries.py
 +++ b/scripts/parse_registries.py
 @@ -4,6 +4,7 @@ import json
@@ -161,7 +161,7 @@ index 8b03a6b3..20d3b6d3 100755
                      version_split=version_split,
                  )
              )
-@@ -672,6 +692,247 @@ def to_pascal_case(text: str) -> str:
+@@ -673,6 +693,247 @@ def to_pascal_case(text: str) -> str:
      return "".join(i.capitalize() for i in s1[0:])
  
  
@@ -409,7 +409,7 @@ index 8b03a6b3..20d3b6d3 100755
  def main() -> None:
      dmtf_registries = OrderedDict(
          [
-@@ -704,56 +965,72 @@ def main() -> None:
+@@ -705,56 +966,72 @@ def main() -> None:
          + ",".join([dmtf for dmtf in dmtf_registries]),
          help="Comma delimited list of registries to update",
      )

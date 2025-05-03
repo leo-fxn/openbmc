@@ -1,4 +1,4 @@
-From 41a1f871acda8324c84ad7039acb3a431f2a8438 Mon Sep 17 00:00:00 2001
+From 36cd87c50691722592ea355f7808cfc389966fa2 Mon Sep 17 00:00:00 2001
 From: Patrick Williams <patrick@stwcx.xyz>
 Date: Thu, 27 Feb 2025 22:13:03 -0500
 Subject: [PATCH 203/206] registries: generate from phosphor-dbus-interfaces

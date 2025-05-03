@@ -1,7 +1,7 @@
-From 06143cbcc28c921f7fc4b854f464065dcba4ea8d Mon Sep 17 00:00:00 2001
+From 1836bd5cc8ce309d179d9fe7fba31e85559cf34c Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Tue, 11 Mar 2025 13:47:42 +0800
-Subject: [PATCH 7/7] entity-manager: Add config-prefix filtering
+Subject: [PATCH 6/6] entity-manager: Add config-prefix filtering
 
 This change introduces a new option "config-prefix" that enables
 filtering of JSON configuration files by their filename prefix.
@@ -11,15 +11,15 @@ performance.
 Change-Id: I94a1030edfd78b966aba44d5818b1da82f107c86
 Signed-off-by: Eric Yang <eric.yang.wiwynn@gmail.com>
 ---
- meson.build            |  5 +++
- meson.options          |  6 ++++
- src/entity_manager.cpp | 13 +++++---
- src/utils.cpp          | 73 ++++++++++++++++++++++++++----------------
- src/utils.hpp          | 12 +++++--
- 5 files changed, 74 insertions(+), 35 deletions(-)
+ meson.build                          |  5 ++
+ meson.options                        |  6 +++
+ src/entity_manager/configuration.cpp | 17 ++++---
+ src/utils.cpp                        | 73 +++++++++++++++++-----------
+ src/utils.hpp                        | 12 +++--
+ 5 files changed, 76 insertions(+), 37 deletions(-)
 
 diff --git a/meson.build b/meson.build
-index f789a0d..63e0b5f 100644
+index 26e4d79..124ffcb 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -7,6 +7,11 @@ project(
@@ -48,11 +48,11 @@ index 65c1f97..11fe79d 100644
 +    value: 'all',
 +    description: 'Comma-separated list of JSON filename prefixes to filter. Default loads all JSON files.',
 +)
-diff --git a/src/entity_manager.cpp b/src/entity_manager.cpp
-index 84d131b..4010d2d 100644
---- a/src/entity_manager.cpp
-+++ b/src/entity_manager.cpp
-@@ -827,12 +827,17 @@ void postToDbus(const nlohmann::json& newConfiguration,
+diff --git a/src/entity_manager/configuration.cpp b/src/entity_manager/configuration.cpp
+index 8646f57..a519c1d 100644
+--- a/src/entity_manager/configuration.cpp
++++ b/src/entity_manager/configuration.cpp
+@@ -35,12 +35,17 @@ bool writeJsonFiles(const nlohmann::json& systemConfiguration)
  // reads json files out of the filesystem
  bool loadConfigurations(std::list<nlohmann::json>& configurations)
  {
@@ -74,13 +74,24 @@ index 84d131b..4010d2d 100644
      {
          std::cerr << "Unable to find any configuration files in "
                    << configurationDirectory << "\n";
+@@ -81,8 +86,8 @@ bool loadConfigurations(std::list<nlohmann::json>& configurations)
+             continue;
+         }
+         /*
+-        * todo(james): reenable this once less things are in flight
+-        *
++         * todo(james): reenable this once less things are in flight
++         *
+         if (!validateJson(schema, data))
+         {
+             std::cerr << "Error validating " << jsonPath.string() << "\n";
 diff --git a/src/utils.cpp b/src/utils.cpp
-index d95fb5e..92d947c 100644
+index 116c484..00b1f2d 100644
 --- a/src/utils.cpp
 +++ b/src/utils.cpp
-@@ -47,54 +47,71 @@ static bool powerStatusOn = false;
- // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
- static std::unique_ptr<sdbusplus::bus::match_t> powerMatch = nullptr;
+@@ -33,54 +33,71 @@
+ 
+ namespace fs = std::filesystem;
  
 -bool findFiles(const fs::path& dirPath, const std::string& matchString,
 -               std::vector<fs::path>& foundPaths)
@@ -179,10 +190,10 @@ index d95fb5e..92d947c 100644
  
      return !foundPaths.empty();
 diff --git a/src/utils.hpp b/src/utils.hpp
-index 57c787f..a7fef70 100644
+index 105330c..7a227ed 100644
 --- a/src/utils.hpp
 +++ b/src/utils.hpp
-@@ -57,10 +57,16 @@ const static constexpr char* property = "CurrentHostState";
+@@ -34,10 +34,16 @@ using MapperGetSubTreeResponse =
  
  bool findFiles(const std::filesystem::path& dirPath,
                 const std::string& matchString,

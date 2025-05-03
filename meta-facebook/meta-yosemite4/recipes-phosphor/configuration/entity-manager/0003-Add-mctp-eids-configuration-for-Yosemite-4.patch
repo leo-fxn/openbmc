@@ -1,7 +1,7 @@
-From db9d19eb4507383f66235b34e8c9230bbf3d2fd9 Mon Sep 17 00:00:00 2001
+From 5f591b7462d3d770ad1a815dc0f8c437ed566b31 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 25 Sep 2023 11:10:46 +0800
-Subject: [PATCH 3/7] Add mctp eids configuration for Yosemite 4
+Subject: [PATCH 3/6] Add mctp eids configuration for Yosemite 4
 
 The MCTP specification is defined in DSP0236. As describe in section
 8.17.2, we need a configuration for static EIDs. The `mctpd` from
@@ -18,25 +18,28 @@ Tested: check D-Bus path for configuration.
 Change-Id: I587f5a69051f783753f5855d2f51242aa1cd5bc4
 Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 ---
- .../meta/yosemite4_floatingfalls.json         | 19 ++++++++++++++-
- .../meta/yosemite4_sentineldome_t1.json       |  8 +++++++
- .../yosemite4_sentineldome_t1_retimer.json    |  8 +++++++
- .../meta/yosemite4_sentineldome_t2.json       |  8 +++++++
- .../yosemite4_sentineldome_t2_retimer.json    |  8 +++++++
- .../meta/yosemite4_wailuafalls.json           | 24 +++++++++++++++++++
- schemas/legacy.json                           |  6 +++++
- 7 files changed, 80 insertions(+), 1 deletion(-)
+ .../meta/yosemite4_floatingfalls.json         | 23 ++++++++-
+ .../meta/yosemite4_sentineldome_t1.json       | 16 +++++++
+ .../yosemite4_sentineldome_t1_retimer.json    | 16 +++++++
+ .../meta/yosemite4_sentineldome_t2.json       | 16 +++++++
+ .../yosemite4_sentineldome_t2_retimer.json    | 16 +++++++
+ .../meta/yosemite4_wailuafalls.json           | 45 ++++++++++++++++++
+ schemas/exposes_record.json                   |  3 ++
+ schemas/legacy.json                           | 47 +++++++++++++++++++
+ 8 files changed, 181 insertions(+), 1 deletion(-)
 
 diff --git a/configurations/meta/yosemite4_floatingfalls.json b/configurations/meta/yosemite4_floatingfalls.json
-index 1ee4e91..5a9cb31 100644
+index 1ee4e91..3fe8702 100644
 --- a/configurations/meta/yosemite4_floatingfalls.json
 +++ b/configurations/meta/yosemite4_floatingfalls.json
-@@ -1,5 +1,22 @@
+@@ -1,5 +1,26 @@
  {
 -    "Exposes": [],
 +    "Exposes": [
 +        {
-+            "Address": ["0x20"],
++            "Address": [
++                "0x20"
++            ],
 +            "Bus": "$bus % 16",
 +            "Class": "I2C",
 +            "EndpointId": "$bus % 15 * 10 + 1",
@@ -44,7 +47,9 @@ index 1ee4e91..5a9cb31 100644
 +            "Type": "MCTPEndpoint"
 +        },
 +        {
-+            "Address": ["0x20"],
++            "Address": [
++                "0x20"
++            ],
 +            "Bus": "$bus % 16",
 +            "Class": "I2C",
 +            "EndpointId": "$bus % 15 * 10 + 3",
@@ -56,92 +61,125 @@ index 1ee4e91..5a9cb31 100644
      "Probe": "xyz.openbmc_project.FruDevice({'BOARD_PRODUCT_NAME': 'Floating Falls', 'PRODUCT_PRODUCT_NAME': 'Yosemite V4'})",
      "Type": "Board",
 diff --git a/configurations/meta/yosemite4_sentineldome_t1.json b/configurations/meta/yosemite4_sentineldome_t1.json
-index 1ea3215..0714152 100644
+index cd44a71..20c0286 100644
 --- a/configurations/meta/yosemite4_sentineldome_t1.json
 +++ b/configurations/meta/yosemite4_sentineldome_t1.json
-@@ -358,6 +358,14 @@
-             "Zones": [
-                 "Zone 1"
-             ]
-+        },
+@@ -1,5 +1,21 @@
+ {
+     "Exposes": [
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10",
++            "IANA": "0015A000",
 +            "Name": "BIC",
 +            "Type": "MCTPEndpoint"
-         }
-     ],
-     "Name": "Yosemite 4 Sentinel Dome T1 Slot $bus % 15",
++        },
+         {
+             "CheckHysteresisWithSetpoint": true,
+             "Class": "temp",
 diff --git a/configurations/meta/yosemite4_sentineldome_t1_retimer.json b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
-index e573f44..38db79f 100644
+index dbcb38e..8c14d66 100644
 --- a/configurations/meta/yosemite4_sentineldome_t1_retimer.json
 +++ b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
-@@ -419,6 +419,14 @@
-             "Zones": [
-                 "Zone 1"
-             ]
-+        },
+@@ -1,5 +1,21 @@
+ {
+     "Exposes": [
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10",
++            "IANA": "0015A000",
 +            "Name": "BIC",
 +            "Type": "MCTPEndpoint"
-         }
-     ],
-     "Name": "Yosemite 4 Sentinel Dome T1 with Retimer Slot $bus % 15",
++        },
+         {
+             "CheckHysteresisWithSetpoint": true,
+             "Class": "temp",
 diff --git a/configurations/meta/yosemite4_sentineldome_t2.json b/configurations/meta/yosemite4_sentineldome_t2.json
-index 074471b..f51248f 100644
+index 4ab7f53..7bddb21 100644
 --- a/configurations/meta/yosemite4_sentineldome_t2.json
 +++ b/configurations/meta/yosemite4_sentineldome_t2.json
-@@ -429,6 +429,14 @@
-             "Zones": [
-                 "Zone 1"
-             ]
-+        },
+@@ -1,5 +1,21 @@
+ {
+     "Exposes": [
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10",
++            "IANA": "0015A000",
 +            "Name": "BIC",
 +            "Type": "MCTPEndpoint"
-         }
-     ],
-     "Name": "Yosemite 4 Sentinel Dome T2 Slot $bus % 15",
++        },
+         {
+             "CheckHysteresisWithSetpoint": true,
+             "Class": "temp",
 diff --git a/configurations/meta/yosemite4_sentineldome_t2_retimer.json b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
-index 513dd5f..425c423 100644
+index 29922d5..edd6b29 100644
 --- a/configurations/meta/yosemite4_sentineldome_t2_retimer.json
 +++ b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
-@@ -490,6 +490,14 @@
-             "Zones": [
-                 "Zone 1"
-             ]
-+        },
+@@ -1,5 +1,21 @@
+ {
+     "Exposes": [
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10",
++            "IANA": "0015A000",
 +            "Name": "BIC",
 +            "Type": "MCTPEndpoint"
-         }
-     ],
-     "Name": "Yosemite 4 Sentinel Dome T2 with Retimer Slot $bus % 15",
++        },
+         {
+             "CheckHysteresisWithSetpoint": true,
+             "Class": "temp",
 diff --git a/configurations/meta/yosemite4_wailuafalls.json b/configurations/meta/yosemite4_wailuafalls.json
-index cdbae8c..214be6b 100644
+index 070e891..e89befd 100644
 --- a/configurations/meta/yosemite4_wailuafalls.json
 +++ b/configurations/meta/yosemite4_wailuafalls.json
-@@ -277,6 +277,30 @@
-             "Zones": [
-                 "Zone 1"
-             ]
-+        },
+@@ -1,5 +1,50 @@
+ {
+     "Exposes": [
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10 + 2",
@@ -149,7 +187,14 @@ index cdbae8c..214be6b 100644
 +            "Type": "MCTPEndpoint"
 +        },
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10 + 4",
@@ -157,30 +202,86 @@ index cdbae8c..214be6b 100644
 +            "Type": "MCTPEndpoint"
 +        },
 +        {
-+            "Address": ["7", "236", "128", "1", "0", "$bus % 16 * 5"],
++            "Address": [
++                "7",
++                "236",
++                "128",
++                "1",
++                "0",
++                "$bus % 16 * 5"
++            ],
 +            "Bus": "$bus / 4 - 4",
 +            "Class": "I3C",
 +            "EndpointId": "$bus % 15 * 10 + 5",
 +            "Name": "CXL2",
 +            "Type": "MCTPEndpoint"
-         }
-     ],
-     "Name": "Yosemite 4 Wailua Falls Slot $bus % 15",
++        },
+         {
+             "CheckHysteresisWithSetpoint": true,
+             "Class": "temp",
+diff --git a/schemas/exposes_record.json b/schemas/exposes_record.json
+index 5c3be11..c5d3faf 100644
+--- a/schemas/exposes_record.json
++++ b/schemas/exposes_record.json
+@@ -152,6 +152,9 @@
+                 },
+                 {
+                     "$ref": "nvidia.json#/$defs/NvidiaMctpVdm"
++                },
++                {
++                    "$ref": "legacy.json#/$defs/MCTPEndpoint"
+                 }
+             ]
+         },
 diff --git a/schemas/legacy.json b/schemas/legacy.json
-index 819db95..808a1bd 100644
+index 819db95..6b006f8 100644
 --- a/schemas/legacy.json
 +++ b/schemas/legacy.json
-@@ -11,6 +11,9 @@
-                 "AlphaS": {
-                     "type": "number"
-                 },
+@@ -1,6 +1,43 @@
+ {
+     "$schema": "http://json-schema.org/draft-07/schema#",
+     "$defs": {
++        "MCTPEndpoint": {
++            "description": "downstream support for static eid",
++            "additionalProperties": false,
++            "properties": {
++                "Address": {
++                    "$ref": "#/$defs/Types/AddressArray"
++                },
++                "Bus": {
++                    "$ref": "#/$defs/Types/Bus"
++                },
++                "Class": {
++                    "$ref": "#/$defs/Types/MCTPClass"
++                },
 +                "EndpointId": {
 +                    "$ref": "#/$defs/Types/EndpointId"
 +                },
-                 "Name": {
-                     "$ref": "#/$defs/Types/Name"
-                 },
-@@ -1189,6 +1192,9 @@
++                "IANA": {
++                    "$ref": "#/$defs/Types/IANA"
++                },
++                "Name": {
++                    "$ref": "#/$defs/Types/Name"
++                },
++                "Type": {
++                    "type": "string",
++                    "const": "MCTPEndpoint"
++                }
++            },
++            "required": [
++                "Address",
++                "Bus",
++                "Class",
++                "EndpointId",
++                "Name",
++                "Type"
++            ],
++            "type": "object"
++        },
+         "ExitAirTempSensor": {
+             "description": "implemented in dbus-sensors: ExitAirTempSensor",
+             "additionalProperties": false,
+@@ -1189,6 +1226,9 @@
              "EntityInstance": {
                  "type": "number"
              },
@@ -190,6 +291,27 @@ index 819db95..808a1bd 100644
              "GpioPins": {
                  "items": {
                      "type": "number"
+@@ -1198,6 +1238,9 @@
+             "GpioPolarity": {
+                 "enum": ["Low"]
+             },
++            "IANA": {
++                "type": "string"
++            },
+             "Index": {
+                 "type": "number",
+                 "minimum": 0,
+@@ -1218,6 +1261,10 @@
+             "MaxValue": {
+                 "type": "number"
+             },
++            "MCTPClass": {
++                "type": "string",
++                "enum": ["I2C", "I3C"]
++            },
+             "MinMaxType": {
+                 "type": "number"
+             },
 -- 
 2.45.3
 
