@@ -1,4 +1,4 @@
-From b895065774e2c616beec9a58c2b24159f1d860a9 Mon Sep 17 00:00:00 2001
+From ae5ab3266fd23d31f66279faecb408170617eab4 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Thu, 19 Sep 2024 14:00:24 +0800
 Subject: [PATCH 11/18] Update retimer version after post complete
@@ -27,8 +27,8 @@ index 8a09289..22698e2 100644
  
  #include <utility>
  
-@@ -143,6 +144,11 @@ int EventLogHandler::write(const message& eventData)
-         " PVDD11_S3",
+@@ -153,6 +154,11 @@ int EventLogHandler::write(const message& eventData)
+         " P0V8_ASIC2",
      });
  
 +    /* systemd service to kick start a target. */
@@ -39,7 +39,7 @@ index 8a09289..22698e2 100644
      /* 1. Get host slot number */
      uint64_t slot;
  
-@@ -206,6 +212,20 @@ int EventLogHandler::write(const message& eventData)
+@@ -216,6 +222,20 @@ int EventLogHandler::write(const message& eventData)
                       std::format("{:02x}", eventData[3]) +
                       std::format("{:02x}", eventData[4]);
      }
@@ -61,5 +61,5 @@ index 8a09289..22698e2 100644
      {
          event_name = eventList[eventType];
 -- 
-2.45.3
+2.34.1
 
