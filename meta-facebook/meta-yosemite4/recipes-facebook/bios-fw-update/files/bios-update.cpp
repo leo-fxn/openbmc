@@ -1,6 +1,7 @@
 #include "bios-update.hpp"
-
 #include "bios-usb-update.hpp"
+#include "config.hpp"
+#include "pldmutils/package_parser.hpp"
 
 #include <ctype.h>
 #include <unistd.h>
@@ -78,6 +79,30 @@ bool power_ctrl(sdbusplus::bus_t& bus, POWER ctrl, uint8_t slotId)
 
 bool BIOSupdater::run()
 {
+    // raw image validation
+    std::ifstream imageFile(imagePath, std::ios::binary);
+    if (!imageFile)
+    {
+        std::cerr << "Failed to open image file: " << imagePath << std::endl;
+        return false;
+    }
+    imageFile.seekg(0x61000);
+    auto pos = imageFile.tellg();
+    if (pos != 0x61000)
+    {
+        std::cerr << "Invalid image file: " << imagePath << std::endl;
+        return false;
+    }
+    uint32_t signature = 0;
+    if (imageFile.read(reinterpret_cast<char*>(&signature), sizeof(signature)))
+    {
+        if (signature != 0x50535024)
+        {
+            std::cerr << "Invalid image file: " << imagePath << std::endl;
+            return false;
+        }
+    }
+    imageFile.close();
     int ret = 0;
 
     if (!power_ctrl(bus, POWER::OFF, slotId))
@@ -96,6 +121,57 @@ bool BIOSupdater::run()
     }
 
     return (ret < 0) ? false : true;
+}
+
+pldm::fw_update::Descriptors createDescriptors(const std::string& cpuType) {
+    using namespace pldm::fw_update;
+
+    Descriptors descriptors{};
+    uint32_t ianaNumber = htobe32(IANA_NUMBER);
+
+    descriptors.emplace(
+        PLDM_FWUP_IANA_ENTERPRISE_ID,
+        DescriptorData{
+            reinterpret_cast<const uint8_t*>(&ianaNumber),
+            reinterpret_cast<const uint8_t*>(&ianaNumber) +
+                sizeof(ianaNumber)});
+
+    std::string compatibleHardware;
+
+    compatibleHardware.append("com.")
+        .append(VENDOR_NAME)
+        .append(".Hardware.")
+        .append(PLATFORM_NAME)
+        .append(".")
+        .append(BOARD_NAME)
+        .append(".BIOS");
+    auto compatibleHardwareBergamo = compatibleHardware + ".AMD_BERGAMO";
+    auto compatibleHardwareTurin = compatibleHardware + ".AMD_TURIN";
+
+    if (cpuType == "BERGAMO" || cpuType == "ALL")
+    {
+        descriptors.emplace(
+            PLDM_FWUP_VENDOR_DEFINED,
+            std::make_tuple(
+                "OpenBMC.CompatibleHardware",
+                VendorDefinedDescriptorData{
+                    reinterpret_cast<const uint8_t*>(compatibleHardwareBergamo.c_str()),
+                    reinterpret_cast<const uint8_t*>(compatibleHardwareBergamo.c_str()) +
+                    compatibleHardwareBergamo.size()}));
+    }
+    if (cpuType == "TURIN" || cpuType == "ALL")
+    {
+        descriptors.emplace(
+            PLDM_FWUP_VENDOR_DEFINED,
+            std::make_tuple(
+                "OpenBMC.CompatibleHardware",
+                VendorDefinedDescriptorData{
+                    reinterpret_cast<const uint8_t*>(compatibleHardwareTurin.c_str()),
+                    reinterpret_cast<const uint8_t*>(compatibleHardwareTurin.c_str()) +
+                    compatibleHardwareTurin.size()}));
+    }
+
+    return descriptors;
 }
 
 int main(int argc, char** argv)
@@ -123,6 +199,114 @@ int main(int argc, char** argv)
     {
         std::cerr << "Wrong option: only support BERGAMO or TURIN cpu\n";
         return 0;
+    }
+
+    std::ifstream package(imagePath, std::ios::binary);
+    if (!package) {
+        std::cerr << "Failed to open package file: " << imagePath << std::endl;
+        return -1;
+    }
+
+    constexpr char expected_sign[16] = {
+        0xF0,
+        0x18,
+        0x87,
+        0x8C,
+        0xCB,
+        0x7D,
+        0x49,
+        0x43,
+        0x98,
+        0x00,
+        0xA0,
+        0x2F,
+        0x05,
+        0x9A,
+        0xCA,
+        0x02};
+    char sign[16] = {0};
+    package.read(sign, sizeof(sign));
+    if (package.gcount() == sizeof(sign) &&
+        memcmp(sign, expected_sign, sizeof(expected_sign)) == 0) {
+        pldm::fw_update::Descriptors descriptors = createDescriptors(cpuType);
+        package.seekg(0, std::ios::end);
+        size_t packageSize = package.tellg();
+        package.seekg(0);
+        std::vector<uint8_t> packageHeader(
+            sizeof(pldm_package_header_information));
+        package.read(
+            reinterpret_cast<char*>(packageHeader.data()),
+            sizeof(pldm_package_header_information));
+
+        auto pkgHeaderInfo =
+            reinterpret_cast<const pldm_package_header_information*>(
+                packageHeader.data());
+        auto pkgHeaderInfoSize = sizeof(pldm_package_header_information) +
+            pkgHeaderInfo->package_version_string_length;
+        packageHeader.clear();
+        packageHeader.resize(pkgHeaderInfoSize);
+        package.seekg(0);
+        package.read(
+            reinterpret_cast<char*>(packageHeader.data()), pkgHeaderInfoSize);
+
+        auto parser = pldm::fw_update::parsePkgHeader(packageHeader);
+        if (parser == nullptr) {
+          std::cerr << "Failed to parse package header information"
+                    << std::endl;
+          return -1;
+        }
+
+        package.seekg(0);
+        packageHeader.resize(parser->pkgHeaderSize);
+        package.read(
+            reinterpret_cast<char*>(packageHeader.data()),
+            parser->pkgHeaderSize);
+        try {
+          parser->parse(packageHeader, packageSize);
+        } catch (const std::exception& e) {
+          std::cerr << "Failed to parse package header, error: " << e.what()
+                    << std::endl;
+          return -1;
+        }
+
+        auto packageDescriptors = std::get<pldm::fw_update::Descriptors>(
+            parser->getFwDeviceIDRecords()[0]);
+
+        std::vector<pldm::fw_update::Descriptor> descriptorVec(
+            descriptors.begin(), descriptors.end());
+        std::vector<pldm::fw_update::Descriptor> packageDescriptorVec(
+            packageDescriptors.begin(), packageDescriptors.end());
+        std::sort(descriptorVec.begin(), descriptorVec.end());
+        std::sort(packageDescriptorVec.begin(), packageDescriptorVec.end());
+
+        if (!std::includes(
+                descriptorVec.begin(),
+                descriptorVec.end(),
+                packageDescriptorVec.begin(),
+                packageDescriptorVec.end())) {
+          std::cerr << "Package descriptors do not match with the "
+                       "provided descriptors"
+                    << std::endl;
+          return -1;
+        }
+        auto unpackImagePath = imagePath + ".unpacked";
+        std::ofstream unpackImage(unpackImagePath, std::ios::binary);
+        if (!unpackImage) {
+          std::cerr << "Failed to open unpacked image file: " << unpackImagePath
+                    << std::endl;
+          return -1;
+        }
+        package.seekg(parser->pkgHeaderSize);
+        std::vector<uint8_t> imageData(packageSize - parser->pkgHeaderSize);
+        package.read(
+            reinterpret_cast<char*>(imageData.data()),
+            packageSize - parser->pkgHeaderSize);
+        unpackImage.write(
+            reinterpret_cast<char*>(imageData.data()), imageData.size());
+        unpackImage.close();
+        imagePath = unpackImagePath;
+        package.close();
+        std::cout << "Unpacked image file: " << imagePath << std::endl;
     }
 
     auto bios = BIOSupdater(bus, imagePath, slotId, cpuType);

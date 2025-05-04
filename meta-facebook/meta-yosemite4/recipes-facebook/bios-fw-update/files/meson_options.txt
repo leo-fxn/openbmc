@@ -1,0 +1,27 @@
+option(
+    'vendor-name',
+    type: 'string',
+    value: '',
+    description: '''Name of the vendor'''
+)
+
+option(
+    'platform-name',
+    type: 'string',
+    value: '',
+    description: '''Name of the platform'''
+)
+
+option(
+    'board-name',
+    type: 'string',
+    value: '',
+    description: '''Name of the board'''
+)
+
+option(
+    'iana-number',
+    type: 'integer',
+    value: '0',
+    description: '''IANA number'''
+)

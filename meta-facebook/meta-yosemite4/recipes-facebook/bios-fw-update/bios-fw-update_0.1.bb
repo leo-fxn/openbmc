@@ -11,15 +11,24 @@ UNPACKDIR = "${S}"
 inherit meson pkgconfig
 
 LOCAL_URI = " \
+    file://pldmutils/package_parser.cpp \
+    file://pldmutils/package_parser.hpp \
+    file://pldmutils/types.hpp \
+    file://pldmutils/utils.hpp \
+    file://pldmutils/utils.cpp \
     file://bios-update.cpp \
     file://bios-update.hpp \
     file://bios-usb-update.cpp \
     file://bios-usb-update.hpp \
+    file://meson_options.txt \
     file://meson.build \
     "
 
+EXTRA_OEMESON:append = " -Dplatform-name=Yosemite4 -Diana-number=40981 -Dvendor-name=meta -Dboard-name=SentinelDome"
 DEPENDS += " \
     cli11 \
     libusb1 \
     sdbusplus \
+    libpldm \
+    phosphor-logging \
     "
