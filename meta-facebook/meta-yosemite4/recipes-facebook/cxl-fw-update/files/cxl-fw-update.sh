@@ -7,7 +7,8 @@ FAIL_TO_UPDATE_WF_CXL_EID_DOES_NOT_EXIST=17
 FAIL_TO_UPDATE_WF_CXL_CAN_ONLY_UPDATE_ONE_BIC_AT_A_TIME=18
 FAIL_TO_UPDATE_WF_CXL_TIME_OUT_ERROR=19
 FAIL_TO_UPDATE_WF_CXL_FAIL_TO_DELETE_SOFTWARE_ID=20
-FAIL_TO_UPDATE_WF_CXL_FAIL_TO_SET_REQUESTED_ACTIVATION=21
+#FAIL_TO_UPDATE_WF_CXL_FAIL_TO_SET_REQUESTED_ACTIVATION=21
+FAIL_TO_UPDATE_PLDM_IMAGE_DOES_NOT_MATCH=24
 INVALID_INPUT=255
 
 exec 200>"$lockfile"
@@ -50,6 +51,94 @@ wait_for_update_complete() {
     fi
 }
 
+PLDM_FW_IDENT_PASS=0
+PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY=1
+PLDM_FW_IDENT_FAIL=255
+
+pldm_fw_identify() {
+	local pldm_image=$1
+    comp_str="com.meta.Hardware.Yosemite4.WailuaFalls.CXL"
+
+	# Check if the PLDM image is valid
+	if [ ! -f "$pldm_image" ]; then
+		echo "PLDM image not found: $pldm_image"
+		return $PLDM_FW_IDENT_FAIL
+	fi
+
+	# Parse PLDM Header
+
+	local offset=0x23
+	local init_header_offset
+    init_header_offset=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=init_header_offset+4))
+	local descriptor_count
+    descriptor_count=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=6))
+	local comp_set_string_len
+    comp_set_string_len=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=4+comp_set_string_len))
+    for _ in $(seq 0 $((descriptor_count - 1))); do
+		local descriptor_type
+        descriptor_type=$(hexdump -v -n 2 -s "$offset" -e '1/2 "%u"' "$pldm_image")
+		((offset+=2))
+		local descriptor_length
+        descriptor_length=$(hexdump -v -n 2 -s "$offset" -e '1/2 "%d"' "$pldm_image")
+		((offset+=2))
+		# if descriptor_type is not 0xFFFF, then skip
+		if [ "$descriptor_type" -ne $((0xFFFF)) ]; then
+			if [ "$descriptor_type" -eq $((0x0100)) ]; then
+				pci_id=$(hexdump -v -n 2 -s "$offset" -e '1/1 "%02X"' "$pldm_image")
+			fi
+			((offset+=descriptor_length))
+			continue
+		fi
+		# if descriptor_type is 0xFFFF, then it's vendor defined descriptor, find title
+		# and check if it matches "OpenBMC.CompatibleHardware"
+		# if it matches, then check if the data include
+		# the component string
+		# if it doesn't match, then skip
+
+		# skip string type 1 byte
+		((offset+=1))
+		local descriptor_title_len
+        descriptor_title_len=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+		((offset+=1))
+		local descriptor_title
+        descriptor_title=$(hexdump -v -n "$descriptor_title_len" -s "$offset" -e '1/1 "%c"' "$pldm_image")
+		((offset+=descriptor_title_len))    
+		local descriptor_data_len=$((descriptor_length-descriptor_title_len-2))
+		if [ "$descriptor_title" != "OpenBMC.CompatibleHardware" ]; then
+			# skip descriptor data
+			((offset+=descriptor_data_len))
+			continue
+		fi
+		# if descriptor_title is "OpenBMC.CompatibleHardware", then check if the data include
+		# the component string
+		# if it doesn't match, then return error
+		# if it matches, then return success
+		local descriptor_data
+        descriptor_data=$(hexdump -v -n "$descriptor_data_len" -s "$offset" -e '1/1 "%c"' "$pldm_image")
+		if [[ "$descriptor_data" == *"$comp_str"* ]]; then
+			return $PLDM_FW_IDENT_PASS
+		else
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	done
+
+	((offset+=4))
+	component_identifier=$(hexdump -v -n 2 -s "$offset" -e '1/2 "%u"' "$pldm_image")
+	((offset+=2))
+
+    if [ "$component_identifier" -lt 5 ] || [ "$component_identifier" -gt 6 ]; then
+        return $PLDM_FW_IDENT_FAIL
+    fi
+    if [ "$pci_id" != "0002" ]; then
+        return $PLDM_FW_IDENT_FAIL
+    fi
+
+    return $PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY
+}
+
 update_cxl() {
     local pldm_image=$1
 
@@ -62,6 +151,11 @@ update_cxl() {
     sleep 1
 
     if [ "$software_id" != "" ]; then
+		if ! busctl get-property xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$software_id" xyz.openbmc_project.Software.ActivationProgress Progress --timeout=120 >/dev/null 2>&1; then
+			echo "The image does not match with any devices. Return with error code: $FAIL_TO_UPDATE_PLDM_IMAGE_DOES_NOT_MATCH"
+			return $FAIL_TO_UPDATE_PLDM_IMAGE_DOES_NOT_MATCH
+		fi
+		sleep 10
         if ! busctl set-property xyz.openbmc_project.PLDM /xyz/openbmc_project/software/"$software_id" xyz.openbmc_project.Software.Activation RequestedActivation s "xyz.openbmc_project.Software.Activation.RequestedActivations.Active" --timeout=120 2>&1; then
             echo "Failed to set RequestedActivation. Exit with error code: $FAIL_TO_UPDATE_PLDM_FAIL_TO_SET_REQUESTED_ACTIVATION"
             exit "$FAIL_TO_UPDATE_PLDM_FAIL_TO_SET_REQUESTED_ACTIVATION"
@@ -103,6 +197,13 @@ if [ $# -eq 2 ]; then
 fi
 
 [ ! -f "$pldm_image" ] && error_and_exit
+
+pldm_fw_identify "$pldm_image"
+ident_result=$?
+if [ $ident_result -eq $PLDM_FW_IDENT_FAIL ]; then
+    echo "This image is not compatible with CXL"
+    exit "$INVALID_INPUT"
+fi
 
 # Check if instance_num is between 1 and 2
 if [ $# -eq 3 ] && [[ "$instance_num" =~ ^[1-2]$ ]]; then

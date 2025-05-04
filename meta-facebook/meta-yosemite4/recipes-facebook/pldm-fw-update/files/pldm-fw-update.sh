@@ -93,6 +93,239 @@ check_power_on() {
 	echo "Check Power : On"
 }
 
+PLDM_FW_IDENT_PASS=0
+PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY=1
+PLDM_FW_IDENT_FAIL=255
+
+sd_vr_get_source() {
+	local slot=$1
+	ret=$(busctl get-property -l xyz.openbmc_project.Settings /xyz/openbmc_project/software/host"$slot"/Sentinel_Dome_vr_pvdd11_s3 xyz.openbmc_project.Software.Version Version)
+	case "$ret" in
+		*"MPS"*)
+			echo "MPS"
+			;;
+		*"Renesas"*)
+			echo "RNS"
+			;;
+		*"Infineon"*)
+			echo "INF"
+			;;
+		*"Texas Instruments"*)
+			echo "TI"
+			;;
+		*)
+			echo "Unknown"
+			;;
+	esac
+}
+
+wf_vr_get_source() {
+	local slot=$1
+	ret=$(busctl get-property -l xyz.openbmc_project.Settings /xyz/openbmc_project/software/host"$slot"/Wailua_Falls_vr_pvddq_ab_asic1 xyz.openbmc_project.Software.Version Version)
+	case "$ret" in
+		*"MPS"*)
+			echo "MPS"
+			;;
+		*"Infineon"*)
+			echo "INF"
+			;;
+		*)
+			echo "Unknown"
+			;;
+	esac
+}
+
+vr_get_package_source() {
+	local input=$1
+	case "$input" in
+		*"mp2857"*|*"mp2856"*|*"mp2971"*)
+			echo "MPS"
+			;;
+		*"raa229620"*|*"raa229621"*)
+			echo "RNS"
+			;;
+		*"tps536c5"*)
+			echo "TI"
+			;;
+		*"xdpe12284c"*)
+			echo "INF"
+			;;
+		*)
+			echo "Unknown"
+			;;
+	esac
+}
+
+pldm_fw_identify() {
+	local instance_type=$1
+	local pldm_image=$2
+	local slot_id=$3
+	if [ "$instance_type" == "sd_retimer" ]; then
+		comp_str="com.meta.Hardware.Yosemite4.SentinelDome.Retimer"
+	elif [ "$instance_type" == "sd_vr" ]; then
+		comp_str="com.meta.Hardware.Yosemite4.SentinelDome.VR"
+	elif [ "$instance_type" == "wf_vr" ]; then
+		comp_str="com.meta.Hardware.Yosemite4.WailuaFalls.VR"
+	elif [ "$instance_type" == "sd" ]; then
+		comp_str="com.meta.Hardware.Yosemite4.SentinelDome.BIC"
+	elif [ "$instance_type" == "wf" ]; then
+		comp_str="com.meta.Hardware.Yosemite4.WailuaFalls.BIC"
+	else
+		echo "Unknown instance type"
+		return $PLDM_FW_IDENT_FAIL
+	fi
+
+	# Check if the PLDM image is valid
+	if [ ! -f "$pldm_image" ]; then
+		echo "PLDM image not found: $pldm_image"
+		return $PLDM_FW_IDENT_FAIL
+	fi
+
+	# Parse PLDM Header
+	
+	local header
+	header=$(hexdump -v -n 16 -s 0 -e '1/1 "%02X"' "$pldm_image")
+	if [ "$header" != "F018878CCB7D49439800A02F059ACA02" ]; then
+		echo "Invalid PLDM image header"
+		return $PLDM_FW_IDENT_FAIL
+	fi
+
+	local offset=0x23
+	local init_header_offset
+	init_header_offset=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=init_header_offset+4))
+	local descriptor_count
+	descriptor_count=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=6))
+	local comp_set_string_len
+	comp_set_string_len=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=4+comp_set_string_len))
+	for i in $(seq 0 $((descriptor_count - 1))); do
+		local descriptor_type
+		descriptor_type=$(hexdump -v -n 2 -s "$offset" -e '1/2 "%u"' "$pldm_image")
+		((offset+=2))
+		local descriptor_length
+		descriptor_length=$(hexdump -v -n 2 -s "$offset" -e '1/2 "%d"' "$pldm_image")
+		((offset+=2))
+		# if descriptor_type is not 0xFFFF, then skip
+		if [ "$descriptor_type" -ne $((0xFFFF)) ]; then
+			if [ "$descriptor_type" -eq $((0x0100)) ]; then
+				pci_id=$(hexdump -v -n 2 -s "$offset" -e '1/1 "%02X"' "$pldm_image")
+			fi
+			((offset+=descriptor_length))
+			continue
+		fi
+		# if descriptor_type is 0xFFFF, then it's vendor defined descriptor, find title
+		# and check if it matches "OpenBMC.CompatibleHardware"
+		# if it matches, then check if the data include
+		# the component string
+		# if it doesn't match, then skip
+
+		# skip string type 1 byte
+		((offset+=1))
+		local descriptor_title_len
+		descriptor_title_len=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+		((offset+=1))
+		local descriptor_title
+		descriptor_title=$(hexdump -v -n "$descriptor_title_len" -s "$offset" -e '1/1 "%c"' "$pldm_image")
+		((offset+=descriptor_title_len))    
+		local descriptor_data_len=$((descriptor_length-descriptor_title_len-2))
+		if [ "$descriptor_title" != "OpenBMC.CompatibleHardware" ]; then
+			# skip descriptor data
+			((offset+=descriptor_data_len))
+			continue
+		fi
+		# if descriptor_title is "OpenBMC.CompatibleHardware", then check if the data include
+		# the component string
+		# if it doesn't match, then return error
+		# if it matches, then return success
+		local descriptor_data
+		descriptor_data=$(hexdump -v -n "$descriptor_data_len" -s "$offset" -e '1/1 "%c"' "$pldm_image")
+		if [[ "$descriptor_data" == *"$comp_str"* ]]; then
+			return $PLDM_FW_IDENT_PASS
+		else
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	done
+
+	((offset+=4))
+	component_identifier=$(hexdump -v -n 2 -s "$offset" -e '1/2 "%u"' "$pldm_image")
+	((offset+=19))
+	component_string_len=$(hexdump -v -n 1 -s "$offset" -e '1/1 "%d"' "$pldm_image")
+	((offset+=1))
+	component_string=$(hexdump -v -n "$component_string_len" -s "$offset" -e '1/1 "%c"' "$pldm_image")
+	((offset+=component_string_len))
+	
+	if [ "$instance_type" == "sd_retimer" ]; then
+		if [ "$component_identifier" -lt 4 ] || [ "$component_identifier" -gt 5 ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$pci_id" != "0000" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	elif [ "$instance_type" == "sd_vr" ]; then
+		package_source=$(vr_get_package_source "$component_string")
+		device_source=$(sd_vr_get_source "$slot_id")
+		echo "package_source = $package_source"
+		echo "device_source = $device_source"
+		if [ "$package_source" != "$device_source" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$component_identifier" -lt 1 ] || [ "$component_identifier" -gt 3 ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$pci_id" != "0000" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	elif [ "$instance_type" == "wf_vr" ]; then
+		package_source=$(vr_get_package_source "$component_string")
+		device_source=$(wf_vr_get_source "$slot_id")
+		echo "package_source = $package_source"
+		echo "device_source = $device_source"
+		if [ "$package_source" != "$device_source" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$component_identifier" -lt 1 ] || [ "$component_identifier" -gt 4 ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$pci_id" != "0002" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	elif [ "$instance_type" == "sd" ]; then
+		if [ "$component_identifier" -ne 0 ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$pci_id" != "0000" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	elif [ "$instance_type" == "wf" ]; then
+		if [ "$component_identifier" -ne 0 ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+		if [ "$pci_id" != "0002" ]; then
+			echo "This image is not compatible with $instance_type"
+			return $PLDM_FW_IDENT_FAIL
+		fi
+	else
+		echo "Unknown instance type"
+		return $PLDM_FW_IDENT_FAIL
+	fi
+	
+	return $PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY
+}
+
 # Simply booting from UART still requires an update to bring the BIC to a normal state.
 recovery_bic_by_uart() {
 	local slot=$1
@@ -787,21 +1020,65 @@ if [ $# -eq 5 ] && [ "$2" == "--rcvy" ]; then
 	uart_image=$4
 	[ ! -f "$uart_image" ] && error_and_exit "UART"
 	pldm_image=$5
+	pldm_fw_identify "$bic_name" "$pldm_image"
+	ident_result=$?
+	if [ $ident_result -eq $PLDM_FW_IDENT_FAIL ]; then
+		exit 255
+	fi
 	retry_firmware_operation
 elif [ $# -eq 3 ] && [[ "$2" =~ ^[1-8]+$ ]]; then
 	slot_id=$2
 	pldm_image=$3
+
+	pldm_fw_identify "$bic_name" "$pldm_image" "$slot_id"
+	ident_result=$?
+	if [ $ident_result -eq $PLDM_FW_IDENT_FAIL ]; then
+		exit 255
+	fi
+
 	if [ "$bic_name" == "sd_vr" ]; then
-		VR_TYPE=$(hexdump -n 1 -s 0x6D -e '1/1 "%02x"' "$pldm_image")
+		echo "Initiate SD VR update"
+		if [ $ident_result -eq $PLDM_FW_IDENT_PASS ]; then
+			pldm-package-re-wrapper ds -s "$slot_id" -f "$pldm_image"
+			pldm_image="${pldm_image}_re_wrapped"
+		elif [ $ident_result -eq $PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY ]; then
+			pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
+			pldm_image="${pldm_image}_re_wrapped"
+		fi
+		# get offset in uint8_t
+		init_header_offset=$(hexdump -n 1 -s 0x23 -e '1/1 "%d"' "$pldm_image")
+		descriptor_header_offset=$(hexdump -n 1 -s $((0x23+init_header_offset+2)) -e '1/2 "%d"' "$pldm_image")
+		VR_TYPE=$(hexdump -n 1 -s $((0x23+init_header_offset+2+descriptor_header_offset+4)) -e '1/1 "%02x"' "$pldm_image")
+		#VR_TYPE=$(hexdump -n 1 -s 0x6D -e '1/1 "%02x"' "$pldm_image")
 		mapfile -t VR_OFFSET < <(get_offset_for_vr_type "$VR_TYPE")
 		VR_HIGHBYTE_OFFSET="${VR_OFFSET[0]}"
 		VR_LOWBYTE_OFFSET="${VR_OFFSET[1]}"
+	elif [ "$bic_name" == "wf_vr" ]; then
+		echo "Initiate WF VR update"
+		if [ $ident_result -eq $PLDM_FW_IDENT_PASS ]; then
+			pldm-package-re-wrapper ds -s "$slot_id" -f "$pldm_image"
+			pldm_image="${pldm_image}_re_wrapped"
+		elif [ $ident_result -eq $PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY ]; then
+			pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
+			pldm_image="${pldm_image}_re_wrapped"
+		fi
 	elif [ "$bic_name" == "sd" ]; then
 		echo "Initiate SD BIC update"
+		pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
+		pldm_image="${pldm_image}_re_wrapped"
 	elif [ "$bic_name" == "wf" ]; then
 		echo "Initiate WF BIC update"
+		pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
+		pldm_image="${pldm_image}_re_wrapped"
 	elif [ "$bic_name" == "sd_retimer" ]; then
 		echo "Initiate SD Retimer update"
+		if [ $ident_result -eq $PLDM_FW_IDENT_PASS ]; then
+			pldm-package-re-wrapper ds -s "$slot_id" -f "$pldm_image"
+			pldm_image="${pldm_image}_re_wrapped"
+		elif [ $ident_result -eq $PLDM_FW_IDENT_PASS_WITH_BACKWARD_COMPATIBILITY ]; then
+			pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
+			pldm_image="${pldm_image}_re_wrapped"
+		fi
 		check_if_no_retimer_sku "$slot_id"
 		exit_code=$?
 		if [ $exit_code -eq $NO_RETIMER_ON_THE_FRU ]; then
@@ -811,10 +1088,13 @@ elif [ $# -eq 3 ] && [[ "$2" =~ ^[1-8]+$ ]]; then
 			exit $exit_code
 		fi
 	fi
-	pldm-package-re-wrapper bic -s "$slot_id" -f "$pldm_image"
-	pldm_image="${pldm_image}_re_wrapped"
 	retry_firmware_operation
 else
+	pldm_fw_identify "$bic_name" "$pldm_image"
+	ident_result=$?
+	if [ $ident_result -eq $PLDM_FW_IDENT_FAIL ]; then
+		exit 255
+	fi
 	prompt_confirmation
 	if [ "$bic_name" == "sd" ]; then
 		echo "Initiate SD BIC update"
