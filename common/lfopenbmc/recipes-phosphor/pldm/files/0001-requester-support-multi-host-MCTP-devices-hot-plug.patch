@@ -1,4 +1,4 @@
-From ae30522b7042ba28316f45805c62c68eabbaf8aa Mon Sep 17 00:00:00 2001
+From 0553ecb326699581654c7aaeed6237cd8f85bb36 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 18 Dec 2023 18:40:23 +0800
 Subject: [PATCH 01/18] requester: support multi-host MCTP devices hot plug
@@ -27,56 +27,37 @@ Signed-off-by: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Upstream-Status: Pending
 ---
  common/test/mocked_utils.hpp                  |   4 +
- common/types.hpp                              |   6 +-
  common/utils.cpp                              |  17 ++
- common/utils.hpp                              |   9 +-
- libpldmresponder/fru.hpp                      |   7 +-
+ common/utils.hpp                              |   7 +
  meson.build                                   |   1 +
  pldmd/pldmd.cpp                               |   9 +-
  requester/configuration_discovery_handler.cpp | 178 ++++++++++++++++++
  requester/configuration_discovery_handler.hpp | 143 ++++++++++++++
  .../configuration_discovery_handler_test.cpp  | 115 +++++++++++
  requester/test/meson.build                    |  13 +-
- 11 files changed, 492 insertions(+), 10 deletions(-)
+ 9 files changed, 484 insertions(+), 3 deletions(-)
  create mode 100644 requester/configuration_discovery_handler.cpp
  create mode 100644 requester/configuration_discovery_handler.hpp
  create mode 100644 requester/test/configuration_discovery_handler_test.cpp
 
 diff --git a/common/test/mocked_utils.hpp b/common/test/mocked_utils.hpp
-index ad6f8dc..284a5fd 100644
+index 1cec506..aa85b21 100644
 --- a/common/test/mocked_utils.hpp
 +++ b/common/test/mocked_utils.hpp
-@@ -72,4 +72,8 @@ class MockdBusHandler : public pldm::utils::DBusHandler
-     MOCK_METHOD(pldm::utils::GetSubTreePathsResponse, getSubTreePaths,
-                 (const std::string&, int, const std::vector<std::string>&),
-                 (const override));
+@@ -81,4 +81,8 @@ class MockdBusHandler : public pldm::utils::DBusHandler
+ 
+     MOCK_METHOD(pldm::utils::PropertyMap, getDbusPropertiesVariant,
+                 (const char*, const char*, const char*), (const override));
 +
 +    MOCK_METHOD(pldm::utils::PropertyMap, getAll,
 +                (const std::string&, const std::string&, const std::string&),
 +                (const override));
  };
-diff --git a/common/types.hpp b/common/types.hpp
-index 3c3613d..0d3c297 100644
---- a/common/types.hpp
-+++ b/common/types.hpp
-@@ -79,9 +79,9 @@ using Interface = std::string;
- using Interfaces = std::vector<std::string>;
- using Property = std::string;
- using PropertyType = std::string;
--using Value =
--    std::variant<bool, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t,
--                 uint64_t, double, std::string, std::vector<uint8_t>>;
-+using Value = std::variant<bool, uint8_t, int16_t, uint16_t, int32_t, uint32_t,
-+                           int64_t, uint64_t, double, std::string,
-+                           std::vector<uint8_t>, std::vector<uint64_t>>;
- 
- using PropertyMap = std::map<Property, Value>;
- using InterfaceMap = std::map<Interface, PropertyMap>;
 diff --git a/common/utils.cpp b/common/utils.cpp
-index 59b5d23..88f887e 100644
+index 06c256c..46769aa 100644
 --- a/common/utils.cpp
 +++ b/common/utils.cpp
-@@ -429,6 +429,23 @@ PropertyMap DBusHandler::getDbusPropertiesVariant(
+@@ -445,6 +445,23 @@ PropertyMap DBusHandler::getDbusPropertiesVariant(
      return bus.call(method, dbusTimeout).unpack<PropertyMap>();
  }
  
@@ -101,22 +82,13 @@ index 59b5d23..88f887e 100644
                                   const nlohmann::json& value)
  {
 diff --git a/common/utils.hpp b/common/utils.hpp
-index 9964188..b18a698 100644
+index 358d0d7..e17e306 100644
 --- a/common/utils.hpp
 +++ b/common/utils.hpp
-@@ -174,7 +174,7 @@ struct DBusMapping
- using PropertyValue =
-     std::variant<bool, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t,
-                  uint64_t, double, std::string, std::vector<uint8_t>,
--                 std::vector<std::string>>;
-+                 std::vector<uint64_t>, std::vector<std::string>>;
- using DbusProp = std::string;
- using DbusChangedProps = std::map<DbusProp, PropertyValue>;
- using DBusInterfaceAdded = std::vector<
-@@ -232,6 +232,10 @@ class DBusHandlerInterface
-     virtual PropertyMap getDbusPropertiesVariant(
-         const char* serviceName, const char* objPath,
-         const char* dbusInterface) const = 0;
+@@ -240,6 +240,10 @@ class DBusHandlerInterface
+         const sdbusplus::message::object_path& objectPath,
+         const sdbusplus::message::object_path& subtree, int depth,
+         const std::vector<std::string>& ifaceList) const = 0;
 +
 +    virtual PropertyMap getAll(const std::string& service,
 +                               const std::string& objPath,
@@ -124,7 +96,7 @@ index 9964188..b18a698 100644
  };
  
  /**
-@@ -338,6 +342,9 @@ class DBusHandler : public DBusHandlerInterface
+@@ -346,6 +350,9 @@ class DBusHandler : public DBusHandlerInterface
          const char* serviceName, const char* objPath,
          const char* dbusInterface) const override;
  
@@ -134,24 +106,6 @@ index 9964188..b18a698 100644
      /** @brief The template function to get property from the requested dbus
       *         path
       *
-diff --git a/libpldmresponder/fru.hpp b/libpldmresponder/fru.hpp
-index 490f5d1..d4e0ff4 100644
---- a/libpldmresponder/fru.hpp
-+++ b/libpldmresponder/fru.hpp
-@@ -24,9 +24,10 @@ namespace responder
- namespace dbus
- {
- 
--using Value = std::variant<bool, uint8_t, int16_t, uint16_t, int32_t, uint32_t,
--                           int64_t, uint64_t, double, std::string,
--                           std::vector<uint8_t>, std::vector<std::string>>;
-+using Value =
-+    std::variant<bool, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t,
-+                 uint64_t, double, std::string, std::vector<uint8_t>,
-+                 std::vector<uint64_t>, std::vector<std::string>>;
- using PropertyMap = std::map<Property, Value>;
- using InterfaceMap = std::map<Interface, PropertyMap>;
- using ObjectValueTree = std::map<sdbusplus::message::object_path, InterfaceMap>;
 diff --git a/meson.build b/meson.build
 index aff9ca1..e2efb11 100644
 --- a/meson.build
@@ -677,5 +631,5 @@ index f269561..d30d884 100644
  foreach t : tests
      test(
 -- 
-2.45.3
+2.47.1
 

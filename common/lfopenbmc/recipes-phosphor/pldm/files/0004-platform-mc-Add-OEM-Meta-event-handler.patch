@@ -1,4 +1,4 @@
-From e8d1dd7c486a5dfecf4a5d66d74dd7dd6e8fbd25 Mon Sep 17 00:00:00 2001
+From 4ef84654bdaa6148eda28eb2ac2ec471cddc8824 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/18] platform-mc: Add OEM Meta event handler
@@ -1307,5 +1307,5 @@ index d55ab0b..0469e35 100644
  
      auto platformHandler = std::make_unique<platform::Handler>(
 -- 
-2.45.3
+2.47.1
 

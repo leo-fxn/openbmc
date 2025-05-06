@@ -25,7 +25,6 @@ class BaseTpmTest(TestCase):
     def test_tpm_version(self):
         output = subprocess.check_output(
             "/usr/sbin/tpm_version",
-            stderr=subprocess.STDOUT,
             shell=True,
             timeout=60,
         )

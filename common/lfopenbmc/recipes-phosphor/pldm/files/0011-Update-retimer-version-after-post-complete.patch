@@ -1,4 +1,4 @@
-From ae5ab3266fd23d31f66279faecb408170617eab4 Mon Sep 17 00:00:00 2001
+From 9a1fc72bdd379c03f6ec45ea2fbbc2a1ab9ae4f1 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Thu, 19 Sep 2024 14:00:24 +0800
 Subject: [PATCH 11/18] Update retimer version after post complete
@@ -16,7 +16,7 @@ Upstream-Status: Pending
  1 file changed, 20 insertions(+)
 
 diff --git a/oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp b/oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp
-index 8a09289..22698e2 100644
+index 0b0da08..5c0e6f6 100644
 --- a/oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp
 +++ b/oem/meta/libpldmresponder/oem_meta_file_io_type_event_log.cpp
 @@ -1,6 +1,7 @@
@@ -61,5 +61,5 @@ index 8a09289..22698e2 100644
      {
          event_name = eventList[eventType];
 -- 
-2.34.1
+2.47.1
 

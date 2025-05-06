@@ -1,4 +1,4 @@
-From 168976bb7e214da76c8dfc0904a7d9485858c95b Mon Sep 17 00:00:00 2001
+From 917614a4953c92a00386491ac545ccdc5413bdc2 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Tue, 31 Dec 2024 10:29:35 +0800
 Subject: [PATCH 15/18] Support OEM-META command for crashdump from BIC
@@ -827,5 +827,5 @@ index 0000000..03922cb
 +
 +} // namespace pldm::responder::oem_meta
 -- 
-2.45.3
+2.47.1
 

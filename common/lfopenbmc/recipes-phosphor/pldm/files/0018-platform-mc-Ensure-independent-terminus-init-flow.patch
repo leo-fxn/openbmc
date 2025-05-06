@@ -1,4 +1,4 @@
-From dea93cb30604bbf893f54f0f82503ef95af0d239 Mon Sep 17 00:00:00 2001
+From c80e92a51379ee2a32fa7eeeb3636be9a54db0b5 Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Thu, 20 Mar 2025 13:48:31 +0800
 Subject: [PATCH 18/18] platform-mc: Ensure independent terminus init flow
@@ -73,5 +73,5 @@ index 767b9e8..9b83f26 100644
      }
  
 -- 
-2.45.3
+2.47.1
 
