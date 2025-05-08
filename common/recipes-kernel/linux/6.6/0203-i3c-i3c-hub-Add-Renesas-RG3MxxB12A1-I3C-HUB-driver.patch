@@ -1,4 +1,4 @@
-From f310972175498dfa2a1ca8fb9aa96be7491276f6 Mon Sep 17 00:00:00 2001
+From a66aca613bafaa2475b491d77cbb0666da28c6f7 Mon Sep 17 00:00:00 2001
 From: Steven Niu <steven.niu.uj@renesas.com>
 Date: Sat, 17 Feb 2024 21:14:12 +0800
 Subject: [PATCH 203/204] i3c: i3c-hub: Add Renesas RG3MxxB12A1 I3C HUB driver
@@ -57,7 +57,7 @@ index 11982efbc6d9..ca298faaee9a 100644
 +obj-$(CONFIG_I3C_HUB)	+= i3c-hub.o
 diff --git a/drivers/i3c/i3c-hub.c b/drivers/i3c/i3c-hub.c
 new file mode 100644
-index 000000000000..73a9b96e6635
+index 000000000000..f999561c04e1
 --- /dev/null
 +++ b/drivers/i3c/i3c-hub.c
 @@ -0,0 +1,1982 @@
@@ -2044,7 +2044,7 @@ index 000000000000..73a9b96e6635
 +MODULE_DESCRIPTION("I3C HUB driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/i3c/master.c b/drivers/i3c/master.c
-index f1e7634e9a3c..16443d91b8d4 100644
+index 16b87c666125..ed9b4a1f8374 100644
 --- a/drivers/i3c/master.c
 +++ b/drivers/i3c/master.c
 @@ -2292,15 +2292,26 @@ static int of_populate_i3c_bus(struct i3c_master_controller *master)
@@ -2095,5 +2095,5 @@ index ef6217da8253..362867d17663 100644
  
  #define I3C_PID_MANUF_ID(pid)		(((pid) & GENMASK_ULL(47, 33)) >> 33)
 -- 
-2.44.2
+2.49.0
 

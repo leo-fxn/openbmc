@@ -1,7 +1,7 @@
-From 057df1ff02b48cee94451f53633f1d70fe4a030a Mon Sep 17 00:00:00 2001
+From 0894f911189077c05ad4e9c8fa4a7a575047d1cb Mon Sep 17 00:00:00 2001
 From: Daniel Hsu <Daniel-Hsu@quantatw.com>
 Date: Tue, 25 Mar 2025 15:54:55 +0800
-Subject: [PATCH] mctp: Fix incorrect tx flow invalidation condition in
+Subject: [PATCH 204/204] mctp: Fix incorrect tx flow invalidation condition in
  mctp-i2c
 
 Lore link: https://lore.kernel.org/all/20250325081008.3372960-1-Daniel-Hsu@quantatw.com/
@@ -20,18 +20,18 @@ Signed-off-by: Daniel Hsu <Daniel-Hsu@quantatw.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/net/mctp/mctp-i2c.c b/drivers/net/mctp/mctp-i2c.c
-index d74d47dd6e04..f782d93f826e 100644
+index cfe3dadd6117..c2e24972adbb 100644
 --- a/drivers/net/mctp/mctp-i2c.c
 +++ b/drivers/net/mctp/mctp-i2c.c
-@@ -537,7 +537,7 @@ static void mctp_i2c_xmit(struct mctp_i2c_dev *midev, struct sk_buff *skb)
+@@ -538,7 +538,7 @@ static void mctp_i2c_xmit(struct mctp_i2c_dev *midev, struct sk_buff *skb)
  		rc = __i2c_transfer(midev->adapter, &msg, 1);
-
+ 
  		/* on tx errors, the flow can no longer be considered valid */
 -		if (rc)
 +		if (rc < 0)
  			mctp_i2c_invalidate_tx_flow(midev, skb);
-
+ 
  		break;
---
-2.25.1
+-- 
+2.49.0
 
