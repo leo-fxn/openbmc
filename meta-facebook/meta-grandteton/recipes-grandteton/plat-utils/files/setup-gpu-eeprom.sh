@@ -43,7 +43,6 @@ probe_eeprom_driver () {
     fi
     sleep 1
   done
-  /usr/bin/logger -t "debug" -p daemon.crit "Failed to dump GPU EEPROM"
 }
 
 copy_gpu_eeprom () {
