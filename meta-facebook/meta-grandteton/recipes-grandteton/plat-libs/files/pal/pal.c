@@ -918,7 +918,7 @@ pal_get_fru_capability(uint8_t fru, unsigned int *caps) {
         }
         break;
       case FRU_HMC:
-        if (pal_is_gt_hnext()) {
+        if (pal_get_gpu_fru_id() == FRU_HGX && get_gpu_config() == CONFIG_HNEXT) {
           *caps = FRU_ONLY_CAP;
         }
         else {
@@ -926,7 +926,7 @@ pal_get_fru_capability(uint8_t fru, unsigned int *caps) {
         }
         break;
       case FRU_CX7:
-        if (pal_is_gt_hnext()) {
+        if (pal_get_gpu_fru_id() == FRU_HGX && get_gpu_config() == CONFIG_HNEXT) {
           *caps = FRU_ONLY_CAP;
         }
         else {
