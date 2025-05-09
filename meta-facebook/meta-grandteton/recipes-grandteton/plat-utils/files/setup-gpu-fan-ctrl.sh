@@ -19,7 +19,7 @@
 
 if [ "$1" == "enable" ]; then
   /usr/bin/sv stop fscd
-  /usr/local/bin/fan-util --set 90
+  /usr/local/bin/fan-util --set 100
   logger -t "debug" -p daemon.crit "GPU telemetry issue is detected"
 elif [ "$1" == "disable" ]; then
   /usr/bin/sv start fscd
