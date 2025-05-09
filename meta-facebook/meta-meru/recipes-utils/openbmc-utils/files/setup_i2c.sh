@@ -58,11 +58,34 @@ hwmon_device_add() {
     fi
 }
 
+wait_sysfs_file_present() {
+   sysfs_file="$1"
+   timeout="$2"
+
+   retries=$((timeout * 10))
+   i=0
+   while [ $i -lt $retries ]; do
+      if [ -e "$sysfs_file" ]; then
+         return
+      fi
+      sleep 0.1
+      i=$((i + 1))
+   done
+
+   echo "sysfs_file $sysfs_file failed to appear after $timeout seconds"
+}
+
 i2c_device_add 0 0x50 24c512 # BMC EEPROM
 i2c_device_add 9 0x50 24c512 # SCM EEPROM
 i2c_device_add 9 0x23 smbcpld # SMBCPLD
 i2c_device_add 9 0x52 24c512 # SMB EEPROM
 i2c_device_add 12 0x43 pwrcpld
+
+# Wait for the SMB EEPROM and CPLD drivers to load
+wait_sysfs_file_present "$SMB_EEPROM_SYSFS" 10
+wait_sysfs_file_present "$SCM_CPU_READY_SYSFS" 10
+
+maybe_fix_dmi_config
 
 userver_power_on
 

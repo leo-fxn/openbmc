@@ -37,6 +37,11 @@ LAYOUT_FILE="/etc/meru_flash.layout"
 
 WEUTIL_CMD='weutil -e'
 
+ACONF_SMB_SERIAL_CACHE="/mnt/data/.aconf_smb_serial"
+TEMP_WEUTIL_OUTPUT="/tmp/tmp_weutil_output"
+TEMP_ACONF_OUTPUT="/tmp/tmp_aconf_output"
+ACONFUTIL_CMD='aconf_util.sh'
+
 DS4520_BUS=8
 DS4520_IO0_REG=0xf8
 
@@ -374,4 +379,52 @@ do_spi_image() {
             fi
         fi
     done
+}
+
+maybe_fix_dmi_config() {
+   $WEUTIL_CMD smb > "$TEMP_WEUTIL_OUTPUT" 2>&1
+   serial_num=$(awk -F': ' '/Product Serial Number:/ {print $2}' "$TEMP_WEUTIL_OUTPUT")
+   if [ -z "$serial_num" ]; then
+      # weutil likely failed to read the serial number. May not yet be programmed.
+      return
+   fi
+
+   if [ -f "$ACONF_SMB_SERIAL_CACHE" ]; then
+      cache_serial=$(grep "$serial_num" "$ACONF_SMB_SERIAL_CACHE")
+      if [ "$cache_serial" = "$serial_num" ]; then
+         # No programming needed as the switch serial number is the same as the
+         # cache file.
+         return
+      fi
+   fi
+
+   product=$(awk -F': ' '/Product Name:/ {print $2}' "$TEMP_WEUTIL_OUTPUT")
+   if ! [[ "${product^^}" =~ "MERU" ]]; then
+      echo "Not fixing aboot_conf DMI_BOARD_NAME as weutil product is not valid"
+      return
+   fi
+
+   # Only check the DMI config on a cold boot so as not to bring down
+   # the CPU.
+
+   if userver_power_is_on; then
+      return
+   fi
+
+   $ACONFUTIL_CMD show > "$TEMP_ACONF_OUTPUT"
+   board_name=$(grep DMI_BOARD_NAME "$TEMP_ACONF_OUTPUT" | awk -F'=' '{print $2}')
+
+   if [ "${board_name^^}" != "${product^^}" ]; then
+      echo "DMI_BOARD_NAME $board_name does not match weutil product $product"
+      echo "Fixing aboot_conf DMI_BOARD_NAME. Programming to $product"
+      conf_type="cpu"
+      if grep -q 57600 "$TEMP_ACONF_OUTPUT"; then
+         conf_type="bmc"
+      fi
+      $ACONFUTIL_CMD -p "$product" program "$conf_type"
+   fi
+
+   # Record the serial number in a cache file to avoid checking on every
+   # cold boot.
+   echo "$serial_num" > "$ACONF_SMB_SERIAL_CACHE"
 }

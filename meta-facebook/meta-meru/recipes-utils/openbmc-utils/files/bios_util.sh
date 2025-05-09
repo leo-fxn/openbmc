@@ -21,12 +21,13 @@ usage() {
     echo "      [<partition>] : partition of layout file; defaults to image"
     echo "          If <partition> is given, <action> must be"
     echo "          read, write, program, verify, or erase"
-    exit 1
 }
 
 cleanup() {
     disconnect_program_paths
 }
+
+ORIG_POWER_STATE=$(userver_power_is_on; echo $?)
 
 disconnect_program_paths() {
     unbind_spi_nor_driver "$SPI_CHANNEL"
@@ -34,12 +35,16 @@ disconnect_program_paths() {
     gpio_set_value SW_CPLD_JTAG_SEL 0
     gpio_set_value SW_JTAG_SEL 0
     gpio_set_value SW_SPI_SEL 0
-    userver_power_on
+    if [ "$ORIG_POWER_STATE" -eq 0 ]; then
+        userver_power_on
+    fi
 }
 
 connect_spi() {
     devmem_clear_bit 0x1e6e2438 8 # SPI1CS1 Function disable
-    userver_power_off
+    if [ "$ORIG_POWER_STATE" -eq 0 ]; then
+        userver_power_off
+    fi
     gpio_set_value ABOOT_GRAB 1
     gpio_set_value SW_CPLD_JTAG_SEL 0
     gpio_set_value SW_JTAG_SEL 0
@@ -97,6 +102,7 @@ case "${1^^}" in
     *)
         echo "Unknown action: $1"
         usage
+        exit 1
         ;;
 esac
 
