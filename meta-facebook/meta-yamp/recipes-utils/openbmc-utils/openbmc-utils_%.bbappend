@@ -15,6 +15,8 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
+inherit systemd
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 PACKAGECONFIG += "disable-watchdog"
@@ -68,18 +70,26 @@ OPENBMC_UTILS_FILES += " \
 
 DEPENDS:append = " update-rc.d-native"
 
-do_install_board() {
-    # for backward compatible, create /usr/local/fbpackages/utils/ast-functions
-    olddir="/usr/local/fbpackages/utils"
-    install -d ${D}${olddir}
-    ln -s "/usr/local/bin/openbmc-utils.sh" "${D}${olddir}/ast-functions"
+do_work_systemd() {
+    install -d ${D}/usr/local/bin
+    install -d ${D}${systemd_system_unitdir}
 
-    # init
-    install -d ${D}${sysconfdir}/init.d
-    install -d ${D}${sysconfdir}/rcS.d
+    install -m 0755 setup_i2c.sh ${D}/usr/local/bin/setup_i2c.sh
+
+    # networking is done after rcS, any start level within rcS
+    # for mac fixup should work
+    install -m 755 eth0_mac_fixup.sh ${D}/usr/local/bin/eth0_mac_fixup.sh
+
+    install -m 755 setup_board.sh ${D}/usr/local/bin/setup_board.sh
+
+    install -m 755 power-on.sh ${D}/usr/local/bin/power-on.sh
+}
+
+do_work_sysv() {
     # the script to mount /mnt/data
     install -m 0755 ${UNPACKDIR}/mount_data0.sh ${D}${sysconfdir}/init.d/mount_data0.sh
     update-rc.d -r ${D} mount_data0.sh start 03 S .
+
     install -m 0755 ${UNPACKDIR}/rc.early ${D}${sysconfdir}/init.d/rc.early
     update-rc.d -r ${D} rc.early start 04 S .
 
@@ -107,12 +117,27 @@ do_install_board() {
 
     install -m 0755 ${UNPACKDIR}/rc.local ${D}${sysconfdir}/init.d/rc.local
     update-rc.d -r ${D} rc.local start 99 2 3 4 5 .
+}
+
+do_install:append() {
+    # for backward compatible, create /usr/local/fbpackages/utils/ast-functions
+    olddir="/usr/local/fbpackages/utils"
+    install -d ${D}${olddir}
+    ln -s "/usr/local/bin/openbmc-utils.sh" "${D}${olddir}/ast-functions"
+
+    # init
+    install -d ${D}${sysconfdir}/init.d
+    install -d ${D}${sysconfdir}/rcS.d
+
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+      do_work_systemd
+    else
+      do_work_sysv
+    fi
 
     install -m 0755 ${UNPACKDIR}/yamp_bios.layout ${D}${sysconfdir}/yamp_bios.layout
 }
 
-do_install:append() {
-  do_install_board
-}
-
 FILES:${PN} += "${sysconfdir}"
+
+SYSTEMD_SERVICE:${PN} += "setup_i2c.service"
