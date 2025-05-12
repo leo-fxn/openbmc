@@ -1,9 +1,17 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <syslog.h>
 #include <string.h>
 #include <openbmc/obmc-pal.h>
 #include <openbmc/kv.h>
 #include "tda38640.h"
+
+// Use get_tda38640_revision to determine the silicon revision
+// TDA38640 (rev4) - for revision 4 of the silicon
+// TDA38640A (rev5) - for revision 5 of the silicon
+// Key differences between revisions:
+// 1. Programming Writes Remaining Register
+// 2. Different programming flow between revisions
 
 #define CHECKSUM_FIELD "[Image 00] :"
 #define IMAGE_COUNT "Image Count :"
@@ -13,9 +21,12 @@
 
 #define DATA_LEN_IN_LINE 17
 #define CNFG_REMAINING_WRITES_MAX  5
-#define USER_REMAINING_WRITES_MAX  48
-#define VR_PROGRAM_DELAY 200  //200 ms
-#define VR_PROGRAM_RECHECK 3
+#define TDA38640_USER_REMAINING_WRITES_MAX  48
+#define TDA38640_VR_PROGRAM_DELAY 200  //200 ms
+#define TDA38640_VR_PROGRAM_RECHECK 3
+#define TDA38640A_USER_REMAINING_WRITES_MAX  14
+#define TDA38640A_VR_PROGRAM_DELAY 250  //250 ms
+#define TDA38640A_VR_PROGRAM_RECHECK 8
 
 extern int vr_rdwr(uint8_t, uint8_t, uint8_t *, uint8_t, uint8_t *, uint8_t);
 static int (*vr_xfer)(uint8_t, uint8_t, uint8_t *, uint8_t, uint8_t *, uint8_t) = &vr_rdwr;
@@ -28,6 +39,33 @@ tda38640_set_page(uint8_t bus, uint8_t addr, uint8_t page) {
   if (ret < 0) {
     return -1;
   }
+  return 0;
+}
+
+static int
+get_tda38640_revision(uint8_t bus, uint8_t addr, uint8_t *revision) {
+  int ret = 0;
+  uint8_t revision_reg = REVISION_REG;
+
+  if (revision == NULL) {
+    syslog(LOG_WARNING, "%s: invalid parameter pointer is NULL", __func__);
+    return -1;
+  }
+
+  ret = tda38640_set_page(bus, addr, 0);
+  if (ret < 0) {
+    syslog(LOG_WARNING, "%s: Failed to set VR page to VR addr%x",
+          __func__, addr);
+    return -1;
+  }
+
+  ret = vr_xfer(bus, addr, &revision_reg, 1, revision, 1);
+  if (ret < 0) {
+    syslog(LOG_WARNING, "%s: Failed to get VR revision to VR addr%x",
+           __func__, addr);
+    return -1;
+  }
+
   return 0;
 }
 
@@ -137,7 +175,40 @@ get_tda38640_remaining_wr(uint8_t bus, uint8_t addr, uint8_t *user_remain, uint8
   }
 
   *cnfg_remain = CNFG_REMAINING_WRITES_MAX - cnfg_writes_bit;
-  *user_remain = USER_REMAINING_WRITES_MAX - user_writes_bit;
+  *user_remain = TDA38640_USER_REMAINING_WRITES_MAX - user_writes_bit;
+
+  return 0;
+}
+
+static int
+get_tda38640a_remaining_wr(uint8_t bus, uint8_t addr, uint8_t *user_remain, uint8_t *cnfg_remain) {
+  if ((user_remain == NULL) || (cnfg_remain == NULL)) {
+    syslog(LOG_WARNING, "%s: invalid parameter pointer is NULL", __func__);
+    return -1;
+  }
+
+  int ret = 0;
+  uint8_t user_writes_bit = 0;
+  uint8_t cnfg_writes_bit = 0;
+  uint8_t cnfg_reg = CNFG_REG;
+  uint8_t user_1_reg = USER_3_REG;
+
+  ret = tda38640_set_page(bus, addr, 0);
+  if (ret < 0) {
+    syslog(LOG_WARNING, "%s: Failed to set VR page to VR addr%x",
+          __func__, addr);
+    return -1;
+  }
+
+  ret = read_tda38640_remaining_wr_reg(bus, addr, &cnfg_reg, 1, &cnfg_writes_bit);
+  ret |= read_tda38640_remaining_wr_reg(bus, addr, &user_1_reg, 2, &user_writes_bit);
+
+  if (ret < 0) {
+    return -1;
+  }
+
+  *cnfg_remain = CNFG_REMAINING_WRITES_MAX - cnfg_writes_bit;
+  *user_remain = TDA38640A_USER_REMAINING_WRITES_MAX - user_writes_bit;
 
   return 0;
 }
@@ -188,9 +259,21 @@ cache_tda38640_crc(uint8_t bus, uint8_t addr, char *key, char *sum_str) {
 
   uint32_t checksum;
   uint8_t user_remain, cnfg_remain;
+  uint8_t revision;
 
-  if (get_tda38640_remaining_wr(bus, addr, &user_remain, &cnfg_remain) < 0) {
+  if (get_tda38640_revision(bus, addr, &revision) < 0) {
     return -1;
+  }
+  
+  if (revision == 5) {
+    if (get_tda38640a_remaining_wr(bus, addr, &user_remain, &cnfg_remain) < 0) {
+      return -1;
+    }
+  }
+  else {
+    if (get_tda38640_remaining_wr(bus, addr, &user_remain, &cnfg_remain) < 0) {
+      return -1;
+    }
   }
 
   if (get_tda38640_crc(bus, addr, &checksum) < 0) {
@@ -203,6 +286,20 @@ cache_tda38640_crc(uint8_t bus, uint8_t addr, char *key, char *sum_str) {
   kv_set(key, sum_str, 0, 0);
 
   return 0;
+}
+
+static int
+bsearch_compare(const void *a, const void *b) {
+  uint16_t val_a = *(const uint16_t *)a;
+  uint16_t val_b = *(const uint16_t *)b;
+
+  if (val_a < val_b) {
+      return -1;
+  } else if (val_a > val_b) {
+      return 1;
+  } else {
+      return 0;
+  }
 }
 
 static int
@@ -299,16 +396,16 @@ program_tda38640(uint8_t bus, uint8_t addr, struct tda38640_config *config, bool
     }
 
     ret = tda38640_prog_cmd(bus, addr, USER_WR,
-                            (USER_REMAINING_WRITES_MAX - user_remain), NULL);
+                            (TDA38640_USER_REMAINING_WRITES_MAX - user_remain), NULL);
     if (ret < 0) {
       syslog(LOG_WARNING, "%s: Failed to do write program cmd to VR addr:%x",
             __func__, addr);
       return -1;
     }
 
-    msleep(VR_PROGRAM_DELAY);
+    msleep(TDA38640_VR_PROGRAM_DELAY);
 
-    for (int retry = VR_PROGRAM_DELAY; retry > 0; retry--) {
+    for (int retry = TDA38640_VR_PROGRAM_DELAY; retry > 0; retry--) {
       ret = tda38640_prog_cmd(bus, addr, USER_RD, 0, &rbuf_prog_progress);
       if (ret >= 0) {
         break;
@@ -317,6 +414,174 @@ program_tda38640(uint8_t bus, uint8_t addr, struct tda38640_config *config, bool
 
     if (ret < 0 || ((rbuf_prog_progress & 0x80) != 0x80)) {
       syslog(LOG_WARNING, "%s: Failed to check program progress done for VR addr:%x",
+            __func__, addr);
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+static int
+program_tda38640a(uint8_t bus, uint8_t addr, struct tda38640_config *config, bool force) {
+  if (config == NULL) {
+    syslog(LOG_WARNING, "%s: VR config is NULL", __func__);
+    return -1;
+  }
+
+  int ret = 0;
+  uint8_t user_remain, cnfg_remain;
+  uint8_t rbuf_prog_progress;
+  uint32_t sum = 0;
+  
+  ret = get_tda38640_crc(bus, addr, &sum);
+  if (ret < 0) {
+    syslog(LOG_WARNING, "%s: get tda38640a checksum failed", __func__);
+    return -1;
+  }
+  
+  if (!force && (sum == config->checksum)) {
+    printf("the checksum is the same as the current firmware!\n");
+    printf("Please use \"--force\" option to try again.\n");
+    syslog(LOG_WARNING, "%s: redundant programming", __func__);
+    return -1;
+  }
+
+  // Registers that require data write for each OTP page
+  const uint16_t register_otp_page_0[] = {
+    0x0040,0x0041,0x0042,0x0043,0x0044,0x0045,0x0046,0x0047,
+    0x0048,0x0049,0x004A,0x004B,0x004C,0x004D,0x004E,0x004F,
+    0x0050,0x0051,0x0052,0x0053,0x0054,0x0055,0x0056,0x0057,
+    0x0058,0x0059,0x005A,0x005B,0x005C,0x005D,0x005E,0x005F,
+    0x0060,0x0061,0x0062,0x0063,0x0064,0x0065,0x0066,0x0067,
+    0x0068,0x0069,0x006A,0x006B,0x006C,0x006D,0x006E,0x006F,
+    0x0070,0x0071,0x0072,0x0073,0x0074,0x0075,0x0076,0x0077,
+    0x0078,0x0079,0x007A,0x007B};
+  const uint16_t register_otp_page_1[] = {};
+  const uint16_t register_otp_page_2[] = {
+    0x0202,0x0204,0x0220,0x0240,0x0242,0x0243,0x0248,0x0249,
+    0x024A,0x024B,0x024C,0x024D,0x024E,0x024F,0x0250,0x0251,
+    0x0252,0x0256,0x0257,0x0266,0x0267,0x026A,0x026C,0x0270,
+    0x0272,0x0273,0x0280,0x0281,0x0282,0x0288,0x0289,0x028A,
+    0x028C,0x028D,0x028E,0x029E,0x02A0,0x02A2,0x02AA,0x02AB,
+    0x02AC,0x02BC,0x02BD,0x02BE,0x02BF,0x02C0,0x02C2,0x02C8,
+    0x02CA};
+  const uint16_t register_otp_page_3[] = {
+    0x0384, 0x0385};
+
+  struct register_otp_info *register_otp = NULL;
+  register_otp = (struct register_otp_info *)calloc(1, sizeof(struct register_otp_info));
+
+  register_otp->start[0] = register_otp_page_0;
+  register_otp->start[1] = register_otp_page_1;
+  register_otp->start[2] = register_otp_page_2;
+  register_otp->start[3] = register_otp_page_3;
+
+  register_otp->size[0] = sizeof(register_otp_page_0) / sizeof(register_otp_page_0[0]);
+  register_otp->size[1] = sizeof(register_otp_page_1) / sizeof(register_otp_page_1[0]);
+  register_otp->size[2] = sizeof(register_otp_page_2) / sizeof(register_otp_page_2[0]);
+  register_otp->size[3] = sizeof(register_otp_page_3) / sizeof(register_otp_page_3[0]);
+  
+  /* program user section into VR register through i2c
+  step 1: check remaining writes (user_remain)
+  step 2: write 0x3 to register 0xd4 to unlock device registers
+  step 3: write specific bytes in register_otp by following .mic file's order
+  step 4: write (TDA38640A_USER_REMAINING_WRITES_MAX - user_remain) to register 0xd7
+  step 5: write program command (0x42) to register 0xd6
+  step 6: retry 8 times (wait 250ms, check register 0xd7[7] = 1 for programming progress done)
+  step 7: check register 0xd7[6] for successful completion of previous operation
+  */
+  for (int i = 0; i < config->sect_count; i++) {
+    ret = get_tda38640a_remaining_wr(bus, addr, &user_remain, &cnfg_remain);
+    if (ret < 0) {
+      return -1;
+    }
+
+    printf("Remaining Writes: %u\n", user_remain);
+    if (!user_remain) {
+      syslog(LOG_WARNING, "%s: no remaining writes", __func__);
+      return -1;
+    }
+
+    ret = tda38640_unlock_reg(bus, addr, true);
+    if (ret < 0) {
+      syslog(LOG_WARNING, "%s: Failed to unlock VR to VR addr:%x",
+            __func__, addr);
+      return -1;
+    }
+
+    uint8_t page_tmp = 0;
+    uint16_t addr_tmp;
+    for (int j = 0; j < config->section[i].offset_count; j++) {
+      uint8_t offset_tmp[2];
+      memcpy(&offset_tmp, &config->section[i].offset[j], sizeof(uint16_t));
+
+      if (page_tmp != offset_tmp[1]) {
+        ret = tda38640_set_page(bus, addr, offset_tmp[1]);
+        if (ret < 0) {
+          syslog(LOG_WARNING, "%s: Failed to set VR page to VR addr%x",
+                __func__, addr);
+          return -1;
+        }
+        page_tmp = offset_tmp[1];
+      }
+      for (int k = 0; k < 16; k++) {
+        addr_tmp = config->section[i].offset[j] + k;
+        if (bsearch(&addr_tmp, register_otp->start[page_tmp], register_otp->size[page_tmp], sizeof(addr_tmp), bsearch_compare) != NULL) {
+          int data_iter = (j * 16) + k;
+          uint8_t prog_data_tbuf[] = {(offset_tmp[0] + k), config->section[i].data[data_iter]};
+          ret = vr_xfer(bus, addr, prog_data_tbuf, 2, NULL, 0);
+          if (ret < 0) {
+            syslog(LOG_WARNING, "%s: Failed to write program data to VR addr:%x",
+                  __func__, addr);
+            return -1;
+          }
+        }
+      }
+    }
+
+    ret = tda38640_prog_cmd(bus, addr, USER_WR,
+                            (TDA38640A_USER_REMAINING_WRITES_MAX - user_remain), NULL);
+    if (ret < 0) {
+      syslog(LOG_WARNING, "%s: Failed to do write program cmd to VR addr:%x",
+            __func__, addr);
+      return -1;
+    }
+
+    for (int program_recheck = 0; program_recheck < TDA38640A_VR_PROGRAM_RECHECK; program_recheck++) {
+      msleep(TDA38640A_VR_PROGRAM_DELAY);
+      ret = tda38640_prog_cmd(bus, addr, USER_RD, 0, &rbuf_prog_progress);
+      if (ret < 0) {
+        syslog(LOG_WARNING, "%s: Failed to check program progress done for VR addr:%x",
+              __func__, addr);
+        return -1;
+      }
+      if ((rbuf_prog_progress & 0x80) == 0x80) {
+        break;
+      }
+    }
+
+    ret = tda38640_prog_cmd(bus, addr, USER_RD, 0, &rbuf_prog_progress);
+    if (ret < 0) {
+      syslog(LOG_WARNING, "%s: Failed to check program progress done for VR addr:%x",
+            __func__, addr);
+      return -1;
+    }
+
+    if ((rbuf_prog_progress & 0x80) != 0x80 || (rbuf_prog_progress & 0x40) == 0x40) {
+      syslog(LOG_WARNING, "%s: Program or Previous operation failed:%x",
+            __func__, addr);
+      return -1;
+    }
+
+    ret = get_tda38640_crc(bus, addr, &sum);
+    if (ret < 0) {
+      syslog(LOG_WARNING, "%s: get tda38640a checksum failed", __func__);
+      return -1;
+    }
+
+    if (sum != config->checksum) {
+      syslog(LOG_WARNING, "%s: Checksum mismatch after programming:%x",
             __func__, addr);
       return -1;
     }
@@ -475,15 +740,30 @@ tda38640_fw_update(struct vr_info *info, void *args) {
     return VR_STATUS_FAILURE;
   }
 
-  printf("Update VR: %s\n", info->dev_name);
+  uint8_t revision;
+  if (get_tda38640_revision(info->bus, info->addr, &revision) < 0) {
+    return VR_STATUS_FAILURE;
+  }
+
   if (info->xfer) {
     vr_xfer = info->xfer;
   } else {
     vr_xfer = &vr_rdwr;
   }
 
-  if (program_tda38640(info->bus, info->addr, config, info->force)) {
-    return VR_STATUS_FAILURE;
+  if (revision == 5) {
+    printf("VR IC: INF TDA38640A rev5\n");
+    printf("Update VR: %s\n", info->dev_name);
+    if (program_tda38640a(info->bus, info->addr, config, info->force)) {
+      return VR_STATUS_FAILURE;
+    }
+  }
+  else {
+    printf("VR IC: INF TDA38640 rev4\n");
+    printf("Update VR: %s\n", info->dev_name);
+    if (program_tda38640(info->bus, info->addr, config, info->force)) {
+      return VR_STATUS_FAILURE;
+    }
   }
 
   return VR_STATUS_SUCCESS;
