@@ -1,4 +1,4 @@
-From 50fec7752aea86c448329583278657ab20c6d91f Mon Sep 17 00:00:00 2001
+From 3a42986efb67a7abb1b9bcd060277be53c84180a Mon Sep 17 00:00:00 2001
 From: Eric Yang <eric.yang.wiwynn@gmail.com>
 Date: Thu, 6 Mar 2025 17:40:53 +0800
 Subject: [PATCH 17/18] platform-mc: Add option for discovering FRU data

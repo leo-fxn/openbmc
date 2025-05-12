@@ -1,4 +1,4 @@
-From 0553ecb326699581654c7aaeed6237cd8f85bb36 Mon Sep 17 00:00:00 2001
+From b3d8986382ff6427a1db27844a7644714564f719 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 18 Dec 2023 18:40:23 +0800
 Subject: [PATCH 01/18] requester: support multi-host MCTP devices hot plug
@@ -119,7 +119,7 @@ index aff9ca1..e2efb11 100644
      dependencies: deps,
      install: true,
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index 65a5917..517055d 100644
+index 637ed63..8913068 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -7,6 +7,7 @@
@@ -151,7 +151,7 @@ index 65a5917..517055d 100644
 +
      auto callback = [verbose, &invoker, &reqHandler, &fwManager, &pldmTransport,
                       TID](IO& io, int fd, uint32_t revents) mutable {
-         if (!(revents & EPOLLIN))
+         if (revents & (POLLHUP | POLLERR))
 diff --git a/requester/configuration_discovery_handler.cpp b/requester/configuration_discovery_handler.cpp
 new file mode 100644
 index 0000000..8b4d956

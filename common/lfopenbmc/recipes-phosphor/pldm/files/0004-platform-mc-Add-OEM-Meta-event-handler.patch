@@ -1,4 +1,4 @@
-From 4ef84654bdaa6148eda28eb2ac2ec471cddc8824 Mon Sep 17 00:00:00 2001
+From 6464a83dbfabd66a0402ea9860e012bb4a9455ce Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/18] platform-mc: Add OEM Meta event handler
@@ -1265,7 +1265,7 @@ index 2d722e9..5720af4 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index d55ab0b..0469e35 100644
+index aada12f..9df9827 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -222,8 +222,12 @@ int main(int argc, char** argv)

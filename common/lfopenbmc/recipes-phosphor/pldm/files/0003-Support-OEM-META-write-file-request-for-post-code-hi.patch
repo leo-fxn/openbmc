@@ -1,4 +1,4 @@
-From e210a4862f90cedfcc089a174a7d6ccc938739bc Mon Sep 17 00:00:00 2001
+From 9e6858829804c23cd5736b50ed74fa439d7b67e6 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
 Subject: [PATCH 03/18] Support OEM-META write file request for post code
@@ -449,7 +449,7 @@ index 0000000..81ff4eb
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index 517055d..d55ab0b 100644
+index 8913068..aada12f 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -67,6 +67,9 @@ PHOSPHOR_LOG2_USING;

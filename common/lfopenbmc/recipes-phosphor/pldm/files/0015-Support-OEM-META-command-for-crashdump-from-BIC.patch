@@ -1,4 +1,4 @@
-From 917614a4953c92a00386491ac545ccdc5413bdc2 Mon Sep 17 00:00:00 2001
+From c156575faa3932511c264dc65d63b3e75fde9799 Mon Sep 17 00:00:00 2001
 From: PeterHo-wiwynn <Peter_MH_Ho@wiwynn.com>
 Date: Tue, 31 Dec 2024 10:29:35 +0800
 Subject: [PATCH 15/18] Support OEM-META command for crashdump from BIC

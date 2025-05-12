@@ -1,4 +1,4 @@
-From e81a892a7d394bc08e2f04c6e0678abcf26ed8b7 Mon Sep 17 00:00:00 2001
+From af748a8a2381545f01de56d631db5cd506be6025 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 16:21:45 +0800
 Subject: [PATCH 12/18] Support OEM-META command for getting Http boot
