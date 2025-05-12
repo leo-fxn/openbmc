@@ -23,20 +23,9 @@
 #include <linux/errno.h>
 #include <linux/module.h>
 #include <linux/i2c.h>
-#include <i2c_dev_sysfs.h>
+#include <linux/version.h>
 
-#ifdef DEBUG
-
-#define PP_DEBUG(fmt, ...) do {                   \
-  printk(KERN_DEBUG "%s:%d " fmt "\n",            \
-         __FUNCTION__, __LINE__, ##__VA_ARGS__);  \
-} while (0)
-
-#else /* !DEBUG */
-
-#define PP_DEBUG(fmt, ...)
-
-#endif
+#include "i2c_dev_sysfs.h"
 
 #define present_help_str                        \
   "0: present\n"                                \
@@ -512,15 +501,6 @@ static const i2c_dev_attr_st fancpld_attr_table[] = {
   },
 };
 
-static i2c_dev_data_st fancpld_data;
-
-/*
- * FANCPLD i2c addresses.
- */
-static const unsigned short normal_i2c[] = {
-  0x60, I2C_CLIENT_END
-};
-
 /* FANCPLD id */
 static const struct i2c_device_id fancpld_id[] = {
   { "fancpld", 0 },
@@ -528,28 +508,22 @@ static const struct i2c_device_id fancpld_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, fancpld_id);
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
-static int fancpld_detect(struct i2c_client *client,
-                          struct i2c_board_info *info)
-{
-  /*
-   * We don't currently do any detection of the FANCPLD
-   */
-  strlcpy(info->type, "fancpld", I2C_NAME_SIZE);
-  return 0;
-}
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+static int fancpld_probe(struct i2c_client *client)
+#else
 static int fancpld_probe(struct i2c_client *client,
                          const struct i2c_device_id *id)
+#endif
 {
-  int n_attrs = sizeof(fancpld_attr_table) / sizeof(fancpld_attr_table[0]);
-  return i2c_dev_sysfs_data_init(client, &fancpld_data,
-                                 fancpld_attr_table, n_attrs);
-}
+  i2c_dev_data_st *pdata;
 
-static void fancpld_remove(struct i2c_client *client)
-{
-  i2c_dev_sysfs_data_clean(client, &fancpld_data);
+  pdata = devm_kmalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+  if (pdata == NULL)
+    return -ENOMEM;
+  i2c_set_clientdata(client, pdata);
+
+  return devm_i2c_dev_sysfs_init(client, pdata, fancpld_attr_table,
+                                 ARRAY_SIZE(fancpld_attr_table));
 }
 
 static struct i2c_driver fancpld_driver = {
@@ -558,25 +532,11 @@ static struct i2c_driver fancpld_driver = {
     .name = "fancpld",
   },
   .probe    = fancpld_probe,
-  .remove   = fancpld_remove,
   .id_table = fancpld_id,
-  .detect   = fancpld_detect,
-  .address_list = normal_i2c,
 };
 
-static int __init fancpld_mod_init(void)
-{
-  return i2c_add_driver(&fancpld_driver);
-}
-
-static void __exit fancpld_mod_exit(void)
-{
-  i2c_del_driver(&fancpld_driver);
-}
+module_i2c_driver(fancpld_driver);
 
 MODULE_AUTHOR("Mike Choi <mikechoi@fb.com>");
 MODULE_DESCRIPTION("FANCPLD Driver");
 MODULE_LICENSE("GPL");
-
-module_init(fancpld_mod_init);
-module_exit(fancpld_mod_exit);

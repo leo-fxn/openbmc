@@ -22,20 +22,9 @@
 #include <linux/errno.h>
 #include <linux/module.h>
 #include <linux/i2c.h>
-#include <i2c_dev_sysfs.h>
+#include <linux/version.h>
 
-#ifdef DEBUG
-
-#define PP_DEBUG(fmt, ...) do {                   \
-  printk(KERN_DEBUG "%s:%d " fmt "\n",            \
-         __FUNCTION__, __LINE__, ##__VA_ARGS__);  \
-} while (0)
-
-#else /* !DEBUG */
-
-#define PP_DEBUG(fmt, ...)
-
-#endif
+#include "i2c_dev_sysfs.h"
 
 static const i2c_dev_attr_st scdcpld_attr_table[] = {
   {
@@ -547,15 +536,6 @@ static const i2c_dev_attr_st scdcpld_attr_table[] = {
   },
 };
 
-static i2c_dev_data_st scdcpld_data;
-
-/*
- * SCD CPLD i2c addresses.
- */
-static const unsigned short normal_i2c[] = {
-  0x23, I2C_CLIENT_END
-};
-
 /* SCDCPLD id */
 static const struct i2c_device_id scdcpld_id[] = {
   { "scdcpld", 0 },
@@ -563,28 +543,22 @@ static const struct i2c_device_id scdcpld_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, scdcpld_id);
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
-static int scdcpld_detect(struct i2c_client *client,
-                          struct i2c_board_info *info)
-{
-  /*
-   * We don't currently do any detection of the YAMPCPLD
-   */
-  strlcpy(info->type, "scdcpld", I2C_NAME_SIZE);
-  return 0;
-}
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+static int scdcpld_probe(struct i2c_client *client)
+#else
 static int scdcpld_probe(struct i2c_client *client,
                          const struct i2c_device_id *id)
+#endif
 {
-  int n_attrs = sizeof(scdcpld_attr_table) / sizeof(scdcpld_attr_table[0]);
-  return i2c_dev_sysfs_data_init(client, &scdcpld_data,
-                                 scdcpld_attr_table, n_attrs);
-}
+  i2c_dev_data_st *pdata;
 
-static void scdcpld_remove(struct i2c_client *client)
-{
-  i2c_dev_sysfs_data_clean(client, &scdcpld_data);
+  pdata = devm_kmalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+  if (pdata == NULL)
+    return -ENOMEM;
+  i2c_set_clientdata(client, pdata);
+
+  return devm_i2c_dev_sysfs_init(client, pdata, scdcpld_attr_table,
+                                 ARRAY_SIZE(scdcpld_attr_table));
 }
 
 static struct i2c_driver scdcpld_driver = {
@@ -593,25 +567,11 @@ static struct i2c_driver scdcpld_driver = {
     .name = "scdcpld",
   },
   .probe    = scdcpld_probe,
-  .remove   = scdcpld_remove,
   .id_table = scdcpld_id,
-  .detect   = scdcpld_detect,
-  .address_list = normal_i2c,
 };
 
-static int __init scdcpld_mod_init(void)
-{
-  return i2c_add_driver(&scdcpld_driver);
-}
-
-static void __exit scdcpld_mod_exit(void)
-{
-  i2c_del_driver(&scdcpld_driver);
-}
+module_i2c_driver(scdcpld_driver);
 
 MODULE_AUTHOR("Mike Choi <mikechoi@fb.com>");
 MODULE_DESCRIPTION("YAMP SCD CPLD Driver");
 MODULE_LICENSE("GPL");
-
-module_init(scdcpld_mod_init);
-module_exit(scdcpld_mod_exit);
