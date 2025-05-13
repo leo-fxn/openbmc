@@ -20,9 +20,13 @@ int main(int argc, char** argv)
 
     int timeout = 0;
     int retries = 0;
-    std::string configFN = std::format("{}/.mfgtool.json", getenv("HOME"));
+    std::string configFN{};
 
-    if (std::filesystem::exists(configFN))
+    if (getenv("HOME"))
+    {
+        configFN = std::format("{}/.mfgtool.json", getenv("HOME"));
+    }
+    if (configFN.length() && std::filesystem::exists(configFN))
     {
         std::ifstream ifs(configFN);
         auto config = mfgtool::js::parse(ifs);
