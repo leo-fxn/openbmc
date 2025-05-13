@@ -258,6 +258,8 @@ pal_get_sensor_poll_interval(uint8_t fru, uint8_t num, uint32_t *value) {
         case PDBH_SNR_HSC1_PIN:
         /* fallthrough */
         case PDBH_SNR_HSC2_PIN:
+        case PDBH_SNR_HSC3_PIN:
+        case PDBH_SNR_HSC4_PIN:
           *value = 1;
           break;
         default:

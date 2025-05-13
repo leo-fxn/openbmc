@@ -692,9 +692,9 @@ read_hsc_pin(uint8_t fru, uint8_t sensor_num, float *value) {
   if(id == SECOND_SOURCE) {
     ret = read_adm1272_hsc_ein(fru, sensor_num, value);
     if (!ret) {
-      *value = (*value/256/0.15)*56.94/1000;
       get_comp_source(fru, fru == FRU_VPDB ? VPDB_RSENSE_SOURCE : HPDB_RSENSE_SOURCE, &id);
       if (id == MAIN_SOURCE) {
+        *value = (*value/256/0.15)*56.94/1000;
         switch (hsc_id) {
           case VPDB_HSC_ID0:
             if (pal_is_artemis()) {
@@ -704,24 +704,57 @@ read_hsc_pin(uint8_t fru, uint8_t sensor_num, float *value) {
             }
             break;
           case HPDB_HSC_ID1:
-            if (pal_is_artemis()) {
+            if (pal_is_gt_hnext()) {
+              *value = *value * 0.9535 + 4.4113;
+            } else if (pal_is_artemis()) {
               *value = *value * 0.96;
             } else {
               *value = (*value * 0.96) + 4.15;
             }
             break;
           case HPDB_HSC_ID2:
-            if (pal_is_artemis()) {
+            if (pal_is_gt_hnext()) {
+              *value = *value * 0.9488 + 16.9462;
+            } else if (pal_is_artemis()) {
               *value = *value * 0.96;
             } else {
               *value = (*value * 0.96) - 0.26;
             }
             break;
           case HPDB_HSC_ID3:
+            if (pal_is_gt_hnext()) {
+              *value = (*value * 0.15 / 0.25 * 0.98) - 12.85;
+            }
+            break;
           case HPDB_HSC_ID4:
-            return ret;
+            if (pal_is_gt_hnext()) {
+              *value = (*value * 0.15 / 0.25 * 0.98) - 4.29;
+            }
+            break;
           default:
             return -1;
+        }
+      }
+      else if (id == THIRD_SOURCE) {
+        switch (hsc_id) {
+          case HPDB_HSC_ID1:
+            *value = (*value/256/0.10)*56.94/1000;
+            *value = *value * 0.95 - 8.96;
+            break;
+          case HPDB_HSC_ID2:
+            *value = (*value/256/0.10)*56.94/1000;
+            *value = *value * 0.94 + 9.82;
+            break;
+          case HPDB_HSC_ID3:
+            *value = (*value/256/0.25)*56.94/1000;
+            *value = *value * 0.995 + 1.9427;
+             break;
+          case HPDB_HSC_ID4:
+            *value = (*value/256/0.25)*56.94/1000;
+            *value = *value * 0.9904 + 1.6601;
+            break;
+          default:
+            ret = -1;
         }
       }
     }

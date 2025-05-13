@@ -42,9 +42,24 @@ done
 
 HPDB_HSC_RSENSE_1ST=0
 HPDB_HSC_RSENSE_2ND=1
+HPDB_HSC_RSENSE_3RD=2
 #HPDB ADM1272 config
 for i in {1..5}
   do
+  if [ "$(kv get mb_product)" == "GTI" ]; then
+    ln -s /etc/sensors_cfg/f0tg_hpdb_hsc.conf /etc/sensors.d/hpdb_hsc.conf
+    kv set hpdb_rsense_source "$HPDB_HSC_RSENSE_1ST"
+    break
+  elif [ "$(kv get mb_product)" == "GT1.5" ] && [ "$(kv get cpu_product)" == "Genoa" ]; then
+    ln -s /etc/sensors_cfg/f0tb_hpdb_hsc.conf /etc/sensors.d/hpdb_hsc.conf
+    kv set hpdb_rsense_source "$HPDB_HSC_RSENSE_1ST"
+    break
+  elif [ "$(kv get mb_product)" == "GT1.5" ] && [ "$(kv get cpu_product)" == "Turin" ]; then
+    ln -s /etc/sensors_cfg/f0tc_hpdb_hsc.conf /etc/sensors.d/hpdb_hsc.conf
+    kv set hpdb_rsense_source "$HPDB_HSC_RSENSE_3RD"
+    break
+  fi
+
   rev=$(fruid-util hpdb 2>/dev/null |grep "Board Part Number" | awk -F ":" '{print $2}' | awk '{gsub(/^ +| +$/,"")}1')
   rc=$?
 
