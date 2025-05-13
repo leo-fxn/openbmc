@@ -19,4 +19,7 @@ openbmc_rootfs_fixup() {
     # Remove all *.pyc files
     find ${IMAGE_ROOTFS} -type f -name "*.pyc" -exec rm -f {} \;
 
+    # Remove all C files
+    find ${IMAGE_ROOTFS} -type f -name "*.[ch]" -exec rm -f {} \;
+
 }
