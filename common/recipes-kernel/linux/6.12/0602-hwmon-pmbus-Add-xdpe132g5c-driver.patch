@@ -1,7 +1,7 @@
-From d2d393630cc8b8d63f0295f6af25ea5c43120f33 Mon Sep 17 00:00:00 2001
+From 3b6d0d9fa0eb85eaae173028b3a80c75eb5dfccf Mon Sep 17 00:00:00 2001
 From: "karthik.gengan" <gengankarthik@gmail.com>
 Date: Fri, 4 Nov 2022 06:31:37 +0000
-Subject: [PATCH 602/608] hwmon: (pmbus) Add xdpe132g5c driver
+Subject: [PATCH] hwmon: (pmbus) Add xdpe132g5c driver
 
 Below 2 commits are squashed into the single patch:
 
@@ -50,7 +50,7 @@ index 40909111c066..d7e256571bbe 100644
  obj-$(CONFIG_SENSORS_CRPS)	+= crps.o
 diff --git a/drivers/hwmon/pmbus/xdpe132g5c.c b/drivers/hwmon/pmbus/xdpe132g5c.c
 new file mode 100644
-index 000000000000..d39bb63565da
+index 000000000000..c982405b092b
 --- /dev/null
 +++ b/drivers/hwmon/pmbus/xdpe132g5c.c
 @@ -0,0 +1,202 @@
@@ -246,7 +246,7 @@ index 000000000000..d39bb63565da
 +		.name = "xdpe132g5c",
 +		.of_match_table = of_match_ptr(xdpe132_of_match),
 +	},
-+	.probe_new = xdpe132_probe,
++	.probe = xdpe132_probe,
 +	.id_table = xdpe132_id,
 +};
 +
@@ -257,5 +257,5 @@ index 000000000000..d39bb63565da
 +MODULE_LICENSE("GPL");
 +MODULE_IMPORT_NS(PMBUS);
 -- 
-2.43.5
+2.47.1
 
