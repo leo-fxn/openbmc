@@ -22,7 +22,7 @@ After=setup_i2c.service ipmid.service
 Wants=setup_i2c.service ipmid.service
 
 [Service]
-ExecStart=/usr/local/bin/ssd-mond -i /sys/bus/i2c/devices/1-0035/e1_s_ssd_prsnt0_l
+ExecStart=/usr/local/bin/ssd-mond /sys/bus/i2c/devices/1-0035/e1_s_ssd_prsnt0
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
