@@ -295,8 +295,8 @@ PAL_SENSOR_MAP mb_sensor_map[] = {
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x16
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x17
 
-  {"CPU0_TEMP", CPU_ID0, read_cpu_temp, false, {90.0, 0, 0, 5, 0, 0, 0, 0}, TEMP}, //0x18
-  {"CPU1_TEMP", CPU_ID1, read_cpu_temp, false, {90.0, 0, 0, 5, 0, 0, 0, 0}, TEMP}, //0x19
+  {"CPU0_TEMP", CPU_ID0, read_cpu_temp, false, {100.0, 0, 0, 5, 0, 0, 0, 0}, TEMP}, //0x18
+  {"CPU1_TEMP", CPU_ID1, read_cpu_temp, false, {100.0, 0, 0, 5, 0, 0, 0, 0}, TEMP}, //0x19
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x1A
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x1B
   {NULL, 0, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0}, //0x1C

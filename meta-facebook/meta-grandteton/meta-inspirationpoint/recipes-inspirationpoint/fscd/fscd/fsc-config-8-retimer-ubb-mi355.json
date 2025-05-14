@@ -1,5 +1,5 @@
 {
-    "version": "inspirationpint_MI355X_v3",
+    "version": "inspirationpint_MI350X_v4",
     "pwm_transition_value": 100,
     "pwm_boost_value": 100,
     "sample_interval_ms": 3000,
@@ -76,10 +76,11 @@
         "positive_hysteresis": 0,
         "negative_hysteresis": 2,
         "data": [
-          [55, 25],
-          [65, 30],
-          [70, 35],
-          [74, 45]
+          [50, 55],
+          [65, 60],
+          [70, 70],
+          [74, 80],
+          [80, 100]
         ]
       },
       "cpu_tray_cpu_pid": {
@@ -258,7 +259,8 @@
           [67, 40],
           [70, 45],
           [73, 50],
-          [75, 58]
+          [75, 58],
+          [96, 100]
         ]
       },
       "gpu_tray_gpu_pid": {
