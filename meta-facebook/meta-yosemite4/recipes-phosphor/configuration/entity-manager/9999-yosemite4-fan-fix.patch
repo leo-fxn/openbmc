@@ -1,0 +1,207 @@
+From c645e80ccd15cee18f3fa1fdb2f9c1f7a432a807 Mon Sep 17 00:00:00 2001
+From: Patrick NC Lin <patrick.nc.lin.wiwynn@gmail.com>
+Date: Tue, 13 May 2025 18:43:26 +0800
+Subject: [PATCH] meta-facebook: yosemite4: Add virtual status sensor to fan
+ table
+
+# Note:
+  The functionality to spin up fans when a sensor is missing requires
+  the following three gerrit commits:
+- 80268: Sets the virtual sensor's reading after the PLDM service is
+  stopped.
+- 80269: Adds the virtual status sensor.
+- 80270: Adds the virtual status sensor to the Fan table.
+
+# Summary:
+- Add virtual sensors representing the status of PLDM sensor and
+  WAILUA_FALLS sensor to the fan table.
+
+# Description:
+- Virtual sensors for PLDM and WAILUA_FALLS are added to the fan table.
+- In the event of sensor missing, the fan speeds will automatically
+  increase to 100% to mitigate potential thermal risks.
+
+# Motivation:
+- This change is implemented to address concerns from the thermal team
+  to prevent potential thermal risks that may arise due to missing
+  sensors.
+
+# Test Plan:
+- Build code: Pass
+- Verify the virtual sensors are correctly added to the fan table: Pass
+- Test the behavior when sensors are missing and confirm that fan duty
+  increase to 100%: Pass
+
+Change-Id: I7b7d5429ca58737f33b035aa5571e547048b2b47
+Signed-off-by: Patrick NC Lin <patrick.nc.lin.wiwynn@gmail.com>
+---
+ .../meta/yosemite4_sentineldome_t1.json       | 21 +++++++++++++++++++
+ .../yosemite4_sentineldome_t1_retimer.json    | 21 +++++++++++++++++++
+ .../meta/yosemite4_sentineldome_t2.json       | 21 +++++++++++++++++++
+ .../yosemite4_sentineldome_t2_retimer.json    | 21 +++++++++++++++++++
+ .../meta/yosemite4_wailuafalls.json           | 21 +++++++++++++++++++
+ 5 files changed, 105 insertions(+)
+
+diff --git a/configurations/meta/yosemite4_sentineldome_t1.json b/configurations/meta/yosemite4_sentineldome_t1.json
+index cd44a71f9c..9a3572c266 100644
+--- a/configurations/meta/yosemite4_sentineldome_t1.json
++++ b/configurations/meta/yosemite4_sentineldome_t1.json
+@@ -362,6 +362,27 @@
+             "Zones": [
+                 "Zone 1"
+             ]
++        },
++        {
++            "Class": "temp",
++            "Inputs": [
++                "SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS"
++            ],
++            "Name": "Stepwise_SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS",
++            "NegativeHysteresis": 0,
++            "Output": [
++                100.0,
++                10.0
++            ],
++            "PositiveHysteresis": 0,
++            "Reading": [
++                0.0,
++                100.0
++            ],
++            "Type": "Stepwise",
++            "Zones": [
++                "Zone 1"
++            ]
+         }
+     ],
+     "Name": "Yosemite 4 Sentinel Dome T1 Slot $bus % 15",
+diff --git a/configurations/meta/yosemite4_sentineldome_t1_retimer.json b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
+index dbcb38e326..9599078c4c 100644
+--- a/configurations/meta/yosemite4_sentineldome_t1_retimer.json
++++ b/configurations/meta/yosemite4_sentineldome_t1_retimer.json
+@@ -423,6 +423,27 @@
+             "Zones": [
+                 "Zone 1"
+             ]
++        },
++        {
++            "Class": "temp",
++            "Inputs": [
++                "SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS"
++            ],
++            "Name": "Stepwise_SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS",
++            "NegativeHysteresis": 0,
++            "Output": [
++                100.0,
++                10.0
++            ],
++            "PositiveHysteresis": 0,
++            "Reading": [
++                0.0,
++                100.0
++            ],
++            "Type": "Stepwise",
++            "Zones": [
++                "Zone 1"
++            ]
+         }
+     ],
+     "Name": "Yosemite 4 Sentinel Dome T1 with Retimer Slot $bus % 15",
+diff --git a/configurations/meta/yosemite4_sentineldome_t2.json b/configurations/meta/yosemite4_sentineldome_t2.json
+index 4ab7f53341..0f92669a7b 100644
+--- a/configurations/meta/yosemite4_sentineldome_t2.json
++++ b/configurations/meta/yosemite4_sentineldome_t2.json
+@@ -433,6 +433,27 @@
+             "Zones": [
+                 "Zone 1"
+             ]
++        },
++        {
++            "Class": "temp",
++            "Inputs": [
++                "SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS"
++            ],
++            "Name": "Stepwise_SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS",
++            "NegativeHysteresis": 0,
++            "Output": [
++                100.0,
++                10.0
++            ],
++            "PositiveHysteresis": 0,
++            "Reading": [
++                0.0,
++                100.0
++            ],
++            "Type": "Stepwise",
++            "Zones": [
++                "Zone 1"
++            ]
+         }
+     ],
+     "Name": "Yosemite 4 Sentinel Dome T2 Slot $bus % 15",
+diff --git a/configurations/meta/yosemite4_sentineldome_t2_retimer.json b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
+index 29922d5c2f..e08d020f2c 100644
+--- a/configurations/meta/yosemite4_sentineldome_t2_retimer.json
++++ b/configurations/meta/yosemite4_sentineldome_t2_retimer.json
+@@ -494,6 +494,27 @@
+             "Zones": [
+                 "Zone 1"
+             ]
++        },
++        {
++            "Class": "temp",
++            "Inputs": [
++                "SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS"
++            ],
++            "Name": "Stepwise_SENTINEL_DOME_SLOT $bus % 15 SENSOR_STATUS",
++            "NegativeHysteresis": 0,
++            "Output": [
++                100.0,
++                10.0
++            ],
++            "PositiveHysteresis": 0,
++            "Reading": [
++                0.0,
++                100.0
++            ],
++            "Type": "Stepwise",
++            "Zones": [
++                "Zone 1"
++            ]
+         }
+     ],
+     "Name": "Yosemite 4 Sentinel Dome T2 with Retimer Slot $bus % 15",
+diff --git a/configurations/meta/yosemite4_wailuafalls.json b/configurations/meta/yosemite4_wailuafalls.json
+index 070e8917b1..9aa8ba29c4 100644
+--- a/configurations/meta/yosemite4_wailuafalls.json
++++ b/configurations/meta/yosemite4_wailuafalls.json
+@@ -280,6 +280,27 @@
+             "Zones": [
+                 "Zone 1"
+             ]
++        },
++        {
++            "Class": "temp",
++            "Inputs": [
++                "WAILUA_FALLS_SLOT $bus % 15 SENSOR_STATUS"
++            ],
++            "Name": "Stepwise_WAILUA_FALLS_SLOT $bus % 15 SENSOR_STATUS",
++            "NegativeHysteresis": 0,
++            "Output": [
++                100.0,
++                10.0
++            ],
++            "PositiveHysteresis": 0,
++            "Reading": [
++                0.0,
++                100.0
++            ],
++            "Type": "Stepwise",
++            "Zones": [
++                "Zone 1"
++            ]
+         }
+     ],
+     "Name": "Yosemite 4 Wailua Falls Slot $bus % 15",
+-- 
+2.47.1
+
