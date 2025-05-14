@@ -6,7 +6,7 @@ SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'satellitesensor
                                                'xyz.openbmc_project.satellitesensor.service', \
                                                '', d)}"
 
-PACKAGECONFIG += " \
+PACKAGECONFIG:append = " \
     satellitesensor \
 "
 
