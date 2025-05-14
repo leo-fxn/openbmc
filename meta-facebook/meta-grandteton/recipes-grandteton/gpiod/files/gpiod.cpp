@@ -443,6 +443,8 @@ void prochot_reason(char *reason)
     strcpy(reason, "UV");
   if (gpio_get_value_by_shadow(IRQ_OC_DETECT_N) == GPIO_VALUE_LOW)
     strcpy(reason, "OC");
+  if (gpio_get_value_by_shadow(FM_SYS_THROTTLE) == GPIO_VALUE_LOW)
+    strcpy(reason, "CPU throttle");
 }
 
 void

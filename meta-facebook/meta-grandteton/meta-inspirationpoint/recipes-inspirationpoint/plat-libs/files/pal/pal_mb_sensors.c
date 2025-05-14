@@ -730,12 +730,15 @@ read_cpu_pkg_pwr(uint8_t fru, uint8_t sensor_num, float *value) {
 static int
 read_cpu_temp(uint8_t fru, uint8_t sensor_num, float *value) {
   uint8_t cpu_id = sensor_map[fru].map[sensor_num].id;
+  uint8_t ucr = sensor_map[fru].map[sensor_num].snr_thresh.ucr_thresh;
   int ret, lock = -1;
   char* cpu_chips[] = {
     "sbtsi-i2c-0-4c",
     "sbtsi-i2c-0-48",
   };
+  const char GPIO_CPU_THROTTLE[MAX_VALUE_LEN] = "BMC_FORCE_NM_THROTTLE_N";
   static uint8_t retry[ARRAY_SIZE(cpu_chips)] = {0};
+  static bool is_throttle = false;
 
   if(pal_bios_completed(fru) != true) {
     return READING_NA;
@@ -750,6 +753,19 @@ read_cpu_temp(uint8_t fru, uint8_t sensor_num, float *value) {
   if (ret) {
     retry[cpu_id]++;
     return retry_err_handle(retry[cpu_id], 3);
+  }
+
+  if (*value > ucr && !is_throttle) {
+    gpio_set_value_by_shadow(GPIO_CPU_THROTTLE, GPIO_VALUE_LOW);
+    if (gpio_get_value_by_shadow(GPIO_CPU_THROTTLE) == GPIO_VALUE_LOW) {
+      is_throttle = true;
+    }
+  }
+  else if (*value <= ucr && is_throttle) {
+    gpio_set_value_by_shadow(GPIO_CPU_THROTTLE, GPIO_VALUE_HIGH);
+    if (gpio_get_value_by_shadow(GPIO_CPU_THROTTLE) == GPIO_VALUE_HIGH) {
+      is_throttle = false;
+    }
   }
 
   retry[cpu_id] = 0;
