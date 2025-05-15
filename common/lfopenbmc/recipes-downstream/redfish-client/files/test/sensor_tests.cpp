@@ -77,7 +77,10 @@ TEST(SensorTests, FailWithMissingReading)
 {
     auto badJson = getJsonWithMissingReading();
     auto maybeSensor = Sensor::parseSensor(badJson);
-    EXPECT_FALSE(maybeSensor.has_value());
+    EXPECT_TRUE(maybeSensor.has_value());
+
+    auto sensor = maybeSensor.value();
+    EXPECT_TRUE(std::isnan(sensor.getReading()));
 }
 
 namespace

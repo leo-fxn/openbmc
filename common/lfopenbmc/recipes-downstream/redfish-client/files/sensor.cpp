@@ -26,7 +26,7 @@ std::optional<Sensor> Sensor::parseSensor(const std::string& sensorJson)
     auto maybeReading = toMaybeDouble(parsed.getReading());
     if (!maybeReading.has_value())
     {
-        return std::nullopt;
+        maybeReading = std::numeric_limits<double>::quiet_NaN();
     }
 
     if (!parsed.getReadingUnits().hasValue())
