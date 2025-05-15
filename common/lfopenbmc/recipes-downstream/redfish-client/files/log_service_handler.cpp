@@ -6,6 +6,8 @@
 
 #include <exception>
 #include <filesystem>
+#include <format>
+#include <optional>
 #include <regex>
 
 PHOSPHOR_LOG2_USING;
@@ -23,6 +25,39 @@ T makeCPER(const auto& source, const auto& cper)
 {
     return T("SOURCE", sdbusplus::message::object_path(source), "CPER",
              cper.toJson().dump());
+}
+
+std::optional<std::string> cperOemNvidiaHandler(const nlohmann::json& entryJson)
+{
+    try
+    {
+        const auto& cperOemNvidia = entryJson.at("CPER").at("Oem").at("Nvidia");
+
+        if (cperOemNvidia.contains("Pcie"))
+        {
+            const auto& pcie = cperOemNvidia["Pcie"];
+            if (pcie.contains("DeviceID"))
+            {
+                const auto& deviceId = pcie["DeviceID"];
+                if (deviceId.contains("PrimaryOrDeviceBusNumber") &&
+                    deviceId.contains("DeviceNumber") &&
+                    deviceId.contains("FunctionNumber"))
+                {
+                    return std::format(
+                        "pcie-b{}-d{}-f{}",
+                        deviceId["PrimaryOrDeviceBusNumber"].get<int>(),
+                        deviceId["DeviceNumber"].get<int>(),
+                        deviceId["FunctionNumber"].get<int>());
+                }
+            }
+        }
+    }
+    catch (...)
+    {
+        // silent catch, just return null at end of function.
+    }
+
+    return std::nullopt;
 }
 
 class UnhandledException : public sdbusplus::exception::generated_event_base
@@ -155,21 +190,23 @@ void LogServiceHandler::commit(redfish_binding::LogEntry::LogEntry& entry)
             auto source = [&]() -> std::string {
                 auto unknownSource = "Unknown Source";
 
-                if (!maybeLinks.hasValue())
+                if (maybeLinks.hasValue())
                 {
-                    return unknownSource;
+                    auto& origin = maybeLinks.value().getOriginOfCondition();
+                    if (origin.hasValue() &&
+                        origin.value().getOdataId().hasValue())
+                    {
+                        return origin.value().getOdataId().value();
+                    }
                 }
-                auto& origin = maybeLinks.value().getOriginOfCondition();
-                if (!origin.hasValue())
+
+                auto findSource = cperOemNvidiaHandler(entry.toJson());
+                if (findSource)
                 {
-                    return unknownSource;
+                    return *findSource;
                 }
-                auto& id = origin.value().getOdataId();
-                if (!id.hasValue())
-                {
-                    return unknownSource;
-                }
-                return id.value();
+
+                return unknownSource;
             }();
 
             if (eventSeverity == EventSeverity::Critical)
