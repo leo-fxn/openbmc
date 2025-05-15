@@ -1,7 +1,8 @@
-From 465cb9c884ab3ac1b3e4f852384cdc0343835c36 Mon Sep 17 00:00:00 2001
+From d464d90c017f13c8d1f8ef66078372a8076d7210 Mon Sep 17 00:00:00 2001
 From: Chester Lin <chesterl@nvidia.com>
 Date: Tue, 4 Feb 2025 12:15:38 +0800
-Subject: [PATCH 1/1] SatelliteSensor: improve I2C transactions by repeat START
+Subject: [PATCH 105/105] SatelliteSensor: improve I2C transactions by repeat
+ START
 
 Improve I2C direct sensor polling by combining w/r transactions with
 a repeated START since ast2600's i2c new-driver mode can't handle
@@ -18,7 +19,7 @@ eeprom.
 
 Fixes nvbug https://nvbugspro.nvidia.com/bug/5030119
 Signed-off-by: Chester Lin <chesterl@nvidia.com>
----
+
 Reference from NVIDIA Github
 [1] https://github.com/NVIDIA/dbus-sensors/commit/ffc1b6e42c48f4fbb4ef6ea19b1d04bc0a40cee9
 ---
@@ -125,5 +126,5 @@ index a3b4888..4df145a 100644
  struct SatelliteSensor : public Sensor
  {
 -- 
-2.31.1
+2.47.1
 

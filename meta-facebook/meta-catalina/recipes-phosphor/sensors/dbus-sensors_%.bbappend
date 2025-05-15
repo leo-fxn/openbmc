@@ -16,7 +16,6 @@ SRC_URI += " \
     file://0103-dbus-sensors-Fix-SatelliteSensor-build-errors.patch \
     file://0104-dbus-sensors-fix-abnormal-sensor-readings-from-HMC.patch \
     file://0105-SatelliteSensor-improve-I2C-transactions-by-repeat-S.patch \
-    file://0106-externalsensor-Fix-crash-when-sensor-name-contains-s.patch \
     "
 
 SYSTEMD_OVERRIDE:${PN}:append = "\

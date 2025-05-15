@@ -2,7 +2,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += " \
     file://limitcore.conf \
-    file://1000-avoid-new-dbus.patch \
 "
 
 do_install:append() {

@@ -1,4 +1,4 @@
-From f36bc02545e9ee5f96b1ef6f85be484724bae0b2 Mon Sep 17 00:00:00 2001
+From d0f91185bd45dc29e19777f519c04fdefc96ae7d Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Fri, 14 Jun 2024 16:24:31 +0800
 Subject: [PATCH 07/18] Support OEM-META command for power control

@@ -1,4 +1,4 @@
-From 6464a83dbfabd66a0402ea9860e012bb4a9455ce Mon Sep 17 00:00:00 2001
+From deb61f6dbdafbc9402324cf076a94b3e0af88a77 Mon Sep 17 00:00:00 2001
 From: lora <lora.lin.wiwynn@gmail.com>
 Date: Fri, 27 Sep 2024 14:51:48 +0800
 Subject: [PATCH 04/18] platform-mc: Add OEM Meta event handler
@@ -68,7 +68,7 @@ Upstream-Status: Pending
  create mode 100644 oem/meta/platform-mc/event_oem_meta.hpp
 
 diff --git a/meson.build b/meson.build
-index 4c78d06..f616f69 100644
+index 4a6fe12..08d7e94 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -264,6 +264,7 @@ executable(
@@ -1265,7 +1265,7 @@ index 2d722e9..5720af4 100644
      include_directories: ['../../requester', '../../pldmd'],
  )
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index aada12f..9df9827 100644
+index 6a6c88e..3128e68 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -222,8 +222,12 @@ int main(int argc, char** argv)
@@ -1280,9 +1280,9 @@ index aada12f..9df9827 100644
 +        std::make_unique<platform_mc::Manager>(event, reqHandler, instanceIdDb,
 +                                               configurationDiscovery.get());
  
-     std::unique_ptr<pldm::host_effecters::HostEffecterParser>
-         hostEffecterParser =
-@@ -255,9 +259,6 @@ int main(int argc, char** argv)
+ #ifdef LIBPLDMRESPONDER
+     using namespace pldm::state_sensor;
+@@ -249,9 +253,6 @@ int main(int argc, char** argv)
      std::shared_ptr<HostPDRHandler> hostPDRHandler;
      std::unique_ptr<DbusToPLDMEvent> dbusToPLDMEventHandler;
  
@@ -1292,7 +1292,7 @@ index aada12f..9df9827 100644
      std::unique_ptr<platform_config::Handler> platformConfigHandler{};
      platformConfigHandler =
          std::make_unique<platform_config::Handler>(PDR_JSONS_DIR);
-@@ -312,6 +313,13 @@ int main(int argc, char** argv)
+@@ -313,6 +314,13 @@ int main(int argc, char** argv)
                               size_t eventDataOffset) {
               return platformManager->handleSensorEvent(
                   request, payloadLength, formatVersion, tid, eventDataOffset);

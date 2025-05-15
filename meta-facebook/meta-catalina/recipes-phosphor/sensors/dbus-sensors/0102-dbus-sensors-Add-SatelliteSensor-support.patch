@@ -1,7 +1,7 @@
-From 815f0f09df68c626706e8badf7ecce4ba7b376b8 Mon Sep 17 00:00:00 2001
+From c867bb7ef743fa962836dc206eef91ef10aaed8c Mon Sep 17 00:00:00 2001
 From: Potin Lai <potin.lai@quantatw.com>
 Date: Tue, 4 Feb 2025 16:41:36 +0800
-Subject: [PATCH 2/4] dbus-sensors: Add SatelliteSensor support
+Subject: [PATCH 102/105] dbus-sensors: Add SatelliteSensor support
 
 Add Nvidia SatelliteSensor support
 
@@ -830,5 +830,5 @@ index 0000000..bf64647
 +)
 \ No newline at end of file
 -- 
-2.31.1
+2.47.1
 

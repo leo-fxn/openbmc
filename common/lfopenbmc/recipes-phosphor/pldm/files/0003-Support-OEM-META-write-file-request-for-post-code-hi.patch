@@ -1,4 +1,4 @@
-From 9e6858829804c23cd5736b50ed74fa439d7b67e6 Mon Sep 17 00:00:00 2001
+From 6d054cbbdd514459df8333dfc8b2c10ae5cdb133 Mon Sep 17 00:00:00 2001
 From: Delphine CC Chiu <Delphine_CC_Chiu@wiwynn.com>
 Date: Mon, 23 Oct 2023 17:06:54 +0800
 Subject: [PATCH 03/18] Support OEM-META write file request for post code
@@ -55,7 +55,7 @@ index acbb400..c0e3ea7 100644
      'pldmresponder',
      sources,
 diff --git a/meson.build b/meson.build
-index e2efb11..4c78d06 100644
+index bb33125..4a6fe12 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -140,6 +140,10 @@ conf_data.set('SENSOR_POLLING_TIME', get_option('sensor-polling-time'))
@@ -449,7 +449,7 @@ index 0000000..81ff4eb
 +
 +} // namespace pldm::responder::oem_meta
 diff --git a/pldmd/pldmd.cpp b/pldmd/pldmd.cpp
-index 8913068..aada12f 100644
+index ea8036e..6a6c88e 100644
 --- a/pldmd/pldmd.cpp
 +++ b/pldmd/pldmd.cpp
 @@ -67,6 +67,9 @@ PHOSPHOR_LOG2_USING;
@@ -462,7 +462,7 @@ index 8913068..aada12f 100644
  
  constexpr const char* PLDMService = "xyz.openbmc_project.PLDM";
  
-@@ -274,6 +277,12 @@ int main(int argc, char** argv)
+@@ -275,6 +278,12 @@ int main(int argc, char** argv)
              pldmTransport.getEventSource(), hostEID, instanceIdDb, &reqHandler);
      }
  
