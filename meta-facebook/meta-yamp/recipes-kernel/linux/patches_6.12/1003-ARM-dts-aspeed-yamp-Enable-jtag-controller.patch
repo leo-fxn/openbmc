@@ -1,0 +1,26 @@
+From 6f08bd3b471927a624d9b22f5178b567a7ee205b Mon Sep 17 00:00:00 2001
+From: Tao Ren <taoren@meta.com>
+Date: Thu, 15 Jun 2023 15:51:09 -0700
+Subject: [PATCH 1003/1003] ARM: dts: aspeed: yamp: Enable jtag controller
+
+Enable jtag controller for FPGA firmware upgrade. Refer to "fpga_util.sh"
+in meta-yamp layer for details.
+---
+ arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yamp.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yamp.dts b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yamp.dts
+index dbcab9951171..90f8282b92f3 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yamp.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yamp.dts
+@@ -145,3 +145,7 @@ flash1@0 {
+ 		};
+ 	};
+ };
++
++&jtag {
++	status = "okay";
++};
+-- 
+2.47.1
+
