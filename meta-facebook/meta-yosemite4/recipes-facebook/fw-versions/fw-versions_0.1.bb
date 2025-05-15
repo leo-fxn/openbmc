@@ -25,6 +25,7 @@ FW_TOOLS = "\
     wf-bic,chassis-poweron@%i.service_chassis-powercycle@%i.service,obmc-chassis-poweron@%i.target_obmc-chassis-powercycle@%i.target,obmc-chassis-poweron@%i.target_obmc-chassis-powercycle@%i.target,${HOST_INSTANCES} \
     wf-cxl,host-poweron@%i.service_host-powercycle@%i.service,obmc-host-start@%i.target_obmc-host-reboot@%i.target,obmc-host-start@%i.target_obmc-host-reboot@%i.target,${HOST_INSTANCES} \
     wf-misc,host-poweron@%i.service_host-powercycle@%i.service,obmc-host-start@%i.target_obmc-host-reboot@%i.target,obmc-host-start@%i.target_obmc-host-reboot@%i.target,${HOST_INSTANCES} \
+    bios,host-poweron@%i.service_host-powercycle@%i.service,obmc-host-start@%i.target_obmc-host-reboot@%i.target,obmc-host-start@%i.target_obmc-host-reboot@%i.target,${HOST_INSTANCES} \
 "
 
 LOCAL_URI = " \

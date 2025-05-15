@@ -1,0 +1,75 @@
+#!/bin/bash
+set -e
+
+slot=$1
+eid=$((10 * slot))
+version=""
+
+SLOT_EM_PATH="/xyz/openbmc_project/inventory/system/chassis/Yosemite_4_Sentinel_Dome_Slot_${slot}_Chassis"
+
+MAX_RETRIES_EM=12
+MAX_RETRIES_FW=240
+
+RETRY_COUNT=0
+
+while [ "$RETRY_COUNT" -lt "$MAX_RETRIES_EM" ]; do
+    # Step 1: check slot existence
+    if ! busctl introspect xyz.openbmc_project.EntityManager "$SLOT_EM_PATH" &>/dev/null; then
+        echo "Slot$slot does not exist, retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES_EM)"
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        sleep 5
+    else
+        break
+    fi
+done
+
+if [ "$RETRY_COUNT" -ge "$MAX_RETRIES_EM" ]; then
+    echo "Slot$slot does not exist. Exit."
+    exit 1
+fi
+
+RETRY_COUNT=0
+
+while [ "$RETRY_COUNT" -lt "$MAX_RETRIES_FW" ]; do
+    # Step 2: check POST complete
+    present_state=$(
+        pldmtool platform GetStateEffecterStates -m $eid -i 0xff22 |
+            jq --raw-output '."presentState[1]"'
+    )
+
+    if [ "$present_state" != "1" ]; then
+        echo "POST not complete, retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES_FW)"
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        sleep 5
+        continue
+    fi
+
+    # Step 3: try to get BIOS fw version
+    version=$(
+        pldmtool fw_update GetFwParams -m $eid |
+            jq --raw-output '.ComponentParameterEntries[] |
+            select(.ComponentIdentifier == 6) | .ActiveComponentVersionString'
+    )
+
+    if [ -n "$version" ] && [ "$version" != "N/A" ]; then
+        echo "Slot$slot BIOS: $version"
+
+        # save BIOS fw version
+        busctl set-property \
+            xyz.openbmc_project.Settings \
+            "/xyz/openbmc_project/software/host$slot/Sentinel_Dome_bios" \
+            xyz.openbmc_project.Software.Version \
+            Version "s" "$version"
+
+        break
+    else
+        echo "Version is empty or N/A, retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES_FW)"
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        sleep 5
+    fi
+done
+
+if [ "$RETRY_COUNT" -eq "$MAX_RETRIES_FW" ]; then
+    echo "Failed to get slot$slot bios version"
+    exit 2
+fi
