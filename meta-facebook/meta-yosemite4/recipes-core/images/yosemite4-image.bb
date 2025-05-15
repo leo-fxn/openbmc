@@ -19,3 +19,5 @@ IMAGE_INSTALL:append = " fan-manual-mode"
 IMAGE_INSTALL:append = " managed-reboot"
 # Added as a temp way to reset individual nics
 IMAGE_INSTALL:append = " nic-reset"
+# Added to determine when PLDM is missing sensors
+IMAGE_INSTALL:append = " pldm-monitor"

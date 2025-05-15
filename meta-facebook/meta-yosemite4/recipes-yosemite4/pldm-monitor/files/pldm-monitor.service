@@ -1,0 +1,11 @@
+[Unit]
+Description=Monitor pldm sensors
+ConditionPathExists=/run/openbmc/pldm_monitor_requested
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/pldm-monitor
+
+[Install]
+WantedBy=multi-user.target
+
