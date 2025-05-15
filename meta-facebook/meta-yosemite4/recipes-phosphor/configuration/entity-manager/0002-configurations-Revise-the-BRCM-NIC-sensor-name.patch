@@ -1,4 +1,4 @@
-From 1055718d5dcab83fd675f07dafc60bf24ad84a8c Mon Sep 17 00:00:00 2001
+From 180680cee9eb97d5ad66c850de2138fccca78318 Mon Sep 17 00:00:00 2001
 From: RickyWu-wiwynn <ricky_cx_wu@wiwynn.com>
 Date: Wed, 8 May 2024 14:29:36 +0800
 Subject: [PATCH 2/6] configurations: Revise the BRCM NIC sensor name
@@ -102,5 +102,5 @@ index 3f028b7..25e6386 100644
      "Type": "Board",
      "xyz.openbmc_project.Inventory.Decorator.Asset": {
 -- 
-2.45.3
+2.47.1
 
