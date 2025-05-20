@@ -25,6 +25,7 @@ PLATFORMS = [
     "lightning",
     "meru",
     "minerva",
+    "minipack",
     "minipack3n",
     "montblanc",
     "morgan800cc",
