@@ -1,4 +1,4 @@
-From 013f80b064df9557f0ca412b896ed935f1da49ea Mon Sep 17 00:00:00 2001
+From 9670cf390c1fed1c32e7726aa00cedc6d7460278 Mon Sep 17 00:00:00 2001
 From: Tao Ren <taoren@meta.com>
 Date: Mon, 12 Feb 2024 11:31:14 +0700
 Subject: [PATCH] Revert linux kernel patch usb: gadget: f_ecm: Add
@@ -17,7 +17,7 @@ as temporary patch the above patch is reverted.
  3 files changed, 89 deletions(-)
 
 diff --git a/drivers/usb/gadget/function/f_ecm.c b/drivers/usb/gadget/function/f_ecm.c
-index f55f60639e42..d1b9e3831578 100644
+index 2afc30de54ce..61327a0f2503 100644
 --- a/drivers/usb/gadget/function/f_ecm.c
 +++ b/drivers/usb/gadget/function/f_ecm.c
 @@ -872,26 +872,6 @@ static struct usb_function_instance *ecm_alloc_inst(void)
@@ -44,14 +44,15 @@ index f55f60639e42..d1b9e3831578 100644
 -	gether_resume(&ecm->port);
 -}
 -
- static void ecm_free(struct usb_function *f)
+ static int ecm_get_status(struct usb_function *f)
  {
- 	struct f_ecm *ecm;
-@@ -959,8 +939,6 @@ static struct usb_function *ecm_alloc(struct usb_function_instance *fi)
+ 	return (f->func_wakeup_armed ? USB_INTRF_STAT_FUNC_RW : 0) |
+@@ -965,9 +945,7 @@ static struct usb_function *ecm_alloc(struct usb_function_instance *fi)
  	ecm->port.func.setup = ecm_setup;
  	ecm->port.func.disable = ecm_disable;
  	ecm->port.func.free_func = ecm_free;
 -	ecm->port.func.suspend = ecm_suspend;
+ 	ecm->port.func.get_status = ecm_get_status;
 -	ecm->port.func.resume = ecm_resume;
  
  	return &ecm->port.func;
@@ -174,5 +175,5 @@ index 34be220cef77..d8df29b31fd7 100644
  struct net_device *gether_connect(struct gether *);
  void gether_disconnect(struct gether *);
 -- 
-2.45.3
+2.47.1
 
