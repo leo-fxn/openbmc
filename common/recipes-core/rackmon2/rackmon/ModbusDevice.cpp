@@ -1,5 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
+
 #include "ModbusDevice.h"
+#include "DeviceLocationFilter.h"
 #include "Log.h"
 
 using nlohmann::json;
@@ -15,6 +17,7 @@ ModbusDevice::ModbusDevice(
       numCommandRetries_(numCommandRetries),
       registerMap_(registerMap) {
   info_.deviceAddress = deviceAddress;
+  info_.port = interface_.getPort();
   info_.baudrate = registerMap.baudrate;
   info_.deviceType = registerMap.name;
   info_.parity = registerMap.parity;
@@ -31,23 +34,24 @@ ModbusDevice::ModbusDevice(
 }
 
 void ModbusDevice::handleCommandFailure(std::exception& baseException) {
-  if (TimeoutException * ex;
-      (ex = dynamic_cast<TimeoutException*>(&baseException)) != nullptr) {
+  if (TimeoutException* tEx;
+      (tEx = dynamic_cast<TimeoutException*>(&baseException)) != nullptr) {
     info_.timeouts++;
-  } else if (CRCError * ex;
-             (ex = dynamic_cast<CRCError*>(&baseException)) != nullptr) {
+  } else if (CRCError* cEx;
+             (cEx = dynamic_cast<CRCError*>(&baseException)) != nullptr) {
     info_.crcErrors++;
-  } else if (ModbusError * ex;
-             (ex = dynamic_cast<ModbusError*>(&baseException)) != nullptr) {
+  } else if (ModbusError* mEx;
+             (mEx = dynamic_cast<ModbusError*>(&baseException)) != nullptr) {
     // ModbusErrors can happen in normal operation. Do not let
     // it increment numConsecutiveFailures since it should not
     // account as a signal of a device being dormant.
     info_.deviceErrors++;
     return;
-  } else if (std::system_error * ex; (ex = dynamic_cast<std::system_error*>(
-                                          &baseException)) != nullptr) {
+  } else if (std::system_error* sysEx;
+             (sysEx = dynamic_cast<std::system_error*>(&baseException)) !=
+             nullptr) {
     info_.miscErrors++;
-    logError << ex->what() << std::endl;
+    logError << sysEx->what() << std::endl;
   } else {
     info_.miscErrors++;
     logError << baseException.what() << std::endl;
@@ -380,10 +384,14 @@ void ModbusSpecialHandler::handle(ModbusDevice& dev) {
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ModbusDeviceMode,
     {{ModbusDeviceMode::ACTIVE, "ACTIVE"},
-     {ModbusDeviceMode::DORMANT, "DORMANT"}})
+     {ModbusDeviceMode::DORMANT, "DORMANT"}});
 
 void to_json(json& j, const ModbusDeviceInfo& m) {
   j["devAddress"] = m.deviceAddress;
+  if (m.port.has_value()) {
+    j["uniqueDevAddress"] =
+        DeviceLocationFilter::combine(m.port, m.deviceAddress);
+  }
   j["deviceType"] = m.deviceType;
   j["crcErrors"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
@@ -395,6 +403,10 @@ void to_json(json& j, const ModbusDeviceInfo& m) {
 // Legacy JSON format.
 void to_json(json& j, const ModbusDeviceRawData& m) {
   j["addr"] = m.deviceAddress;
+  if (m.port.has_value()) {
+    j["uniqueDevAddress"] =
+        DeviceLocationFilter::combine(m.port, m.deviceAddress);
+  }
   j["crc_fails"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
   j["misc_fails"] = m.miscErrors;

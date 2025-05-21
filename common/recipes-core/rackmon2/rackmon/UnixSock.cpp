@@ -13,7 +13,7 @@ std::mutex UnixService::activeServiceListLock{};
 
 std::tuple<struct sockaddr_un, size_t> UnixSock::getServiceAddr(
     const std::string& sockPath) {
-  struct sockaddr_un ret {};
+  struct sockaddr_un ret{};
   ret.sun_family = AF_UNIX;
   std::strncpy(ret.sun_path, sockPath.c_str(), sizeof(ret.sun_path) - 1);
   return std::make_tuple(ret, sockPath.size() + sizeof(ret.sun_family));

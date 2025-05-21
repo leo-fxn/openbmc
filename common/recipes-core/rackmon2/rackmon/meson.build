@@ -26,6 +26,7 @@ svc_common = common + files(
 )
 srcs = svc_common + files('RackmonSvcUnix.cpp')
 test_srcs = svc_common + files(
+    'tests/DeviceLocationIteratorTest.cpp',
     'tests/DeviceTest.cpp',
     'tests/Main.cpp',
     'tests/ModbusCmdsTest.cpp',

@@ -42,6 +42,8 @@ LOCAL_URI = " \
     file://Log.h \
     file://Device.cpp \
     file://Device.h \
+    file://DeviceLocationFilter.h \
+    file://DeviceLocationIterator.h \
     file://ModbusError.h \
     file://ModbusCmds.cpp \
     file://ModbusCmds.h \
@@ -107,6 +109,7 @@ UNPACKDIR = "${S}"
 LOCAL_URI += " \
     file://tests/Main.cpp \
     file://tests/MsgTest.cpp \
+    file://tests/DeviceLocationIteratorTest.cpp \
     file://tests/DeviceTest.cpp \
     file://tests/ModbusCmdsTest.cpp \
     file://tests/ModbusTest.cpp \

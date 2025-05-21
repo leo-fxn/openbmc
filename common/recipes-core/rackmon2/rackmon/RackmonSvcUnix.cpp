@@ -46,7 +46,8 @@ void from_json(const json& filter, ModbusDataFilter& out) {
   if (filter.contains("deviceFilter")) {
     const json& jdevFilter = filter["deviceFilter"];
     if (jdevFilter.contains("addressFilter")) {
-      out.devFilter.addrFilter = jdevFilter["addressFilter"];
+      out.devFilter.locationFilter =
+          DeviceLocationFilter((std::set<uint16_t>)jdevFilter["addressFilter"]);
     } else if (jdevFilter.contains("typeFilter")) {
       out.devFilter.typeFilter = jdevFilter["typeFilter"];
     } else {
@@ -66,9 +67,35 @@ void from_json(const json& filter, ModbusDataFilter& out) {
   out.latestValueOnly = filter.value("latestValueOnly", false);
 }
 
+static UniqueDeviceAddress getVerifiedAddress(
+    uint16_t devAddress,
+    std::optional<uint16_t> uniqueDevAddress) {
+  auto [port1, addr1] = DeviceLocationFilter::decompose(devAddress);
+  if (uniqueDevAddress.has_value()) {
+    auto [port2, addr2] =
+        DeviceLocationFilter::decompose(uniqueDevAddress.value());
+    if (addr1 != addr2) {
+      throw std::runtime_error(
+          "Mismatch between device address and unique device address");
+    }
+    if (port1.has_value() && port1 != port2) {
+      throw std::runtime_error(
+          "Mismatch between port from device address and port from unique device address");
+    }
+    return std::make_pair(port2, addr2);
+  }
+  return std::make_pair(port1, addr1);
+}
+
 void RackmonUNIXSocketService::executeJSONCommand(const json& req, json& resp) {
   std::string cmd;
   req.at("type").get_to(cmd);
+
+  std::optional<uint16_t> uniqueDevAddress = std::nullopt;
+  if (req.contains("uniqueDevAddress")) {
+    uniqueDevAddress = req["uniqueDevAddress"].get<uint16_t>();
+  }
+
   if (cmd == "raw") {
     Request req_m;
     Response resp_m;
@@ -76,7 +103,7 @@ void RackmonUNIXSocketService::executeJSONCommand(const json& req, json& resp) {
       req_m << uint8_t(b);
     resp_m.len = req["response_length"];
     ModbusTime timeout = ModbusTime(req.value("timeout", 0));
-    rackmond_.rawCmd(req_m, resp_m, timeout);
+    rackmond_.rawCmd(req_m, uniqueDevAddress, resp_m, timeout);
     resp["data"] = {};
     for (size_t i = 0; i < resp_m.len; i++) {
       resp["data"].push_back(int(resp_m.raw[i]));
@@ -85,30 +112,37 @@ void RackmonUNIXSocketService::executeJSONCommand(const json& req, json& resp) {
     resp["data"] = rackmond_.listDevices();
 
   } else if (cmd == "readHoldingRegisters") {
-    uint8_t devAddress = req["devAddress"];
+    auto [port, devAddress] =
+        getVerifiedAddress(req["devAddress"], uniqueDevAddress);
     uint16_t regAddress = req["regAddress"];
     size_t numRegisters = req["numRegisters"];
     ModbusTime timeout = ModbusTime(req.value("timeout", 0));
     std::vector<uint16_t> value(numRegisters);
-    rackmond_.readHoldingRegisters(devAddress, regAddress, value, timeout);
+    rackmond_.readHoldingRegisters(
+        devAddress, port, regAddress, value, timeout);
     resp["regValues"] = value;
   } else if (cmd == "writeSingleRegister") {
-    uint8_t devAddress = req["devAddress"];
+    auto [port, devAddress] =
+        getVerifiedAddress(req["devAddress"], uniqueDevAddress);
     uint16_t regAddress = req["regAddress"];
     uint16_t regValue = req["regValue"];
     ModbusTime timeout = ModbusTime(req.value("timeout", 0));
-    rackmond_.writeSingleRegister(devAddress, regAddress, regValue, timeout);
+    rackmond_.writeSingleRegister(
+        devAddress, port, regAddress, regValue, timeout);
   } else if (cmd == "presetMultipleRegisters") {
-    uint8_t devAddress = req["devAddress"];
+    auto [port, devAddress] =
+        getVerifiedAddress(req["devAddress"], uniqueDevAddress);
     uint16_t regAddress = req["regAddress"];
     std::vector<uint16_t> values = req["regValue"];
     ModbusTime timeout = ModbusTime(req.value("timeout", 0));
-    rackmond_.writeMultipleRegisters(devAddress, regAddress, values, timeout);
+    rackmond_.writeMultipleRegisters(
+        devAddress, port, regAddress, values, timeout);
   } else if (cmd == "readFileRecord") {
-    uint8_t devAddress = req["devAddress"];
+    auto [port, devAddress] =
+        getVerifiedAddress(req["devAddress"], uniqueDevAddress);
     ModbusTime timeout = ModbusTime(req.value("timeout", 0));
     std::vector<FileRecord> records = req["records"];
-    rackmond_.readFileRecord(devAddress, records, timeout);
+    rackmond_.readFileRecord(devAddress, port, records, timeout);
     resp["data"] = records;
   } else if (cmd == "getMonitorDataRaw") {
     std::vector<ModbusDeviceRawData> ret;
