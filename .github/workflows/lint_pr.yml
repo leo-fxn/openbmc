@@ -1,22 +1,22 @@
-name: lint_pr 
+name: lint_pr
 on: pull_request
 jobs:
   run-cppcheck:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Get PR File List 
+      - name: Get PR File List
         shell: bash
         run: |
           URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files"
           curl -s -X GET -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" $URL | jq -r '.[] | .filename' > git_diff.log
-          cat git_diff.log 
-  
+          cat git_diff.log
+
       - name: Check for C/CPP Sources
         shell: bash
         run : |
           CPP_FILE_LIST="/tmp/cppcheck_file_list.log"
-          
+
           # Only keep the source files to check or CPPCheck gets confused.
           sed '/\(\.c$\|\.cpp$\|\.c$\|\.cc$\|\.cu$\|\.cxx$\|\.h$\|\.hh$\|\.hpp$\|\.hxx$\|\.tcc$\)/!d' git_diff.log > $CPP_FILE_LIST
 
@@ -24,7 +24,7 @@ jobs:
             echo "C/C++ source files kept:"
             cat $CPP_FILE_LIST
           fi
-          
+
           if [ -s $CPP_FILE_LIST ]; then
             echo "contains_c_source=true" >> $GITHUB_ENV
           else
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v3
         name: Checkout Repo
         if: env.contains_c_source == 'true'
-        
+
       - uses: actions/setup-python@v2
         name: Setup Python
         if: env.contains_c_source == 'true'
@@ -63,8 +63,9 @@ jobs:
             "--file-list=/tmp/cppcheck_file_list.log"
             "--template={file}:{line}:{column}:{message}"
             "--output-file=/tmp/cppcheck.log"
-            "--report-progress")
-  
+            "--report-progress"
+            "--language=c++")
+
           cppcheck "${options[@]}"
 
           echo "Errors Found:"
@@ -87,21 +88,21 @@ jobs:
   run-shellcheck:
     runs-on: ubuntu-latest
     steps:
-        
+
         # Unfortunately some shell files don't have an extension.
         # This means we need to checkout the entire repo just to see if we need
         # to lint anything...
       - uses: actions/checkout@v3
         name: Checkout Repo
 
-      - name: Get PR File List 
+      - name: Get PR File List
         shell: bash
         run: |
           URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files"
           curl -s -X GET -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" $URL | jq -r '.[] | .filename' > git_diff.log
-          cat git_diff.log 
-  
-      - name: Check for shell files 
+          cat git_diff.log
+
+      - name: Check for shell files
         shell: bash
         run : |
           SHELL_FILE_LIST="/tmp/shellcheck_file_list.log"
@@ -127,11 +128,11 @@ jobs:
             echo "contains_shell_files=true" >> "$GITHUB_ENV"
           else
             echo "contains_shell_files=false" >> "$GITHUB_ENV"
-          fi 
+          fi
 
       - name: Install shellcheck
         if: env.contains_shell_files == 'true'
-        run: sudo apt-get install -y shellcheck 
+        run: sudo apt-get install -y shellcheck
 
       - name: Run shellcheck on Modified Source Files
         if: env.contains_shell_files == 'true'
@@ -144,16 +145,16 @@ jobs:
           FILE_PATHS=$(cat /tmp/shellcheck_file_list.log)
           for FILE_PATH in $FILE_PATHS
           do
-            
-            options=( 
+
+            options=(
               "--format=gcc"
               "--exclude=SC1091")
 
-            # Shellcheck will throw an error if a file fails, github actions don't like that... 
+            # Shellcheck will throw an error if a file fails, github actions don't like that...
             shellcheck "${options[@]}" $FILE_PATH >> /tmp/shellcheck.log || true
-          
+
           done
-          
+
           echo "Errors Found:"
           cat /tmp/shellcheck.log
 
@@ -174,20 +175,20 @@ jobs:
   Aggregate-Lint-Output:
     needs: [run-cppcheck, run-shellcheck]
     if: |
-        always() && 
-        (needs.run-cppcheck.result == 'failure' || 
+        always() &&
+        (needs.run-cppcheck.result == 'failure' ||
          needs.run-shellcheck.result == 'failure')
     runs-on: ubuntu-latest
     steps:
-      
+
       - uses: actions/checkout@v3
         name: Checkout Repo
-       
+
       - uses: reviewdog/action-setup@v1
         with:
-          reviewdog_version: latest 
+          reviewdog_version: latest
 
-      - name: Download all artifacts 
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: /tmp/artifacts
@@ -209,5 +210,3 @@ jobs:
           if test -f "$SHELL_FILE"; then
             cat "$SHELL_FILE" | reviewdog -efm="%f:%l:%c:%m" -filter-mode=nofilter -reporter=github-pr-check
           fi
-
-
