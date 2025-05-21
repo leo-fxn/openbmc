@@ -119,7 +119,7 @@ foreach c : interface_configs
 endforeach
 foreach c : register_maps
     file = join_paths('configs', 'register_map', c)
-    install_data(file, install_dir: '/etc/rackmon.d')
+    install_data(file, install_dir: '/usr/share/rackmon/registermap')
     filepaths_regmap += [file]
 endforeach
 

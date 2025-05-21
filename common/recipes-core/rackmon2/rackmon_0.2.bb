@@ -139,7 +139,7 @@ INTERFACE_CONFIG:ventura = "/usr/share/rackmon/interface/ventura.conf"
 
 install_systemd() {
     sed -i -e "s:REPLACE_WITH_INTERFACE_CONFIG_PATH:${INTERFACE_CONFIG}:" ${UNPACKDIR}/rackmond.service.in
-    sed -i -e "s:REPLACE_WITH_REGMAP_CONFIG_DIR_PATH:/etc/rackmon\.d:" ${UNPACKDIR}/rackmond.service.in
+    sed -i -e "s:REPLACE_WITH_REGMAP_CONFIG_DIR_PATH:/usr/share/rackmon/registermap:" ${UNPACKDIR}/rackmond.service.in
 
     install -d ${D}${systemd_system_unitdir}
 
@@ -175,7 +175,7 @@ do_install:append() {
 
 
 FILES:${PN} = "${prefix}/local/bin ${sysconfdir} "
-FILES:${PN} += "/usr/share/rackmon /usr/share/rackmon/interface "
+FILES:${PN} += "/usr/share/rackmon /usr/share/rackmon/interface /usr/share/rackmon/registermap "
 
 FILES:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_system_unitdir}', '', d)}"
 FILES:${PN} += "${PYTHON_SITEPACKAGES_DIR}/pyrmd.py"
