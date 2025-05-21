@@ -168,6 +168,7 @@ do_install:append() {
 
 
 FILES:${PN} = "${prefix}/local/bin ${sysconfdir} "
+FILES:${PN} += "/usr/share/rackmon /usr/share/rackmon/interface "
 
 FILES:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_system_unitdir}', '', d)}"
 FILES:${PN} += "${PYTHON_SITEPACKAGES_DIR}/pyrmd.py"

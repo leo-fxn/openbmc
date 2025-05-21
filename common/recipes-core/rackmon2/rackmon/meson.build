@@ -114,7 +114,7 @@ filepaths_interface = []
 filepaths_regmap = []
 foreach c : interface_configs
     file = join_paths('configs', 'interface', c)
-    install_data(file, install_dir: '/etc')
+    install_data(file, install_dir: '/usr/share/rackmon/interface')
     filepaths_interface += [file]
 endforeach
 foreach c : register_maps

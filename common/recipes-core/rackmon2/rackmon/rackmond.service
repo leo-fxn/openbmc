@@ -5,7 +5,7 @@ After=setup_i2c.service openbmc_gpio_setup.service
 Wants=openbmc_gpio_setup.service setup_board.service
 
 [Service]
-ExecStart=/usr/local/bin/rackmond /etc/aspeed_uart.conf
+ExecStart=/usr/local/bin/rackmond /usr/share/rackmon/interface/aspeed_uart.conf
 
 [Install]
 WantedBy=multi-user.target

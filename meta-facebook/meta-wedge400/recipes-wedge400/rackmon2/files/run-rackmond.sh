@@ -34,9 +34,9 @@ if [ $((brd_type)) -ge $((0x2)) ]; then
         exit 1
     fi
     # Replace with multiport configuration.
-    INTERFACE_CONFIG_FILE="/etc/usb_ft4232.conf"
+    INTERFACE_CONFIG_FILE="/usr/share/rackmon/interface/usb_ft4232.conf"
 else
-    INTERFACE_CONFIG_FILE="/etc/usb_ft232.conf"
+    INTERFACE_CONFIG_FILE="/usr/share/rackmon/interface/usb_ft232.conf"
 fi
 
 
