@@ -13,7 +13,7 @@ namespace rackmonsvc {
 
 class RackmonUNIXSocketService : public UnixService {
   // The configuration file paths.
-  const std::string kRackmonConfigurationPath = "/etc/rackmon.conf";
+  const std::string kRackmonConfigurationPath;
   const std::string kRackmonRegmapDirPath = "/etc/rackmon.d";
   Rackmon rackmond_{};
 
@@ -28,7 +28,11 @@ class RackmonUNIXSocketService : public UnixService {
       std::unique_ptr<UnixSock> sock) override;
 
  public:
-  RackmonUNIXSocketService() : UnixService("/var/run/rackmond.sock") {}
+  RackmonUNIXSocketService() = delete;
+
+  explicit RackmonUNIXSocketService(const std::string& confPath)
+      : UnixService("/var/run/rackmond.sock"),
+        kRackmonConfigurationPath(confPath) {}
   ~RackmonUNIXSocketService() {}
   // initialize based on service args.
   void initialize() override;
@@ -276,7 +280,7 @@ void RackmonUNIXSocketService::handleRequest(
 
 using namespace rackmonsvc;
 
-int main(int, char* argv[]) {
+int main(int argc, char* argv[]) {
   ::google::InitGoogleLogging(argv[0]);
   int fd = open("/var/run/rackmond.lock", O_CREAT | O_RDWR, 0666);
   if (fd < 0) {
@@ -288,7 +292,8 @@ int main(int, char* argv[]) {
     logError << "Another instance of rackmond is running" << std::endl;
     return -1;
   }
-  rackmonsvc::RackmonUNIXSocketService svc;
+  std::string confPath = (argc > 1) ? argv[1] : "/etc/rackmon.conf";
+  rackmonsvc::RackmonUNIXSocketService svc(confPath);
   svc.initialize();
   svc.doLoop();
   svc.deinitialize();
