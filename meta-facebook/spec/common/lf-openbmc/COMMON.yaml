@@ -208,3 +208,7 @@ Miscellaneous:
     file: openbmc-test-automation.md
     priority: P2
     short: Enable testing with upstream openbmc-test-automation package.
+  Manufacturing Tool:
+    file: mfg-tool.md
+    priority: P2
+    short: Support a manufacturing tool for BMC.
