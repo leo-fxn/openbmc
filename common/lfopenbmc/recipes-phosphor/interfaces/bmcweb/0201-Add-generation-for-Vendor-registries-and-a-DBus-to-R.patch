@@ -1,7 +1,7 @@
-From eb8700374eedfd8901baf1d2d6b8b1afe2a2143b Mon Sep 17 00:00:00 2001
+From 050a394e7748908d5555fb6f519c749dfd9c18f4 Mon Sep 17 00:00:00 2001
 From: Igor Kanyuka <ifelmail@gmail.com>
 Date: Mon, 24 Feb 2025 12:50:55 +0000
-Subject: [PATCH 202/206] Add generation for Vendor registries and a DBus to RF
+Subject: [PATCH 201/205] Add generation for Vendor registries and a DBus to RF
  map
 
 The system consumes Log events sent over DBus, but these events
@@ -31,7 +31,7 @@ Signed-off-by: Igor Kanyuka <ifelmail@gmail.com>
  1 file changed, 341 insertions(+), 64 deletions(-)
 
 diff --git a/scripts/parse_registries.py b/scripts/parse_registries.py
-index 5bfead4c..351d7396 100755
+index 2e2d07e..d249820 100755
 --- a/scripts/parse_registries.py
 +++ b/scripts/parse_registries.py
 @@ -4,6 +4,7 @@ import json
@@ -146,7 +146,7 @@ index 5bfead4c..351d7396 100755
          with open(file, "w") as registry:
              version_split = json_dict["RegistryVersion"].split(".")
  
-@@ -137,12 +157,12 @@ def update_registries(files: t.List[RegistryInfo]) -> None:
+@@ -138,12 +158,12 @@ def update_registries(files: t.List[RegistryInfo]) -> None:
                  "}};\n"
                  "\n"
                  "static constexpr const char* url =\n"
@@ -159,9 +159,9 @@ index 5bfead4c..351d7396 100755
 -                    url=url,
 +                    url=f'"{url}"' if url else "nullptr",
                      version_split=version_split,
+                     description=description,
                  )
-             )
-@@ -673,6 +693,247 @@ def to_pascal_case(text: str) -> str:
+@@ -675,6 +695,247 @@ def to_pascal_case(text: str) -> str:
      return "".join(i.capitalize() for i in s1[0:])
  
  
@@ -409,7 +409,7 @@ index 5bfead4c..351d7396 100755
  def main() -> None:
      dmtf_registries = OrderedDict(
          [
-@@ -705,56 +966,72 @@ def main() -> None:
+@@ -707,56 +968,72 @@ def main() -> None:
          + ",".join([dmtf for dmtf in dmtf_registries]),
          help="Comma delimited list of registries to update",
      )
@@ -527,5 +527,5 @@ index 5bfead4c..351d7396 100755
  
  if __name__ == "__main__":
 -- 
-2.45.3
+2.47.1
 
