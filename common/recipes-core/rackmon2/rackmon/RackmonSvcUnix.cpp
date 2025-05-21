@@ -14,7 +14,7 @@ namespace rackmonsvc {
 class RackmonUNIXSocketService : public UnixService {
   // The configuration file paths.
   const std::string kRackmonConfigurationPath;
-  const std::string kRackmonRegmapDirPath = "/etc/rackmon.d";
+  const std::string kRackmonRegmapDirPath;
   Rackmon rackmond_{};
 
   // Handle commands with the JSON format.
@@ -30,9 +30,12 @@ class RackmonUNIXSocketService : public UnixService {
  public:
   RackmonUNIXSocketService() = delete;
 
-  explicit RackmonUNIXSocketService(const std::string& confPath)
+  explicit RackmonUNIXSocketService(
+      const std::string& confPath,
+      const std::string& regmapDirPath)
       : UnixService("/var/run/rackmond.sock"),
-        kRackmonConfigurationPath(confPath) {}
+        kRackmonConfigurationPath(confPath),
+        kRackmonRegmapDirPath(regmapDirPath) {}
   ~RackmonUNIXSocketService() {}
   // initialize based on service args.
   void initialize() override;
@@ -292,8 +295,19 @@ int main(int argc, char* argv[]) {
     logError << "Another instance of rackmond is running" << std::endl;
     return -1;
   }
-  std::string confPath = (argc > 1) ? argv[1] : "/etc/rackmon.conf";
-  rackmonsvc::RackmonUNIXSocketService svc(confPath);
+  std::string confPath;
+  std::string regmapDirPath;
+  if (argc == 1) {
+    confPath = "/etc/rackmon.conf";
+    regmapDirPath = "/etc/rackmon.d";
+  } else if (argc == 3) {
+    confPath = argv[1];
+    regmapDirPath = argv[2];
+  } else {
+    logError << "Unexpected command line arguments" << std::endl;
+    return -1;
+  }
+  rackmonsvc::RackmonUNIXSocketService svc(confPath, regmapDirPath);
   svc.initialize();
   svc.doLoop();
   svc.deinitialize();

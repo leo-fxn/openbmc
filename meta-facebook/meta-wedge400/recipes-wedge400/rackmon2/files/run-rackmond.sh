@@ -40,5 +40,5 @@ else
 fi
 
 
-exec /usr/local/bin/rackmond "$INTERFACE_CONFIG_FILE"
+exec /usr/local/bin/rackmond "$INTERFACE_CONFIG_FILE" /etc/rackmon.d
 
