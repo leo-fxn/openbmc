@@ -94,7 +94,7 @@ modbus_util_exe = executable(
 )
 
 
-interface_configs = ['aspeed_uart.conf', 'usb_ft232.conf', 'usb_ft4232.conf']
+interface_configs = ['aspeed_uart.conf', 'usb_ft232.conf', 'usb_ft4232.conf', 'ventura.conf']
 
 register_maps = ['orv2_psu.json']
 if get_option('orv3') == true

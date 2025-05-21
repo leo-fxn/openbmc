@@ -9,6 +9,11 @@
         "description": "The path to the TTY device",
         "type": "string"
       },
+      "port": {
+        "description": "Identifier of physical port device_path is mapped to",
+        "type": "integer",
+        "minimum": 1
+      },
       "baudrate": {
         "description": "The default starting baudrate",
         "type": "integer",

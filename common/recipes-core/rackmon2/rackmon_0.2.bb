@@ -36,7 +36,7 @@ UNPACKDIR="${S}"
 LOCAL_URI = " \
     file://meson.build \
     file://meson_options.txt \
-    file://rackmond.service \
+    file://rackmond.service.in \
     file://run-rackmond.sh \
     file://setup-rackmond.sh \
     file://Log.h \
@@ -72,6 +72,7 @@ LOCAL_URI += " \
     file://configs/interface/aspeed_uart.conf \
     file://configs/interface/usb_ft232.conf \
     file://configs/interface/usb_ft4232.conf \
+    file://configs/interface/ventura.conf \
     file://configs/register_map/orv2_psu.json \
     file://configs/register_map/orv3_psu.json \
     file://configs/register_map/orv3_bbu.json \
@@ -133,10 +134,15 @@ install_wrapper() {
   chmod 755 $2
 }
 
+INTERFACE_CONFIG ?= "/usr/share/rackmon/interface/aspeed_uart.conf"
+INTERFACE_CONFIG:ventura = "/usr/share/rackmon/interface/ventura.conf"
+
 install_systemd() {
+    sed -i -e "s:REPLACE_WITH_INTERFACE_CONFIG_PATH:${INTERFACE_CONFIG}:" ${UNPACKDIR}/rackmond.service.in
+
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0644 ${UNPACKDIR}/rackmond.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/rackmond.service.in ${D}${systemd_system_unitdir}/rackmond.service
 }
 
 install_sysv() {
