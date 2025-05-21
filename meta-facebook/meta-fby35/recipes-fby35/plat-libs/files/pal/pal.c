@@ -3319,7 +3319,8 @@ pal_parse_sys_sts_event(uint8_t fru, uint8_t *event_data, char *error_log) {
     ND_E1S_PCIE_RESET = 0xA4,
     ND_CLKBUF_OE_EN = 0xA5,
     ND_E1S_P12V_EFUSE_PWRG = 0xA6,
-    ND_E1S_P3V3_EFUSE_PWRG = 0xA7
+    ND_E1S_P3V3_EFUSE_PWRG = 0xA7,
+    VF_1OU_PRESENT = 0xA8
   };
   uint8_t event = event_data[0];
   char log_msg[MAX_ERR_LOG_SIZE] = {0};
@@ -3446,6 +3447,9 @@ pal_parse_sys_sts_event(uint8_t fru, uint8_t *event_data, char *error_log) {
         snprintf(log_msg, sizeof(log_msg), "E1S 1OU M.2 dev%d present", event_data[2]);
       }
       strcat(error_log, log_msg);
+      break;
+    case VF_1OU_PRESENT:
+      strcat(error_log, "VF 1OU present");
       break;
     case E1S_1OU_INA230_PWR_ALERT:
       snprintf(log_msg, sizeof(log_msg), "E1S 1OU dev%d INA230 power alert", event_data[2]);
