@@ -31,7 +31,7 @@ class RackmonUNIXSocketService : public UnixService {
   RackmonUNIXSocketService() : UnixService("/var/run/rackmond.sock") {}
   ~RackmonUNIXSocketService() {}
   // initialize based on service args.
-  void initialize(int argc, char** argv) override;
+  void initialize() override;
   // Clean up everything before exit.
   void deinitialize() override;
 };
@@ -237,12 +237,12 @@ void RackmonUNIXSocketService::handleJSONCommand(
   }
 }
 
-void RackmonUNIXSocketService::initialize(int argc, char** argv) {
+void RackmonUNIXSocketService::initialize() {
   logInfo << "Loading configuration" << std::endl;
   rackmond_.load(kRackmonConfigurationPath, kRackmonRegmapDirPath);
   logInfo << "Starting rackmon threads" << std::endl;
   rackmond_.start();
-  UnixService::initialize(argc, argv);
+  UnixService::initialize();
 }
 
 void RackmonUNIXSocketService::deinitialize() {
@@ -276,7 +276,7 @@ void RackmonUNIXSocketService::handleRequest(
 
 using namespace rackmonsvc;
 
-int main(int argc, char* argv[]) {
+int main(int, char* argv[]) {
   ::google::InitGoogleLogging(argv[0]);
   int fd = open("/var/run/rackmond.lock", O_CREAT | O_RDWR, 0666);
   if (fd < 0) {
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   rackmonsvc::RackmonUNIXSocketService svc;
-  svc.initialize(argc, argv);
+  svc.initialize();
   svc.doLoop();
   svc.deinitialize();
   return 0;

@@ -210,7 +210,7 @@ void UnixService::unregisterExitHandler() {
   }
 }
 
-void UnixService::initialize(int /* argc */, char** /* argv */) {
+void UnixService::initialize() {
   registerExitHandler();
   sock_ = std::make_unique<UnixServiceSock>(sockPath_);
 }

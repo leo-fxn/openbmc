@@ -33,7 +33,7 @@ TEST(UnixSockTest, BasicLoopback) {
   ASSERT_THROW(ptr = std::make_unique<TestClient>(), std::system_error);
   TestService svc;
   std::thread tid([&svc, &mutex, &cv]() {
-    svc.initialize(0, nullptr);
+    svc.initialize();
     mutex.lock();
     cv.notify_one();
     mutex.unlock();
@@ -57,7 +57,7 @@ TEST(UnixSockTest, BasicTERM) {
   std::condition_variable cv{};
   TestService svc;
   std::thread tid([&svc, &mutex, &cv]() {
-    svc.initialize(0, nullptr);
+    svc.initialize();
     mutex.lock();
     cv.notify_one();
     mutex.unlock();

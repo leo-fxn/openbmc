@@ -79,7 +79,7 @@ class UnixService {
   virtual ~UnixService() {}
   // Request the doLoop to exit.
   void requestExit();
-  virtual void initialize(int /* argc */, char** /* argv */);
+  virtual void initialize();
   virtual void deinitialize();
   // The main service loop. This will block
   // till someone requests it to exit.
