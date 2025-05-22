@@ -258,7 +258,7 @@ pldm_fw_identify() {
 	((offset+=component_string_len))
 	
 	if [ "$instance_type" == "sd_retimer" ]; then
-		if [ "$component_identifier" -lt 4 ] || [ "$component_identifier" -gt 5 ]; then
+		if [ "$component_identifier" -lt 4 ] || [ "$component_identifier" -gt 8 ] || [ "$component_identifier" -eq 6 ]; then
 			echo "This image is not compatible with $instance_type"
 			return $PLDM_FW_IDENT_FAIL
 		fi
