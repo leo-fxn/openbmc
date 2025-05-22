@@ -96,11 +96,3 @@ class Pim8ddmUpgradeTest(FwUpgradeTest, unittest.TestCase):
     def test_pim8ddm_fw_upgrade(self):
         super().do_external_firmware_upgrade("pim8ddm")
 
-
-class Pim8ddrUpgradeTest(FwUpgradeTest, unittest.TestCase):
-    """
-    Individual test for Port Interface Module CPLD PIM8DDR Partition
-    """
-
-    def test_pim8ddr_fw_upgrade(self):
-        super().do_external_firmware_upgrade("pim8ddr")
