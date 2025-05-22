@@ -75,7 +75,7 @@ func ensureFlashAvailable(stepParams step.StepParams) step.StepExitError {
 	}
 
 	// Check for mtdparts aleady being set.
-	cmd = []string{"ls", "/dev/mtd*"}
+	cmd = []string{"sh", "-c", "ls /dev/mtd*"}
 	_, err, stdout, stderr = utils.RunCommand(cmd, 30*time.Second)
 	if err != nil {
 		errMsg := errors.Errorf(

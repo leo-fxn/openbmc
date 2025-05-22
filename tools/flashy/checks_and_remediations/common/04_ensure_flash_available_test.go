@@ -165,7 +165,7 @@ func TestEnsureFlashAvailable(t *testing.T) {
 					} else {
 						return 0, nil, tc.grepOutput, ""
 					}
-				} else if cmdArr[0] == "ls" {
+				} else if cmdArr[0] == "sh" {
 					if tc.failLs {
 						return 1, errors.Errorf("err1"), "", tc.lsOutput
 					} else {
