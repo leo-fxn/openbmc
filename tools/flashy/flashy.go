@@ -82,7 +82,7 @@ func main() {
 	// S493813: Set oom_score_adj and avoid OOMs mid-flash
 	err := fileutils.WriteFileWithTimeout("/proc/self/oom_score_adj", []byte("-500"), 0644, 5*time.Second)
 	if err != nil {
-		log.Fatalf("Failed to set /proc/self/oom_score_adj: %v", err)
+		log.Printf("Failed to set /proc/self/oom_score_adj: %v", err)
 	}
 
 	// check if it's a utilities function
