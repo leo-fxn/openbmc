@@ -21,8 +21,9 @@ import os
 import time
 import unittest
 
-from utils.test_utils import qemu_check
 from utils.shell_util import run_shell_cmd
+
+from utils.test_utils import qemu_check
 
 TEST_SCRIPT = "/tmp/test_dmidecode.sh"
 ACONF_SMB_SERIAL_CACHE = "/mnt/data/.aconf_smb_serial"
@@ -39,13 +40,13 @@ class Dmidecode(unittest.TestCase):
             print(". /usr/local/bin/board-utils.sh", file=f)
             print("function weutil_stub() {", file=f)
             for line in weutil_contents.splitlines():
-                print(f'    echo "{line}"', file=f)
+                print(f"    echo {line!r}", file=f)  # Use !r for repr conversion
             print("}", file=f)
             print("WEUTIL_CMD=weutil_stub", file=f)
             print("function aconfutil_stub() {", file=f)
             print('    if [ $1 == "show" ]; then', file=f)
             for line in aconfutil_contents.splitlines():
-                print(f'        echo "{line}"', file=f)
+                print(f"        echo {line!r}", file=f)  # Use !r for repr conversion
             print("    fi", file=f)
             print("}", file=f)
             print("ACONFUTIL_CMD=aconfutil_stub", file=f)
@@ -67,8 +68,6 @@ class Dmidecode(unittest.TestCase):
             raise AssertionError(f"Timed out waiting for power status {exp_status}")
 
     def test_dmidecode_initial(self):
-        # Tests that the initial state is as expected. This assumes
-        # a cold boot was done.
         output = run_shell_cmd("weutil -e smb")
         product_name = [x for x in output.splitlines() if "Product Name:" in x][
             0
@@ -84,9 +83,12 @@ class Dmidecode(unittest.TestCase):
         ].split("=")[1]
         assert dmi_board_name.lower() == product_name.lower()
 
-        assert os.path.exists(ACONF_SMB_SERIAL_CACHE)
-        cached_serial = open(ACONF_SMB_SERIAL_CACHE, "r").read().splitlines()[0]
-        assert cached_serial == serial_number
+        # The cache may not exist if a cold boot has not been done since
+        # the BMC was updated with aconf cache logic. Therefore only verify
+        # the cached serial number if the cache file exists.
+        if os.path.exists(ACONF_SMB_SERIAL_CACHE):
+            cached_serial = open(ACONF_SMB_SERIAL_CACHE, "r").read().splitlines()[0]
+            assert cached_serial == serial_number
 
     def test_dmidecode_pon(self):
         # Tests cases where the power is on.
