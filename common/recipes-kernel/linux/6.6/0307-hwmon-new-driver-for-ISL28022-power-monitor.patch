@@ -3,7 +3,9 @@ From: YikaiTsai-wiwynn <yikai_tsai@wiwynn.com>
 Date: Wed, 4 Sep 2024 10:08:31 +0800
 Subject: [PATCH 307/330] hwmon: new driver for ISL28022 power monitor
 
-lore link: https://lore.kernel.org/all/20240906061421.9392-1-Delphine_CC_Chiu@wiwynn.com/
+lore link:
+https://lore.kernel.org/all/20240906061421.9392-1-Delphine_CC_Chiu@wiwynn.com/
+https://lore.kernel.org/all/20250519061637.8796-1-yikai.tsai.wiwynn@gmail.com/
 ---
  .../bindings/hwmon/renesas,isl28022.yaml      |  64 +++
  Documentation/hwmon/index.rst                 |   1 +
@@ -11,8 +13,8 @@ lore link: https://lore.kernel.org/all/20240906061421.9392-1-Delphine_CC_Chiu@wi
  MAINTAINERS                                   |   8 +
  drivers/hwmon/Kconfig                         |  11 +
  drivers/hwmon/Makefile                        |   1 +
- drivers/hwmon/isl28022.c                      | 510 ++++++++++++++++++
- 7 files changed, 658 insertions(+)
+ drivers/hwmon/isl28022.c                      | 511 ++++++++++++++++++
+ 7 files changed, 659 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/hwmon/renesas,isl28022.yaml
  create mode 100644 Documentation/hwmon/isl28022.rst
  create mode 100644 drivers/hwmon/isl28022.c
@@ -226,7 +228,7 @@ new file mode 100644
 index 000000000000..01220fad813d
 --- /dev/null
 +++ b/drivers/hwmon/isl28022.c
-@@ -0,0 +1,510 @@
+@@ -0,0 +1,511 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * isl28022.c - driver for Renesas ISL28022 power monitor chip monitoring
@@ -386,8 +388,9 @@ index 000000000000..01220fad813d
 +					  ISL28022_REG_CURRENT, &regval);
 +			if (err < 0)
 +				return err;
-+			*val = ((long)regval * 1250L * (long)data->gain) /
-+				(long)data->shunt;
++			sign_bit = (regval >> 15) & 0x01;
++			*val = (((long)(((u16)regval) & 0x7FFF) - (sign_bit * 32768)) *
++				1250L * (long)data->gain) / (long)data->shunt;
 +			break;
 +		default:
 +			return -EOPNOTSUPP;
