@@ -32,6 +32,7 @@
 
 setup_gpio BMC_READY_N         GPIOP0 out 1
 setup_gpio BMC_I2C2_EN         GPIOF1 out 1
+setup_gpio BMC_I2C13_EN        GPIOG1 out 1
 setup_gpio LEAK_DISABLE_PWR_L  GPIOV1 out 1
 setup_gpio LEAK_BMC_L          GPIOV2 in
 
