@@ -7,3 +7,6 @@ IMAGE_INSTALL:append = " fw-util"
 IMAGE_INSTALL:append = " cpld-fw-handler"
 
 IMAGE_INSTALL:append = " fw-versions"
+
+# Ventura will start monitoring AALCs instead of the wedge400
+IMAGE_INSTALL:append = " rackmon"
