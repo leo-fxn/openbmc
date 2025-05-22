@@ -12,12 +12,15 @@ constexpr std::chrono::milliseconds waitBusyTime(200);
 static constexpr auto TAG_QF = "QF";
 static constexpr auto TAG_UH = "UH";
 static constexpr auto TAG_CF_START = "L000";
-static constexpr auto TAG_UFM = "NOTE TAG DATA";
+static constexpr auto TAG_TAG_DATA = "NOTE TAG DATA";
+static constexpr auto TAG_UFM = "NOTE USER MEMORY DATA";
 static constexpr auto TAG_ROW = "NOTE FEATURE";
 static constexpr auto TAG_CHECKSUM = "C";
 static constexpr auto TAG_USERCODE = "NOTE User Electronic";
 static constexpr auto TAG_EBR_INIT_DATA = "NOTE EBR_INIT DATA";
+static constexpr auto TAG_END_CONFIG = "NOTE END CONFIG DATA";
 static constexpr auto TAG_CF_END = "NOTE END OF CFG";
+static constexpr auto TAG_DEV_NAME = "NOTE DEVICE NAME";
 
 constexpr uint8_t isOK = 0;
 constexpr uint8_t isReady = 0;
