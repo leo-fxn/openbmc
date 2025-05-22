@@ -137,9 +137,18 @@ install_wrapper() {
 INTERFACE_CONFIG ?= "/usr/share/rackmon/interface/aspeed_uart.conf"
 INTERFACE_CONFIG:ventura = "/usr/share/rackmon/interface/ventura.conf"
 
+SERVICE_AFTER ?= ""
+SERVICE_AFTER:openbmc-fb ?= "After=setup_i2c.service openbmc_gpio_setup.service"
+
+SERVICE_WANT ?= ""
+SERVICE_WANT:openbmc-fb ?= "Wants=openbmc_gpio_setup.service setup_board.service"
+
 install_systemd() {
     sed -i -e "s:REPLACE_WITH_INTERFACE_CONFIG_PATH:${INTERFACE_CONFIG}:" ${UNPACKDIR}/rackmond.service.in
     sed -i -e "s:REPLACE_WITH_REGMAP_CONFIG_DIR_PATH:/usr/share/rackmon/registermap:" ${UNPACKDIR}/rackmond.service.in
+
+    sed -i -e "s:REPLACE_WITH_SERVICE_AFTER:${SERVICE_AFTER}:" ${UNPACKDIR}/rackmond.service.in
+    sed -i -e "s:REPLACE_WITH_SERVICE_WANT:${SERVICE_WANT}:" ${UNPACKDIR}/rackmond.service.in
 
     install -d ${D}${systemd_system_unitdir}
 

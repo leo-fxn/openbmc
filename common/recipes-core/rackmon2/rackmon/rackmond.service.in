@@ -1,8 +1,8 @@
 # Copyright 2014-present Facebook. All Rights Reserved.
 [Unit]
 Description=Start rackmond
-After=setup_i2c.service openbmc_gpio_setup.service
-Wants=openbmc_gpio_setup.service setup_board.service
+REPLACE_WITH_SERVICE_AFTER
+REPLACE_WITH_SERVICE_WANT
 
 [Service]
 ExecStart=/usr/local/bin/rackmond REPLACE_WITH_INTERFACE_CONFIG_PATH REPLACE_WITH_REGMAP_CONFIG_DIR_PATH
