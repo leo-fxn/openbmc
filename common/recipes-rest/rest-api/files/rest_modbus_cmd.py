@@ -318,7 +318,7 @@ READ_REQ_SCHEMA = {
     "additionalProperties": False,
     "reqired": ["devAddress", "regAddress", "numRegisters"],
     "properties": {
-        "devAddress": {"type": "integer", "minimum": 0, "maximum": 255},
+        "devAddress": {"type": "integer", "minimum": 0, "maximum": 65535},
         "regAddress": {"type": "integer", "minimum": 0, "maximum": 65535},
         "numRegisters": {"type": "integer", "minimum": 1, "maximum": 127},
         "timeout": {"type": "integer", "minimum": 1},
@@ -339,7 +339,7 @@ WRITE_REQ_SCHEMA = {
     "additionalProperties": False,
     "reqired": ["devAddress", "regAddress", "regValue"],
     "properties": {
-        "devAddress": {"type": "integer", "minimum": 0, "maximum": 255},
+        "devAddress": {"type": "integer", "minimum": 0, "maximum": 65535},
         "regAddress": {"type": "integer", "minimum": 0, "maximum": 65535},
         "timeout": {"type": "integer", "minimum": 1},
         "regValue": {
@@ -373,7 +373,7 @@ READ_FILE_SCHEMA = {
             "type": "object",
             "required": ["devAddress", "records"],
             "properties": {
-                "devAddress": {"type": "integer", "minimum": 0, "maximum": 255},
+                "devAddress": {"type": "integer", "minimum": 0, "maximum": 65535},
                 "timeout": {"type": "integer", "minimum": 1},
                 "records": {
                     "type": "array",

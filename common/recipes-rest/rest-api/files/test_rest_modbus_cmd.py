@@ -126,6 +126,39 @@ class TestRestModbusCmd(AioHTTPTestCase):
             with self.assertRaises(jsonschema.ValidationError) as _:
                 jsonschema.validate([164, opcode], rest_modbus_cmd.COMMAND_SCHEMA)
 
+    def check_bounds(self, payload, schema, inner=None):
+        if inner is None:
+            inner = payload
+
+        jsonschema.validate(payload, schema)
+
+        inner["devAddress"] = 400
+        jsonschema.validate(payload, schema)
+
+        inner["devAddress"] = 65535
+        jsonschema.validate(payload, schema)
+
+        inner["devAddress"] = 65536
+        with self.assertRaises(jsonschema.ValidationError) as _:
+            jsonschema.validate(payload, schema)
+
+    def test_validate_unique_device_address_bounds_in_read_req(self):
+        payload = {"devAddress": 0, "regAddress": 0, "numRegisters": 1}
+        self.check_bounds(payload, rest_modbus_cmd.READ_REQ_SCHEMA)
+
+    def test_validate_unique_device_address_bounds_in_write_req(self):
+        payload = {"devAddress": 0, "regAddress": 0, "regValue": [0]}
+        self.check_bounds(payload, rest_modbus_cmd.WRITE_REQ_SCHEMA)
+
+    def test_validate_unique_device_address_bounds_in_read_file(self):
+        payload = {
+            "req": {
+                "devAddress": 0,
+                "records": [{"fileNum": 1, "recordNum": 1, "dataSize": 1}],
+            }
+        }
+        self.check_bounds(payload, rest_modbus_cmd.READ_FILE_SCHEMA, payload["req"])
+
     async def get_application(self):
         webapp = aiohttp.web.Application()
         webapp.router.add_post("/api/sys/modbus/cmd", rest_modbus_cmd.post_modbus_cmd)
