@@ -17,45 +17,70 @@ test_change() {
   return 0
 }
 
-patch_status() {
-  cid=$1
-  curl -sk "https://gerrit.openbmc.org/changes/$cid" | jq -R 'fromjson?' | jq -r .status
-}
-
-update_patch() {
-  file=$1
-  if grep "Change-Id: " "$file" > /dev/null; then
-    # Some kernel patches have change ID as well.
-    if ! grep "Lore link: " "$file" > /dev/null; then
-      change=$(grep "Change-Id: " "$file" | awk '{print $2}')
-      if test_change "$change"; then
-        patch_status=$(patch_status "$change")
-        if [ "$patch_status" == "MERGED" ]; then
-          echo "STALE PATCH: $file. Merged upstream please remove/delete"
-        else
-          echo "Updating $file with $change from gerrit $patch_status"
-          download_change "$change" "$file"
-        fi
-      fi
-    fi
+patch_change() {
+  file="$1"
+  change=$(grep "Change-Id: " "$file" | awk '{print $2}')
+  if test_change "$change"; then
+    echo "$change"
+  else
+    echo "UNKNOWN"
   fi
 }
 
-update_all() {
-  locations=( "common" "meta-facebook" )
-  for location in "${locations[@]}"; do
-    files=$(find "$location" -name "*.patch")
-    for file in $files; do
-      update_patch "$file"
-    done
-  done
+patch_info() {
+  cid="$1"
+  curl -sk "https://gerrit.openbmc.org/changes/$cid" | jq -R 'fromjson?'
 }
 
-if [ "$1" == "" ]; then
-  update_all
-elif [ "$1" == "-h" ]; then
-  echo "USAGE: $0 [PATCH]"
-  echo "If no options provided, find all and update"
-else
-  update_patch "$1"
+patch_status() {
+  echo "$1" | jq -r .status
+}
+
+patch_updated() {
+  echo "$1" | jq -r .updated
+}
+
+find_gerrit_patches() {
+  grep -lR "Change-Id" "$1"
+}
+
+script_path="$0"
+cmd="$1"
+shift
+if [ "$cmd" == "-h" ]; then
+  echo "USAGE: $script_path COMMAND [PATCH|DIRECTORY]"
+  echo "COMMAND is one of [status|update]"
+  echo "If directory is provided it looks for all patches in said directory"
+  exit 0
+elif [ "$cmd" == "" ]; then
+  echo "ERROR: Check $script_path -h"
+  exit 1
 fi
+for ent in "$@"; do
+  if [ -d "$ent" ]; then
+    ents=$(find_gerrit_patches "$ent")
+  elif [ -f "$ent" ]; then
+    ents="$ent"
+  else
+    echo "ERROR: $ent not fount"
+    continue
+  fi
+  for patch in $ents; do
+    cid=$(patch_change "$patch")
+    if [ "$cid" == "UNKNOWN" ]; then
+      echo "$cid UNKNOWN UNKNOWN $patch"
+      continue
+    fi
+    info=$(patch_info "$cid")
+    pstatus=$(patch_status "$info")
+    updated=$(patch_updated "$info")
+    echo "$pstatus $updated $patch"
+    if [ "$cmd" == "update" ]; then
+      if [ "$pstatus" != "MERGED" ] && [ "$pstatus" != "ABANDONED" ]; then
+        download_change "$cid" "$patch"
+      else
+        echo "NOT Updating merged/abandoned patch $patch"
+      fi
+    fi
+  done
+done
