@@ -60,7 +60,7 @@ class FruRiserSlot2Test(CommonFruTest, unittest.TestCase):
     def setUp(self):
         self.fru = "riser_slot2"
         self.fru_cmd = ["/usr/local/bin/fruid-util", self.fru]
-        self.fru_fields = {"product": 1, "board": 4}
+        self.fru_fields = {"board": 4}
 
     def getBoardFields(self, num_custom=0):
         board_fields = {
@@ -104,7 +104,7 @@ class FruRiserSlot3Test(FruRiserSlot2Test):
     def setUp(self):
         self.fru = "riser_slot3"
         self.fru_cmd = ["/usr/local/bin/fruid-util", self.fru]
-        self.fru_fields = {"product": 1, "board": 4}
+        self.fru_fields = {"board": 4}
 
     def getProductFields(self, num_custom=1):
         if check_board_product(fru="riser_slot3", product="PCIe Retimer Card"):
@@ -123,4 +123,4 @@ class FruRiserSlot4Test(FruRiserSlot2Test):
     def setUp(self):
         self.fru = "riser_slot4"
         self.fru_cmd = ["/usr/local/bin/fruid-util", self.fru]
-        self.fru_fields = {"product": 1, "board": 4}
+        self.fru_fields = {"board": 4}
