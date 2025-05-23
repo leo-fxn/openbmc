@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2022-present Facebook. All Rights Reserved.
+# Copyright (c) Meta Platforms, Inc. and affiliates. (http://www.meta.com)
 #
 # This program file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -19,14 +19,20 @@
 #
 import unittest
 
-from common.base_emmc_test import BaseEmmcTest
-from utils.test_utils import qemu_check
+from common.base_bmc_mac_test import BaseBMCMacTest
 
 
-class Icecube800bcEmmcTest(BaseEmmcTest, unittest.TestCase):
-    def set_emmc_mount_point(self):
-        self.emmc_mountpoint = "/mnt/data1"
+class BMCMacTest(BaseBMCMacTest, unittest.TestCase):
+    def set_bmc_mac(self):
+        self.bmc_mac_cmd = [". openbmc-utils.sh && bmc_mac_addr"]
 
-    @unittest.skipIf(qemu_check(), "test env is QEMU, skipped")
-    def test_emmc(self):
-        super().test_emmc()
+    def set_bmc_interface(self):
+        self.bmc_interface = "eth0"
+
+    def set_valid_mac_pattern(self):
+        # Celestica Vendor OUI
+        # ref: https://rst.im/oui/CELESTICA%20INC
+        self.mac_pattern = [
+            r"(b4\:db\:91\:..\:..\:..)",
+            r"(dc\:da\:4d\:..\:..\:..)",
+        ]
