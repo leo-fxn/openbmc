@@ -30,9 +30,9 @@ source /usr/local/bin/openbmc-utils.sh
 
 board_ver=$(wedge_board_rev) #Get board version
 # VDD AVS need to config for DVT1 and later
-if [ "$board_ver" == "BOARD_FUJI_EVT1" ] || \
-[ "$board_ver" == "BOARD_FUJI_EVT2" ] || \
-[ "$board_ver" == "BOARD_FUJI_EVT3" ]; then
+if [ "$board_ver" == "EVT1" ] || \
+[ "$board_ver" == "EVT2" ] || \
+[ "$board_ver" == "EVT3" ]; then
     echo "No need to set avs VOUT."
     exit 1
 fi

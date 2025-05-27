@@ -42,9 +42,9 @@ echo "Done setting fan speed"
 fscd_enable=1
 
 board_ver=$(wedge_board_rev)
-if [ "$board_ver" == "BOARD_FUJI_EVT1" ] || \
-[ "$board_ver" == "BOARD_FUJI_EVT2" ] || \
-[ "$board_ver" == "BOARD_FUJI_EVT3" ]; then
+if [ "$board_ver" == "EVT1" ] || \
+[ "$board_ver" == "EVT2" ] || \
+[ "$board_ver" == "EVT3" ]; then
     fscd_enable=0
     echo "For EVT board, Setting fan speed to 70%..."
     /usr/local/bin/set_fan_speed.sh 70

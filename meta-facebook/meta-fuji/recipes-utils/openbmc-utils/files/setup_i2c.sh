@@ -126,9 +126,9 @@ i2c_device_add 8 0x51 24c64
 i2c_device_add 8 0x4a lm75
 
 # net_brcm driver only support DVT1 and later
-if [ "$board_ver" != "BOARD_FUJI_EVT1" ] && \
-[ "$board_ver" != "BOARD_FUJI_EVT2" ] && \
-[ "$board_ver" != "BOARD_FUJI_EVT3" ]; then
+if [ "$board_ver" != "EVT1" ] && \
+[ "$board_ver" != "EVT2" ] && \
+[ "$board_ver" != "EVT3" ]; then
     i2c_device_add 29 0x47 net_brcm
 fi
 
