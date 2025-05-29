@@ -21,5 +21,3 @@ IMAGE_INSTALL:append = " managed-reboot"
 IMAGE_INSTALL:append = " nic-reset"
 # Added to determine when PLDM is missing sensors
 IMAGE_INSTALL:append = " pldm-monitor"
-# Temp add back due to consoles missing
-IMAGE_INSTALL:append = " phosphor-hostlogger"
